@@ -1,0 +1,186 @@
+#if defined(__MAC_OS_X_VERSION_MAX_ALLOWED) && __MAC_OS_X_VERSION_MAX_ALLOWED >= 1080
+//
+//  GPGXPCTask.m
+//  Libmacgpg
+//
+//  Created by Lukas Pitschl on 28.09.12.
+//
+//
+
+#import "JailfreeTask.h"
+#import "GPGMemoryStream.h"
+#import "GPGWatcher.h"
+#import "GPGException.h"
+#import "GPGTaskHelper.h"
+
+@interface JailfreeTask ()
+- (BOOL)isCodeSignatureValidAtPath:(NSString *)path;
+@end
+
+
+@implementation JailfreeTask
+
+@synthesize xpcConnection = _xpcConnection;
+
+- (void)testConnection:(void (^)(BOOL))reply {
+	reply(YES);
+}
+
+- (void)launchGPGWithArguments:(NSArray *)arguments data:(NSArray *)data readAttributes:(BOOL)readAttributes reply:(void (^)(NSDictionary *))reply {
+    
+	GPGTaskHelper *task = [[GPGTaskHelper alloc] initWithArguments:arguments];
+    
+	dispatch_group_t taskAndStatusGroup = dispatch_group_create();
+	
+    // Setup the task.
+	GPGMemoryStream *outputStream = [[GPGMemoryStream alloc] init];
+    task.output = outputStream;
+	
+    NSMutableArray *inData = [[NSMutableArray alloc] init];
+    [data enumerateObjectsUsingBlock:^(id obj, NSUInteger idx, BOOL *stop) {
+        GPGMemoryStream *stream = [[GPGMemoryStream alloc] initForReading:obj];
+        [inData addObject:stream];
+    }];
+    task.inData = inData;
+	id <Jail> remoteProxy = [_xpcConnection remoteObjectProxy];
+    typeof(task) __weak weakTask = task;
+    
+	task.processStatus = (lp_process_status_t)^(NSString *keyword, NSString *value) {
+        dispatch_group_enter(taskAndStatusGroup);
+        [remoteProxy processStatusWithKey:keyword value:value reply:^(NSData *response) {
+            GPGTaskHelper *strongTask = weakTask;
+            // Since not every process status requires an answer, but currently our protocol does,
+            // it's possible that the gpg process has already completed when responses are still coming in.
+            if(response && !strongTask.completed) {
+				@try {
+					[strongTask respond:response];
+				}
+				@catch (NSException *exception) {}
+			}
+			dispatch_group_leave(taskAndStatusGroup);
+		}];
+    };
+    
+	task.progressHandler = ^(NSUInteger processedBytes, NSUInteger totalBytes) {
+        [remoteProxy progress:processedBytes total:totalBytes];
+    };
+    
+	task.readAttributes = readAttributes;
+    task.checkForSandbox = NO;
+    
+    xpc_transaction_begin();
+		
+	__block NSException *taskError = nil;
+	dispatch_group_async(taskAndStatusGroup, dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
+		// Start the task.
+		@try {
+			[task run];
+		}
+		@catch (NSException *exception) {
+			taskError = exception;
+		}
+	});
+	dispatch_group_notify(taskAndStatusGroup, dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
+		// Once the task is completed, check for errors and create an error response if necessary,
+		// otherwise copy the task results into the response and send it back.
+		NSDictionary *result = nil;
+		if(taskError) {
+			NSMutableDictionary *exceptionInfo = [NSMutableDictionary dictionaryWithObjectsAndKeys:taskError.name, @"name",
+												  taskError.reason, @"reason", nil];
+			if([taskError isKindOfClass:[GPGException class]])
+				[exceptionInfo setObject:[NSNumber numberWithUnsignedInt:((GPGException *)taskError).errorCode] forKey:@"errorCode"];
+			
+			result = [NSDictionary dictionaryWithObjectsAndKeys:exceptionInfo, @"exception", nil];
+		}
+		else {
+			result = [task copyResult];
+		}
+		
+		reply(result);
+		
+		xpc_transaction_end();
+	});
+}
+
+- (void)launchGeneralTask:(NSString *)path withArguments:(NSArray *)arguments wait:(BOOL)wait reply:(void (^)(BOOL))reply {
+	if ([self isCodeSignatureValidAtPath:path]) {
+		NSTask *task = [NSTask launchedTaskWithLaunchPath:path arguments:arguments];
+		if (wait) {
+			[task waitUntilExit];
+			reply(task.terminationStatus == 0);
+		} else {
+			reply(YES);
+		}
+	} else {
+		NSLog(@"No valid signature at path: %@", path);
+		reply(NO);
+	}
+}
+
+- (void)startGPGWatcher {
+    [GPGWatcher activateWithXPCConnection:self.xpcConnection];
+}
+
+- (void)loadConfigFileAtPath:(NSString *)path reply:(void (^)(NSString *))reply {
+	NSArray *allowedConfigs = @[@"gpg.conf", @"gpg-agent.conf"];
+	
+	if(![allowedConfigs containsObject:[path lastPathComponent]])
+		reply(nil);
+	
+	NSError * __autoreleasing error = nil;
+ 	NSString *configFile = [[NSString alloc] initWithContentsOfFile:path encoding:NSUTF8StringEncoding error:&error];
+	if(!configFile) {
+		reply(nil);
+	}
+	
+	reply(configFile);
+}
+
+- (void)loadUserDefaultsForName:(NSString *)domainName reply:(void (^)(NSDictionary *))reply {
+	NSDictionary *defaults = [[NSUserDefaults standardUserDefaults] persistentDomainForName:domainName];
+	
+	reply(defaults);
+}
+
+- (void)setUserDefaults:(NSDictionary *)domain forName:(NSString *)domainName reply:(void (^)(BOOL))reply {
+	[[NSUserDefaults standardUserDefaults] setPersistentDomain:domain forName:domainName];
+	
+	reply(YES);
+}
+
+- (void)isPassphraseForKeyInGPGAgentCache:(NSString *)key reply:(void (^)(BOOL))reply {
+	reply([GPGTaskHelper isPassphraseInGPGAgentCache:key]);
+}
+
+// Helper methods
+
+- (BOOL)isCodeSignatureValidAtPath:(NSString *)path  {
+    OSStatus result;
+    SecRequirementRef requirement = nil;
+    SecStaticCodeRef staticCode = nil;
+        
+    result = SecStaticCodeCreateWithPath((__bridge CFURLRef)[NSURL fileURLWithPath:path], 0, &staticCode);
+    if (result) {
+        goto finally;
+    }
+	
+	result = SecRequirementCreateWithString(CFSTR("anchor apple generic and cert leaf = H\"233B4E43187B51BF7D6711053DD652DDF54B43BE\""), 0, &requirement);
+	if (result) {
+        goto finally;
+    }
+
+	result = SecStaticCodeCheckValidity(staticCode, 0, requirement);
+    
+finally:
+    if (staticCode) CFRelease(staticCode);
+    if (requirement) CFRelease(requirement);
+    return result == 0;
+}
+
+
+
+
+
+
+@end
+#endif
