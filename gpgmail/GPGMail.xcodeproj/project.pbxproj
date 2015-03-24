@@ -7685,7 +7685,7 @@
 				GENERATE_PKGINFO_FILE = YES;
 				HEADER_SEARCH_PATHS = (
 					"MailHeaders/**",
-					"$(SRCROOT)/Dependencies/Libmacgpg/build/$(CONFIGURATION)/Libmacgpg.framework/Headers",
+					"$(SRCROOT)/../libmacgpg/build/$(CONFIGURATION)/Libmacgpg.framework/Headers",
 				);
 				INFOPLIST_FILE = Resources/Info.plist;
 				INSTALL_GPGMAIL = 1;
@@ -7726,7 +7726,7 @@
 				GENERATE_PKGINFO_FILE = YES;
 				HEADER_SEARCH_PATHS = (
 					"MailHeaders/**",
-					"$(SRCROOT)/Dependencies/Libmacgpg/build/$(CONFIGURATION)/Libmacgpg.framework/Headers",
+					"$(SRCROOT)/../libmacgpg/build/$(CONFIGURATION)/Libmacgpg.framework/Headers",
 				);
 				INFOPLIST_FILE = Resources/Info.plist;
 				INSTALL_PATH = "$(HOME)/Library/Mail/Bundles";
@@ -7757,7 +7757,7 @@
 				DEPLOY_RESOURCES_DIR = "$(SRCROOT)/Dependencies/DeployResources";
 				FRAMEWORK_SEARCH_PATHS = (
 					"\"$(SRCROOT)/Frameworks\"",
-					"$(SRCROOT)/Dependencies/Libmacgpg/build/$(CONFIGURATION)",
+					"$(SRCROOT)/../libmacgpg/build/$(CONFIGURATION)",
 					"$(HOME)/Library/Containers/com.apple.mail/Data/Library/Frameworks",
 					"$(HOME)/Library/Frameworks",
 					/Library/Frameworks,
@@ -7815,7 +7815,7 @@
 				DEPLOY_RESOURCES_DIR = "$(SRCROOT)/Dependencies/DeployResources";
 				FRAMEWORK_SEARCH_PATHS = (
 					"\"$(SRCROOT)/Frameworks\"",
-					"$(SRCROOT)/Dependencies/Libmacgpg/build/$(CONFIGURATION)",
+					"$(SRCROOT)/../libmacgpg/build/$(CONFIGURATION)",
 					"$(HOME)/Library/Containers/com.apple.mail/Data/Library/Frameworks",
 					"$(HOME)/Library/Frameworks",
 					/Library/Frameworks,
