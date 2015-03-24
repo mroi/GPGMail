@@ -1109,7 +1109,7 @@
 				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
 				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
 				GCC_WARN_UNINITIALIZED_AUTOS = YES;
-				LD_RUNPATH_SEARCH_PATHS = "$(BUILT_PRODUCTS_DIR) $(HOME)/Library/Frameworks /Library/Frameworks";
+				LD_RUNPATH_SEARCH_PATHS = "$(BUILT_PRODUCTS_DIR) @loader_path/../../../..";
 				MACOSX_DEPLOYMENT_TARGET = 10.8;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
@@ -1132,7 +1132,7 @@
 				GCC_PREFIX_HEADER = "Source/org.gpgtools.Libmacgpg.xpc/org.gpgtools.Libmacgpg.xpc-Prefix.pch";
 				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
 				GCC_WARN_UNINITIALIZED_AUTOS = YES;
-				LD_RUNPATH_SEARCH_PATHS = "/Library/Frameworks $(HOME)/Library/Frameworks";
+				LD_RUNPATH_SEARCH_PATHS = "@loader_path/../../../..";
 				MACOSX_DEPLOYMENT_TARGET = 10.8;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
