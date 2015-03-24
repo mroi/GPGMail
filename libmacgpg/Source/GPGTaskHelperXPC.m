@@ -105,9 +105,12 @@
 	
 	BOOL healthy = NO;
 	NSString *xpcBinaryName = @"org.gpgtools.Libmacgpg.xpc";
-	NSString *xpcBinaryPath = [@"/Library/Application Support/GPGTools" stringByAppendingPathComponent:xpcBinaryName];
-	if([[NSFileManager defaultManager] isExecutableFileAtPath:xpcBinaryPath])
-		healthy = YES;
+	NSArray *xpcBundlePaths = [NSBundle allFrameworks];
+	for (NSBundle *bundle in xpcBundlePaths)
+		if ([bundle pathForResource:xpcBinaryName ofType:@""]) {
+			healthy = YES;
+			break;
+		}
 	
 	return healthy;
 }
