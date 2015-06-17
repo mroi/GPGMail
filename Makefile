@@ -22,7 +22,7 @@ install: all
 		fgrep -q $$uuid $(PLUGIN_DIR)/GPGMail.mailbundle/Contents/Info.plist || \
 		defaults write $(PLUGIN_DIR)/GPGMail.mailbundle/Contents/Info SupportedPluginCompatibilityUUIDs -array-add $$uuid
 	codesign -s "`id -F`" $(RESOURCE_DIR)/pinentry-mac.app
-	codesign -s "`id -F`" $(RESOURCE_DIR)/org.gpgtools.Libmacgpg.xpc
+	codesign -s "`id -F`" $(RESOURCE_DIR)/org.gpgtools.Libmacgpg.xpc -i org.gpgtools.Libmacgpg.xpc
 	codesign -s "`id -F`" $(FRAMEWORK_DIR)/Libmacgpg.framework
 	codesign -s "`id -F`" $(PLUGIN_DIR)/GPGMail.mailbundle
 	sed 's|/Library/Application Support/GPGTools|$(RESOURCE_DIR)|' < libmacgpg/build/org.gpgtools.Libmacgpg.xpc.plist > ~/Library/LaunchAgents/org.gpgtools.Libmacgpg.xpc.plist
