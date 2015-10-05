@@ -116,7 +116,9 @@ static BOOL gpgMailWorks = NO;
 		NSRunAlertPanel([self localizedStringForKey:@"LIBMACGPG_NOT_FOUND_TITLE"], [self localizedStringForKey:@"LIBMACGPG_NOT_FOUND_MESSAGE"], nil, nil, nil);
 		return;
 	}
-        
+    
+    
+    
     /* Check the validity of the code signature.
      * Disable for the time being, since Info.plist is part of the code signature
      * and if a new version of OS X is released, and the UUID is added, this check
@@ -182,6 +184,43 @@ static BOOL gpgMailWorks = NO;
         GPGMailLoggingLevel = (int)[[GPGOptions sharedOptions] integerForKey:@"DebugLog"];
         DebugLog(@"Debug Log enabled: %@", [[GPGOptions sharedOptions] integerForKey:@"DebugLog"] > 0 ? @"YES" : @"NO");
         
+        
+        // Show update dialog for OS X 10.11
+        if (floor(NSAppKitVersionNumber) > NSAppKitVersionNumber10_9 && [[NSProcessInfo processInfo] operatingSystemVersion].minorVersion == 11) {
+            if (![options boolForKey:@"DoNotSearchElCapitanUpdate"]) {
+                // Quest the user if we should check for a new GPGMail for El Capitan.
+                NSAlert *elcapitanAlert = [NSAlert new];
+                elcapitanAlert.messageText = GMLocalizedString(@"UPDATE_ELCAPITAN_TITLE");
+                elcapitanAlert.informativeText = GMLocalizedString(@"UPDATE_ELCAPITAN_MESSAGE");
+                [elcapitanAlert addButtonWithTitle:GMLocalizedString(@"UPDATE_ELCAPITAN_YES")];
+                [elcapitanAlert addButtonWithTitle:GMLocalizedString(@"UPDATE_ELCAPITAN_NO")];
+                elcapitanAlert.icon = [NSImage imageNamed:@"GPGMail"];
+                NSInteger result = [elcapitanAlert runModal];
+                
+                if (result == NSAlertFirstButtonReturn) { // Users said yes.
+                    // Switch to the prerelease channel.
+                    [options setValueInStandardDefaults:@"prerelease" forKey:@"UpdateSource"];
+                    [options saveStandardDefaults];
+                    
+                    // Search for updates.
+                    NSString *updaterPath = @"/Library/Application Support/GPGTools/GPGMail_Updater.app/Contents/MacOS/GPGMail_Updater";
+                    [GPGTask launchGeneralTask:updaterPath withArguments:@[@"checkNow"]];
+                } else {
+                    // The user disabled GPGMail.
+                    // Never show the message again.
+                    [options setBool:YES forKey:@"DoNotSearchElCapitanUpdate"];
+                }
+            }
+            
+            
+            // Do not enable GPGMail on OS X 10.11
+            return self;
+        }
+
+        
+        
+        
+        
         _keyManager = [[GMKeyManager alloc] init];
         
         // Initiate the Message Rules Applier.
@@ -201,7 +240,9 @@ static BOOL gpgMailWorks = NO;
 }
 
 - (void)dealloc {
-    dispatch_release(_checkGPGTimer);
+    if (_checkGPGTimer) {
+        dispatch_release(_checkGPGTimer);
+    }
 }
 
 - (void)_loadImages {
