@@ -234,3 +234,10 @@ NO_DEFAULTS_MESSAGE = "GPGMail is not working as expected.\n\nPlease download an
 "UNENCRYPTED_REPLY_TO_ENCRYPTED_MESSAGE_SOLUTION_IMPORT_KEYS_SINGULAR" = "Otherwise, search and import the the corresponding public key using GPG Keychain in order to send the reply encrypted.";
 "UNENCRYPTED_REPLY_TO_ENCRYPTED_MESSAGE_BUTTON_SEND_ANYWAY" = "Send Anyway";
 "UNENCRYPTED_REPLY_TO_ENCRYPTED_MESSAGE_BUTTON_CANCEL" = "Cancel";
+
+/* GPGMail 2.5 on El Capitan */
+UPDATE_ELCAPITAN_TITLE = "This version of GPGMail is not compatible with OS X 10.11 El Capitan";
+UPDATE_ELCAPITAN_MESSAGE = "In order to continue using GPGMail, you will have to install the latest beta version for El Capitan.\nAttention: The beta version may contain bugs.\n\nAfter pressing \"Download GPGMail beta\" a new window will open. Click \"Install Update\" to start the installation.\n\nIf the beta version can't be found, please retry later.\n";
+UPDATE_ELCAPITAN_YES = "Download GPGMail beta";
+UPDATE_ELCAPITAN_NO = "Disable GPGMail";
+
