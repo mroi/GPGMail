@@ -1886,18 +1886,21 @@
 	__block MimePart *versionPart = nil;
 	__block MimePart *dataPart = nil;
 	[self enumerateSubpartsWithBlock:^(MimePart *part) {
-		if([part isType:@"application" subtype:@"pgp-encrypted"]) {
-			if(!versionPart)
+		if ([part isType:@"application" subtype:@"pgp-encrypted"]) {
+			// Should we really check the version...?
+			if (!versionPart && [[part bodyData] containsPGPVersionMarker:1]) {
 				versionPart = part;
+			}
 		}
-		else if([part isType:@"application" subtype:@"octet-stream"] || [part isType:@"application" subtype:@"pgp-signature"]) {
-			if(!dataPart)
+		else if ([part isType:@"application" subtype:@"octet-stream"] || [part isType:@"application" subtype:@"pgp-signature"]) {
+			if (!dataPart) {
 				dataPart = part;
+			}
 		}
 	}];
-	// Should we check the version...?
-	if(versionPart && [[versionPart bodyData] containsPGPVersionMarker:1] && dataPart)
+	if (versionPart && dataPart) {
 		return YES;
+	}
 	
 	return NO;
 }
