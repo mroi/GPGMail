@@ -693,7 +693,12 @@
 	
     MessageBody *decryptedMessageBody = nil;
     NSData *encryptedData = [dataPart bodyData];
-    
+	
+	// If encrytedData is nil, rangeOfData returns 0 instead of NSNotFound.
+	// Makes sense probably.
+	if(!encryptedData)
+		return nil;
+	
     // Check if the data part contains the Content-Type string.
     // If so, this is a message which was created by a very early alpha
     // of GPGMail 2.0 which sent out completely corrupted messages.

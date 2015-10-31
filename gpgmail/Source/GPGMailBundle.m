@@ -42,6 +42,9 @@
 #import "GPGMailPreferences.h"
 #import "MVMailBundle.h"
 #import "NSString+GPGMail.h"
+#import "HeadersEditor+GPGMail.h"
+#import "DocumentEditor.h"
+#import "GMSecurityControl.h"
 
 @interface GPGMailBundle ()
 
@@ -117,8 +120,6 @@ static BOOL gpgMailWorks = NO;
 		return;
 	}
     
-    
-    
     /* Check the validity of the code signature.
      * Disable for the time being, since Info.plist is part of the code signature
      * and if a new version of OS X is released, and the UUID is added, this check
@@ -183,42 +184,6 @@ static BOOL gpgMailWorks = NO;
         // Configure the logging level.
         GPGMailLoggingLevel = (int)[[GPGOptions sharedOptions] integerForKey:@"DebugLog"];
         DebugLog(@"Debug Log enabled: %@", [[GPGOptions sharedOptions] integerForKey:@"DebugLog"] > 0 ? @"YES" : @"NO");
-        
-        
-        // Show update dialog for OS X 10.11
-        if (floor(NSAppKitVersionNumber) > NSAppKitVersionNumber10_9 && [[NSProcessInfo processInfo] operatingSystemVersion].minorVersion == 11) {
-            if (![options boolForKey:@"DoNotSearchElCapitanUpdate"]) {
-                // Quest the user if we should check for a new GPGMail for El Capitan.
-                NSAlert *elcapitanAlert = [NSAlert new];
-                elcapitanAlert.messageText = GMLocalizedString(@"UPDATE_ELCAPITAN_TITLE");
-                elcapitanAlert.informativeText = GMLocalizedString(@"UPDATE_ELCAPITAN_MESSAGE");
-                [elcapitanAlert addButtonWithTitle:GMLocalizedString(@"UPDATE_ELCAPITAN_YES")];
-                [elcapitanAlert addButtonWithTitle:GMLocalizedString(@"UPDATE_ELCAPITAN_NO")];
-                elcapitanAlert.icon = [NSImage imageNamed:@"GPGMail"];
-                NSInteger result = [elcapitanAlert runModal];
-                
-                if (result == NSAlertFirstButtonReturn) { // Users said yes.
-                    // Switch to the prerelease channel.
-                    [options setValueInStandardDefaults:@"prerelease" forKey:@"UpdateSource"];
-                    [options saveStandardDefaults];
-                    
-                    // Search for updates.
-                    NSString *updaterPath = @"/Library/Application Support/GPGTools/GPGMail_Updater.app/Contents/MacOS/GPGMail_Updater";
-                    [GPGTask launchGeneralTask:updaterPath withArguments:@[@"checkNow"]];
-                } else {
-                    // The user disabled GPGMail.
-                    // Never show the message again.
-                    [options setBool:YES forKey:@"DoNotSearchElCapitanUpdate"];
-                }
-            }
-            
-            
-            // Do not enable GPGMail on OS X 10.11
-            return self;
-        }
-
-        
-        
         
         
         _keyManager = [[GMKeyManager alloc] init];
@@ -443,7 +408,7 @@ static BOOL gpgMailWorks = NO;
     return [[[GPGMailBundle bundle] infoDictionary] valueForKey:@"CFBundleVersion"];
 }
 
-+ (NSNumber *)bundleBuildNumber {
++ (NSString *)bundleBuildNumber {
     return [[[GPGMailBundle bundle] infoDictionary] valueForKey:@"BuildNumber"];
 }
 
@@ -483,7 +448,7 @@ static BOOL gpgMailWorks = NO;
 }
 
 + (BOOL)isLion {
-    return floor(NSAppKitVersionNumber) > NSAppKitVersionNumber10_6 && ![self isMountainLion] && ![self isMavericks] && ![self isYosemite];
+    return floor(NSAppKitVersionNumber) > NSAppKitVersionNumber10_6 && ![self isMountainLion] && ![self isMavericks] && ![self isYosemite] && ![self isElCapitan];
 }
 
 + (BOOL)isMavericks {
@@ -492,6 +457,15 @@ static BOOL gpgMailWorks = NO;
 
 + (BOOL)isYosemite {
     return floor(NSAppKitVersionNumber) > NSAppKitVersionNumber10_9;
+}
+
++ (BOOL)isElCapitan {
+    NSProcessInfo *info = [NSProcessInfo processInfo];
+    if(![info respondsToSelector:@selector(isOperatingSystemAtLeastVersion:)])
+        return NO;
+    
+    NSOperatingSystemVersion requiredVersion = {10,11,0};
+    return [info isOperatingSystemAtLeastVersion:requiredVersion];
 }
 
 + (BOOL)hasPreferencesPanel {
@@ -507,5 +481,24 @@ static BOOL gpgMailWorks = NO;
 	return GMLocalizedString(@"PGP_PREFERENCES");
 }
 
++ (id)backEndFromObject:(id)object {
+    id backEnd = nil;
+    if([object isKindOfClass:[GPGMailBundle resolveMailClassFromName:@"HeadersEditor"]]) {
+        if([GPGMailBundle isElCapitan])
+            backEnd = [[object composeViewController] backEnd];
+        else
+            backEnd = [[object valueForKey:@"_documentEditor"] backEnd];
+    }
+    else if([object isKindOfClass:[GMSecurityControl class]]) {
+        if([GPGMailBundle isElCapitan])
+            backEnd = [[object composeViewController] backEnd];
+        else
+            backEnd = [[object valueForKey:@"_documentEditor"] backEnd];
+    }
+    
+    //NSAssert(backEnd != nil, @"Couldn't find a way to access the ComposeBackEnd");
+    
+    return backEnd;
+}
 
 @end

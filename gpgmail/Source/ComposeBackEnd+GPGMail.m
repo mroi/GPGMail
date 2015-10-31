@@ -40,6 +40,8 @@
 #define restrict
 #import <RegexKit/RegexKit.h>
 
+#define MAIL_SELF ((ComposeBackEnd *)self)
+
 @implementation ComposeBackEnd_GPGMail
 
 - (BOOL)setupSecurityPropertiesQueue {
@@ -53,6 +55,16 @@
 - (dispatch_queue_t)securityPropertiesQueue {
 	GMDispatchQueueObject *securityPropertiesQueue = [self getIvar:@"GMSecurityPropertiesQueue"];
 	return securityPropertiesQueue.dispatchQueue;
+}
+
+- (id)MAInit {
+	id ret = [self MAInit];
+	
+	/** On El Capitan initCreatingDocumentEditor no longer exists, instead we'll setup our securityPropertiesQueue in init.
+	 */
+	[ret setupSecurityPropertiesQueue];
+	
+	return ret;
 }
 
 - (id)MAInitCreatingDocumentEditor:(BOOL)createDocumentEditor {
@@ -1189,6 +1201,8 @@
 }
 
 @end
+
+#undef MAIL_SELF
 
 @implementation GMDispatchQueueObject
 

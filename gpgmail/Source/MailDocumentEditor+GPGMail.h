@@ -87,4 +87,12 @@
 
 - (void)_updateSecurityControls;
 
+@property (nonatomic, retain) GMSecurityMethodAccessoryView	*securityMethodAccessoryView;
+
+@end
+
+@interface MailDocumentEditor_GPGMail (NotImplemented)
+
+- (id)delegate;
+
 @end
