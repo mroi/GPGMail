@@ -135,13 +135,6 @@
 			remoteGlobalIDString = 8DC2EF5B0486A6940098B216;
 			remoteInfo = Libmacgpg;
 		};
-		1B0626AB1746998D00E51308 /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = 1B06268F1746992B00E51308 /* Libmacgpg.xcodeproj */;
-			proxyType = 2;
-			remoteGlobalIDString = 30C8B38E139503A800F49AA1;
-			remoteInfo = UnitTest;
-		};
 		1B0626AD1746998D00E51308 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = 1B06268F1746992B00E51308 /* Libmacgpg.xcodeproj */;
@@ -169,6 +162,13 @@
 			proxyType = 1;
 			remoteGlobalIDString = 8D5B49AC048680CD000E48DA;
 			remoteInfo = GPGMail;
+		};
+		304DD04F1C3D49A30018D217 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 1B06268F1746992B00E51308 /* Libmacgpg.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = 30BE73BE1B54015C001A2137;
+			remoteInfo = UnitTests;
 		};
 		305354FA1920FE57006C1D39 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
@@ -3268,6 +3268,17 @@
 		3033BF5F1A1FA6F700935374 /* SparkleDefaults.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = SparkleDefaults.plist; sourceTree = "<group>"; };
 		303F16261500EF92002AC36B /* en */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.strings; name = en; path = en.lproj/GPGAttachments.xib.strings; sourceTree = "<group>"; };
 		303F16271500EF9A002AC36B /* de */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.strings; name = de; path = de.lproj/GPGAttachments.xib.strings; sourceTree = "<group>"; };
+		304DD0511C3D4A3B0018D217 /* en_US */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = en_US; path = en_US.lproj/GPGSignatureView.xib; sourceTree = "<group>"; };
+		304DD0521C3D4A3B0018D217 /* en_US */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = en_US; path = en_US.lproj/GPGMailPreferences.xib; sourceTree = "<group>"; };
+		304DD0531C3D4A3B0018D217 /* en_US */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = en_US; path = en_US.lproj/GPGAttachments.xib; sourceTree = "<group>"; };
+		304DD0541C3D4A3B0018D217 /* en_US */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = en_US; path = en_US.lproj/GPGAttachments.xib.strings; sourceTree = "<group>"; };
+		304DD0551C3D4A3B0018D217 /* en_US */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = en_US; path = en_US.lproj/GPGSignatureView.xib.strings; sourceTree = "<group>"; };
+		304DD0561C3D4A3B0018D217 /* en_US */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = en_US; path = en_US.lproj/GPGMailPreferences.xib.strings; sourceTree = "<group>"; };
+		304DD0571C3D4A3B0018D217 /* en_US */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = en_US; path = en_US.lproj/GPGMail.strings; sourceTree = "<group>"; };
+		304DD0581C3D4A3B0018D217 /* en_US */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = en_US; path = en_US.lproj/SignatureView.strings; sourceTree = "<group>"; };
+		304DD0591C3D4A3B0018D217 /* en_US */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = en_US; path = en_US.lproj/GPGAttachment.strings; sourceTree = "<group>"; };
+		304DD05A1C3D4A3B0018D217 /* en_US */ = {isa = PBXFileReference; lastKnownFileType = text.html; name = en_US; path = en_US.lproj/Special.html; sourceTree = "<group>"; };
+		304DD05B1C3D4A3B0018D217 /* en_US */ = {isa = PBXFileReference; lastKnownFileType = text.rtf; name = en_US; path = en_US.lproj/Credits.rtf; sourceTree = "<group>"; };
 		305354F61920FE57006C1D39 /* GPGMail_Updater.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; path = GPGMail_Updater.xcodeproj; sourceTree = "<group>"; };
 		3057F2EA1507C9C000FA3C0D /* en */ = {isa = PBXFileReference; lastKnownFileType = text.html; name = en; path = en.lproj/Special.html; sourceTree = "<group>"; };
 		3066C60617579F5900384E29 /* CertSmallStd_Invalid.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = CertSmallStd_Invalid.png; sourceTree = "<group>"; };
@@ -3552,10 +3563,10 @@
 			isa = PBXGroup;
 			children = (
 				1B0626AA1746998D00E51308 /* Libmacgpg.framework */,
-				1B0626AC1746998D00E51308 /* UnitTest.octest */,
+				304DD0501C3D49A30018D217 /* UnitTests.xctest */,
 				1B0626AE1746998D00E51308 /* org.gpgtools.Libmacgpg.xpc */,
-				1B0626B01746998D00E51308 /* installerHelper */,
 				1B0626B21746998D00E51308 /* LeakFinder.app */,
+				1B0626B01746998D00E51308 /* GPGTools.app */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -6914,6 +6925,7 @@
 				1B49BC7B1A98C21B000440E9 /* Copy "How to get the source code" into Resources */,
 				30F151E21500BE8D00980642 /* Install GPGMail */,
 				1BC07F3517466697004263BB /* Copy Libmacgpg into the sandbox container */,
+				30E05DD41BF3663E00E7272F /* Languages fixes */,
 			);
 			buildRules = (
 			);
@@ -6969,6 +6981,7 @@
 				sk,
 				tr_TR,
 				zh_CN,
+				en_US,
 			);
 			mainGroup = 089C166AFE841209C02AAC07 /* GPGMail */;
 			projectDirPath = "";
@@ -6998,13 +7011,6 @@
 			remoteRef = 1B0626A91746998D00E51308 /* PBXContainerItemProxy */;
 			sourceTree = BUILT_PRODUCTS_DIR;
 		};
-		1B0626AC1746998D00E51308 /* UnitTest.octest */ = {
-			isa = PBXReferenceProxy;
-			fileType = wrapper.cfbundle;
-			path = UnitTest.octest;
-			remoteRef = 1B0626AB1746998D00E51308 /* PBXContainerItemProxy */;
-			sourceTree = BUILT_PRODUCTS_DIR;
-		};
 		1B0626AE1746998D00E51308 /* org.gpgtools.Libmacgpg.xpc */ = {
 			isa = PBXReferenceProxy;
 			fileType = "compiled.mach-o.executable";
@@ -7012,10 +7018,10 @@
 			remoteRef = 1B0626AD1746998D00E51308 /* PBXContainerItemProxy */;
 			sourceTree = BUILT_PRODUCTS_DIR;
 		};
-		1B0626B01746998D00E51308 /* installerHelper */ = {
+		1B0626B01746998D00E51308 /* GPGTools.app */ = {
 			isa = PBXReferenceProxy;
-			fileType = "compiled.mach-o.executable";
-			path = installerHelper;
+			fileType = wrapper.application;
+			path = GPGTools.app;
 			remoteRef = 1B0626AF1746998D00E51308 /* PBXContainerItemProxy */;
 			sourceTree = BUILT_PRODUCTS_DIR;
 		};
@@ -7024,6 +7030,13 @@
 			fileType = wrapper.application;
 			path = LeakFinder.app;
 			remoteRef = 1B0626B11746998D00E51308 /* PBXContainerItemProxy */;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
+		304DD0501C3D49A30018D217 /* UnitTests.xctest */ = {
+			isa = PBXReferenceProxy;
+			fileType = wrapper.cfbundle;
+			path = UnitTests.xctest;
+			remoteRef = 304DD04F1C3D49A30018D217 /* PBXContainerItemProxy */;
 			sourceTree = BUILT_PRODUCTS_DIR;
 		};
 		305354FB1920FE57006C1D39 /* GPGMail_Updater.app */ = {
@@ -7171,6 +7184,21 @@
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
 			shellScript = "[[ \"$LOCALIZE\" == \"NO\" ]] && exit 0\n [[ -d \"$DEPLOY_RESOURCES_DIR\" ]] || exit 0\n \n alias localizeXIB=\"$DEPLOY_RESOURCES_DIR/bin/localizeXIB\"\n ignore=\"$DEPLOY_RESOURCES_DIR/config/l10n_ignored_strings.txt\"\n langs=\"ca cs da de es et fi fr gl id_ID it nb nl_NL pl pt_BR pt_PT ru sk sv tr_TR zh_CN\"\n sourceDir=Resources/en.lproj\n \n localizeXIB -i \"$ignore\" $sourceDir/GPGMailPreferences.xib $langs || exit 1\n localizeXIB -i \"$ignore\" $sourceDir/GPGSignatureView.xib   $langs || exit 1\n localizeXIB -i \"$ignore\" $sourceDir/GPGAttachments.xib     $langs || exit 1\n";
+			showEnvVarsInLog = 0;
+		};
+		30E05DD41BF3663E00E7272F /* Languages fixes */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputPaths = (
+			);
+			name = "Languages fixes";
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "RESOURCES_DIR=\"$BUILT_PRODUCTS_DIR/$UNLOCALIZED_RESOURCES_FOLDER_PATH\"\n\n# Link pt.lproj -> pt_BR.lproj\nln -hfs pt_BR.lproj \"$RESOURCES_DIR/pt.lproj\"\n\n# Link en.lproj -> en_US.lproj\nln -hfs en_US.lproj \"$RESOURCES_DIR/en.lproj\"\n# 'en' is our source language, don't change existing strings to not break transifex.\n# 'en' isn't copied into the app. (Build setting \"EXCLUDED_SOURCE_FILE_NAMES = en.lproj\")\n# 'en_US' is the \"localized\" 'en' and linked as 'en'.\n\n";
 			showEnvVarsInLog = 0;
 		};
 		30F151C51500BD4500980642 /* Fill Info.plist */ = {
@@ -7321,6 +7349,7 @@
 				30A5EC69175CACE50023E231 /* sv */,
 				30A5EC6F175CACE90023E231 /* tr_TR */,
 				309DF976175CACFD0062ADE3 /* zh_CN */,
+				304DD0571C3D4A3B0018D217 /* en_US */,
 			);
 			name = GPGMail.strings;
 			sourceTree = "<group>";
@@ -7358,6 +7387,7 @@
 				302FF166175CAE7900DB03EB /* es */,
 				302FF167175CAE7A00DB03EB /* da */,
 				302FF168175CAE7B00DB03EB /* fr */,
+				304DD0511C3D4A3B0018D217 /* en_US */,
 			);
 			name = GPGSignatureView.xib;
 			sourceTree = "<group>";
@@ -7387,6 +7417,7 @@
 				30A5EC67175CACE50023E231 /* sv */,
 				30A5EC6D175CACE90023E231 /* tr_TR */,
 				309DF974175CACFD0062ADE3 /* zh_CN */,
+				304DD0591C3D4A3B0018D217 /* en_US */,
 			);
 			name = GPGAttachment.strings;
 			sourceTree = "<group>";
@@ -7416,6 +7447,7 @@
 				302FF189175CAEC400DB03EB /* pl */,
 				302FF18A175CAEC500DB03EB /* sk */,
 				302FF18B175CAEC600DB03EB /* sv */,
+				304DD0531C3D4A3B0018D217 /* en_US */,
 			);
 			name = GPGAttachments.xib;
 			path = Resources;
@@ -7446,6 +7478,7 @@
 				30A5EC6C175CACE50023E231 /* sv */,
 				30A5EC72175CACE90023E231 /* tr_TR */,
 				309DF979175CACFD0062ADE3 /* zh_CN */,
+				304DD0581C3D4A3B0018D217 /* en_US */,
 			);
 			name = SignatureView.strings;
 			sourceTree = "<group>";
@@ -7475,6 +7508,7 @@
 				30A5EC6A175CACE50023E231 /* sv */,
 				30A5EC70175CACE90023E231 /* tr_TR */,
 				309DF977175CACFD0062ADE3 /* zh_CN */,
+				304DD0561C3D4A3B0018D217 /* en_US */,
 			);
 			name = GPGMailPreferences.xib.strings;
 			sourceTree = "<group>";
@@ -7504,6 +7538,7 @@
 				30A5EC6B175CACE50023E231 /* sv */,
 				30A5EC71175CACE90023E231 /* tr_TR */,
 				309DF978175CACFD0062ADE3 /* zh_CN */,
+				304DD0551C3D4A3B0018D217 /* en_US */,
 			);
 			name = GPGSignatureView.xib.strings;
 			sourceTree = "<group>";
@@ -7533,6 +7568,7 @@
 				30A5EC68175CACE50023E231 /* sv */,
 				30A5EC6E175CACE90023E231 /* tr_TR */,
 				309DF975175CACFD0062ADE3 /* zh_CN */,
+				304DD0541C3D4A3B0018D217 /* en_US */,
 			);
 			name = GPGAttachments.xib.strings;
 			sourceTree = "<group>";
@@ -7541,6 +7577,7 @@
 			isa = PBXVariantGroup;
 			children = (
 				3057F2EA1507C9C000FA3C0D /* en */,
+				304DD05A1C3D4A3B0018D217 /* en_US */,
 			);
 			name = Special.html;
 			sourceTree = "<group>";
@@ -7570,6 +7607,7 @@
 				302FF177175CAEAB00DB03EB /* sv */,
 				302FF178175CAEAB00DB03EB /* tr-TR */,
 				302FF179175CAEAC00DB03EB /* zh-Hans */,
+				304DD0521C3D4A3B0018D217 /* en_US */,
 			);
 			name = GPGMailPreferences.xib;
 			sourceTree = "<group>";
@@ -7581,6 +7619,7 @@
 				30FC04E614FFE61100AA19FE /* de */,
 				30C37B6514FFE65400649F0B /* fr */,
 				30C37C0014FFE67300649F0B /* sv */,
+				304DD05B1C3D4A3B0018D217 /* en_US */,
 			);
 			name = Credits.rtf;
 			sourceTree = "<group>";
@@ -7671,6 +7710,7 @@
 				CODE_SIGN_IDENTITY = "";
 				COMBINE_HIDPI_IMAGES = YES;
 				COPY_PHASE_STRIP = NO;
+				EXCLUDED_SOURCE_FILE_NAMES = "en.lproj/*";
 				GCC_DYNAMIC_NO_PIC = NO;
 				GCC_ENABLE_OBJC_GC = unsupported;
 				GCC_GENERATE_DEBUGGING_SYMBOLS = YES;
@@ -7716,6 +7756,7 @@
 				COPY_PHASE_STRIP = YES;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				DEPLOYMENT_POSTPROCESSING = NO;
+				EXCLUDED_SOURCE_FILE_NAMES = "en.lproj/*";
 				GCC_ENABLE_OBJC_GC = unsupported;
 				GCC_OPTIMIZATION_LEVEL = s;
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
