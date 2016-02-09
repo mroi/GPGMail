@@ -57,7 +57,7 @@
 #pragma mark Constants and global variables
 
 NSString *GPGMailSwizzledMethodPrefix = @"MA";
-NSString *GPGMailAgent = @"GPGMail %@";
+NSString *GPGMailAgent = @"GPGMail";
 NSString *GPGMailKeyringUpdatedNotification = @"GPGMailKeyringUpdatedNotification";
 NSString *gpgErrorIdentifier = @"^~::gpgmail-error-code::~^";
 
@@ -413,7 +413,12 @@ static BOOL gpgMailWorks = NO;
 }
 
 + (NSString *)agentHeader {
-    NSString *header = [NSString stringWithFormat:GPGMailAgent, [(GPGMailBundle *)[GPGMailBundle sharedInstance] version]];
+    NSString *header;
+    if ([[GPGOptions sharedOptions] boolForKey:@"emit-version"]) {
+        header = [NSString stringWithFormat:@"%@ %@", GPGMailAgent, [(GPGMailBundle *)[GPGMailBundle sharedInstance] version]];
+    } else {
+        header = @"GPGMail";
+    }
     return header;
 }
 
