@@ -12,7 +12,7 @@
 
 @interface GPGKeyserver ()
 @property (retain, nonatomic) NSURLConnection *connection;
-@property (retain, nonatomic) GPGException *exception;
+@property (retain, nonatomic) NSException *exception;
 @end
 
 
