@@ -7183,7 +7183,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "[[ \"$LOCALIZE\" == \"NO\" ]] && exit 0\n [[ -d \"$DEPLOY_RESOURCES_DIR\" ]] || exit 0\n \n alias localizeXIB=\"$DEPLOY_RESOURCES_DIR/bin/localizeXIB\"\n ignore=\"$DEPLOY_RESOURCES_DIR/config/l10n_ignored_strings.txt\"\n langs=\"ca cs da de es et fi fr gl id_ID it nb nl_NL pl pt_BR pt_PT ru sk sv tr_TR zh_CN\"\n sourceDir=Resources/en.lproj\n \n localizeXIB -i \"$ignore\" $sourceDir/GPGMailPreferences.xib $langs || exit 1\n localizeXIB -i \"$ignore\" $sourceDir/GPGSignatureView.xib   $langs || exit 1\n localizeXIB -i \"$ignore\" $sourceDir/GPGAttachments.xib     $langs || exit 1\n";
+			shellScript = "[[ \"$LOCALIZE\" == \"NO\" ]] && exit 0\n [[ -d \"$DEPLOY_RESOURCES_DIR\" ]] || exit 0\n \n alias localizeXIB=\"$DEPLOY_RESOURCES_DIR/bin/localizeXIB\"\n ignore=\"$DEPLOY_RESOURCES_DIR/config/l10n_ignored_strings.txt\"\n langs=\"ca cs da de en_US es et fi fr gl id_ID it nb nl_NL pl pt_BR pt_PT ru sk sv tr_TR zh_CN\"\n sourceDir=Resources/en.lproj\n \n localizeXIB -i \"$ignore\" $sourceDir/GPGMailPreferences.xib $langs || exit 1\n localizeXIB -i \"$ignore\" $sourceDir/GPGSignatureView.xib   $langs || exit 1\n localizeXIB -i \"$ignore\" $sourceDir/GPGAttachments.xib     $langs || exit 1\n";
 			showEnvVarsInLog = 0;
 		};
 		30E05DD41BF3663E00E7272F /* Languages fixes */ = {
