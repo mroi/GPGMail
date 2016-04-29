@@ -31,6 +31,7 @@
 #import "GPGMailBundle.h"
 #import "MailAccount.h"
 #import "ExchangeAccount.h"
+#import <pwd.h>
 
 
 #define localized(key) [GPGMailBundle localizedStringForKey:key]
@@ -102,7 +103,28 @@ NSString *SUScheduledCheckIntervalKey = @"SUScheduledCheckInterval";
 
 
 - (IBAction)openSupport:(id)sender {
-    [[NSWorkspace sharedWorkspace] openURL:[NSURL URLWithString:@"https://gpgtools.tenderapp.com/"]];
+	// Find gpgPrefLauncher inside of GPGPreferences.prefPane.
+	NSString *path = @"/Library/PreferencePanes/GPGPreferences.prefPane/Contents/Resources/gpgPrefLauncher";
+	if (![[NSFileManager defaultManager] fileExistsAtPath:path]) {
+		struct passwd *pw = getpwuid(getuid());
+		if (pw) {
+			NSString *home = [NSString stringWithUTF8String:pw->pw_dir];
+			path = [home stringByAppendingPathComponent:path];
+		}
+		if (![[NSFileManager defaultManager] fileExistsAtPath:path]) {
+			path = nil;
+		}
+	}
+	
+	BOOL success = NO;
+	if (path) {
+		success = [GPGTask launchGeneralTask:path withArguments:@[@"report"] wait:YES];
+	}
+	
+	if (!success) {
+		// Alternative if GPGPreferences could not be launched.
+		[[NSWorkspace sharedWorkspace] openURL:[NSURL URLWithString:@"https://gpgtools.tenderapp.com/"]];
+	}
 }
 - (IBAction)openDonate:(id)sender {
     [[NSWorkspace sharedWorkspace] openURL:[NSURL URLWithString:@"https://gpgtools.org/donate"]];
@@ -115,13 +137,6 @@ NSString *SUScheduledCheckIntervalKey = @"SUScheduledCheckInterval";
 
 - (IBAction)openGPGStatusHelp:(id)sender {
     [[NSWorkspace sharedWorkspace] openURL:[NSURL URLWithString:@"https://gpgtools.tenderapp.com/kb/how-to/gpg-status"]];
-}
-
-- (IBAction)copyVersionInfo:(id)sender {
-	NSPasteboard *pasteboard = [NSPasteboard generalPasteboard];
-	[pasteboard clearContents];
-	NSString *string = [NSString stringWithFormat:@"%@\n%@", self.versionDescription, self.buildNumberDescription.string];
-	[pasteboard writeObjects:@[string]];
 }
 
 
