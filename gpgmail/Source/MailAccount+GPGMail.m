@@ -67,25 +67,29 @@ static NSString *GPGMailSwizzledMethodPrefix = @"MA";
     
     static dispatch_once_t onceToken;
     dispatch_once(&onceToken, ^{
-        // read the accounts to make sure they are in memory.
-		NSString *messageRouterClassName = nil;
-		if(NSClassFromString(@"MessageRouter")) {
-			messageRouterClassName = @"MessageRouter";
-		}
-		else if(NSClassFromString(@"MFMessageRouter")) {
-			messageRouterClassName = @"MFMessageRouter";
-		}
-		// No MessageRouter class available? bail out.
-		if(!messageRouterClassName)
-			return;
+		if (![GPGMailBundle isElCapitan]) {
+			NSString *messageRouterClassName = nil;
+			if (NSClassFromString(@"MessageRouter")) {
+				messageRouterClassName = @"MessageRouter";
+			}
+			else if (NSClassFromString(@"MFMessageRouter")) {
+				messageRouterClassName = @"MFMessageRouter";
+			}
+			// No MessageRouter class available? bail out.
+			if(!messageRouterClassName) {
+				return;
+			}
 
-		NSDictionary * deferredHooks = @{
-                                         messageRouterClassName: @[
-                                                 @"putRulesThatWantsToHandleMessage:intoArray:colorRulesOnly:"
-                                                 ]
-                                         };
-        [GMCodeInjector injectUsingMethodPrefix:GPGMailSwizzledMethodPrefix hooks:deferredHooks];
+			NSDictionary * deferredHooks = @{
+											 messageRouterClassName: @[
+													 @"putRulesThatWantsToHandleMessage:intoArray:colorRulesOnly:"
+													 ]
+											 };
+			[GMCodeInjector injectUsingMethodPrefix:GPGMailSwizzledMethodPrefix hooks:deferredHooks];
+
+		}
     });
+    
 }
 
 @end

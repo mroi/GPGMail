@@ -197,6 +197,10 @@
                      @"status": @"renamed",
                      @"name": @"DocumentEditor"
              },
+             @"MessageRouter": @{
+                     @"status": @"renamed",
+                     @"name": @"MFMessageRouter"
+            },
              @"MessageContentController": @{
                      @"status": @"renamed",
                      @"name": @"MessageViewController",
@@ -384,8 +388,9 @@
 			// Interestingly enough, this is done in the arclite implementation of the sdk this code is compiled on.
 			// Setting hook[class] to hook[selectors] would crash on previous version if the code was compiled on 10.9 or lower
 			// since no nil check was added in the arclite implementation of setObject:forKeyedSubscript:
-			if(hook[@"selectors"])
+			if(hook[@"selectors"]) {
 				hooks[class] = hook[@"selectors"];
+			}
 			continue;
 		}
 		// Class was removed.
