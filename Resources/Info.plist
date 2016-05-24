@@ -2,8 +2,6 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
-	<key>BuildNumber</key>
-	<string>AUTOFILL</string>
 	<key>CFBundleDevelopmentRegion</key>
 	<string>en</string>
 	<key>CFBundleDocumentTypes</key>
@@ -26,31 +24,25 @@
 	<string>AUTOFILL</string>
 	<key>CommitHash</key>
 	<string>AUTOFILL</string>
+	<key>BuildNumber</key>
+	<string>AUTOFILL</string>
+	<key>NSHumanReadableCopyright</key>
+	<string>Copyright © GPGTools, 2013</string>
+	<key>NSPrincipalClass</key>
+	<string>GPGMailBundle</string>
 	<key>GMOSXVersions</key>
 	<array>
+		<string>10.11</string>
 		<string>10.7</string>
 		<string>10.8</string>
 		<string>10.9</string>
 		<string>10.10</string>
 	</array>
-	<key>NSHumanReadableCopyright</key>
-	<string>Copyright © GPGTools, 2013</string>
-	<key>NSPrincipalClass</key>
-	<string>GPGMailBundle</string>
-	<key>SUEnableAutomaticChecks</key>
-	<true/>
-	<key>SUFeedURL</key>
-	<string>https://gpgtools.org/releases/gpgmail/appcast.xml</string>
-	<key>SUFeedURL_nightly</key>
-	<string>https://releases.gpgtools.org/nightlies/gpgmail_lml/appcast.xml</string>
-	<key>SUFeedURL_prerelease</key>
-	<string>https://gpgtools.org/releases/gpgmail/pre-appcast.xml</string>
-	<key>SUPublicDSAKeyFile</key>
-	<string>dsa_pub.pem</string>
-	<key>SUScheduledCheckInterval</key>
-	<integer>86400</integer>
 	<key>SupportedPluginCompatibilityUUIDs</key>
 	<array>
+		<string>71562B89-0D90-4588-8E94-A75B701D6443</string>
+		<string>1550C683-EA48-4036-B7CE-FB6F5D13EE02</string>
+		<string>DAF41AB7-F9AD-4273-9934-C81C74705B69</string>
 		<string>AB695A2B-4605-4A74-A99F-AF9F9C92C41B</string>
 		<string>60D52D22-7491-4CA7-95BA-88215BD88F8E</string>
 		<string>7C051997-F45A-4523-B053-2D262F94C775</string>

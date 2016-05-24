@@ -693,7 +693,12 @@
 	
     MessageBody *decryptedMessageBody = nil;
     NSData *encryptedData = [dataPart bodyData];
-    
+	
+	// If encrytedData is nil, rangeOfData returns 0 instead of NSNotFound.
+	// Makes sense probably.
+	if(!encryptedData)
+		return nil;
+	
     // Check if the data part contains the Content-Type string.
     // If so, this is a message which was created by a very early alpha
     // of GPGMail 2.0 which sent out completely corrupted messages.
@@ -1886,21 +1891,18 @@
 	__block MimePart *versionPart = nil;
 	__block MimePart *dataPart = nil;
 	[self enumerateSubpartsWithBlock:^(MimePart *part) {
-		if ([part isType:@"application" subtype:@"pgp-encrypted"]) {
-			// Should we really check the version...?
-			if (!versionPart && [[part bodyData] containsPGPVersionMarker:1]) {
+		if([part isType:@"application" subtype:@"pgp-encrypted"]) {
+			if(!versionPart)
 				versionPart = part;
-			}
 		}
-		else if ([part isType:@"application" subtype:@"octet-stream"] || [part isType:@"application" subtype:@"pgp-signature"]) {
-			if (!dataPart) {
+		else if([part isType:@"application" subtype:@"octet-stream"] || [part isType:@"application" subtype:@"pgp-signature"]) {
+			if(!dataPart)
 				dataPart = part;
-			}
 		}
 	}];
-	if (versionPart && dataPart) {
+	// Should we check the version...?
+	if(versionPart && [[versionPart bodyData] containsPGPVersionMarker:1] && dataPart)
 		return YES;
-	}
 	
 	return NO;
 }
@@ -2035,7 +2037,7 @@
 				}
 				
 				
-				senderPublicKey = [[recipient valueForFlag:@"gpgKey"] primaryKey];
+				senderPublicKey = [recipient valueForFlag:@"gpgKey"];
 
 				// Drafts are only encrypted with the senders key.
 				if ([[recipient valueForFlag:@"isDraft"] boolValue]) {
@@ -2148,7 +2150,10 @@
 			[self failedToSignForSender:sender gpgErrorCode:1 error:nil];
 			return nil;
 		}
-	}	
+	}
+	if (keyForSigning.canSign == NO && keyForSigning.primaryKey != keyForSigning) {
+		keyForSigning = keyForSigning.primaryKey;
+	}
 	
     GPGController *gpgc = [[GPGController alloc] init];
     gpgc.useArmor = YES;

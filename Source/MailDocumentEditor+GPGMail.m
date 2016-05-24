@@ -42,6 +42,8 @@
 #import "ComposeBackEnd+GPGMail.h"
 #import "GPGMailBundle.h"
 #import <MFError.h>
+#import "ComposeWindowController+GPGMail.h"
+#import "ComposeViewController.h"
 
 static const NSString *kUnencryptedReplyToEncryptedMessage = @"unencryptedReplyToEncryptedMessage";
 
@@ -63,12 +65,25 @@ static const NSString *kUnencryptedReplyToEncryptedMessage = @"unencryptedReplyT
 }
 
 - (void)configureSecurityMethodAccessoryViewForNormalMode {
-    GMSecurityMethodAccessoryView *accessoryView = [self getIvar:@"SecurityMethodHintAccessoryView"];
+	GMSecurityMethodAccessoryView *accessoryView = [self securityMethodAccessoryView]; //[self getIvar:@"SecurityMethodHintAccessoryView"];
     [accessoryView configureForWindow:[self valueForKey:@"_window"]];
 }
 
+- (void)setSecurityMethodAccessoryView:(GMSecurityMethodAccessoryView *)securityMethodAccessoryView {
+	[self setIvar:@"SecurityMethodAccessoryView" value:securityMethodAccessoryView];
+}
+
+- (GMSecurityMethodAccessoryView *)securityMethodAccessoryView {
+	if([GPGMailBundle isElCapitan]) {
+		return (GMSecurityMethodAccessoryView *)[(NSObject *)[[((MailDocumentEditor *)self) window] delegate] getIvar:@"SecurityMethodAccessoryView"];
+	}
+	else {
+		return (GMSecurityMethodAccessoryView *)[self getIvar:@"SecurityMethodAccessoryView"];
+	}
+}
+
 - (void)updateSecurityMethodHighlight {
-    GMSecurityMethodAccessoryView *accessoryView = [self getIvar:@"SecurityMethodHintAccessoryView"];
+    GMSecurityMethodAccessoryView *accessoryView = [self securityMethodAccessoryView];
     ComposeBackEnd *backEnd = ((MailDocumentEditor *)self).backEnd;
     NSDictionary *securityProperties = ((ComposeBackEnd_GPGMail *)backEnd).securityProperties;
     
@@ -94,16 +109,19 @@ static const NSString *kUnencryptedReplyToEncryptedMessage = @"unencryptedReplyT
 }
 
 - (void)updateSecurityMethod:(GPGMAIL_SECURITY_METHOD)securityMethod {
-    GMSecurityMethodAccessoryView *accessoryView = [self getIvar:@"SecurityMethodHintAccessoryView"];
+    GMSecurityMethodAccessoryView *accessoryView = [self securityMethodAccessoryView];
     accessoryView.securityMethod = securityMethod;
 }
 
 - (void)MABackEndDidLoadInitialContent:(id)content {
-    [(NSNotificationCenter *)[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(didExitFullScreen:) name:@"NSWindowDidExitFullScreenNotification" object:nil];
-    
-    // Setup security method hint accessory view in top right corner of the window.
-    [self setupSecurityMethodHintAccessoryView];
-    GPGMAIL_SECURITY_METHOD securityMethod = ((ComposeBackEnd_GPGMail *)((MailDocumentEditor *)self).backEnd).guessedSecurityMethod;
+	if(![GPGMailBundle isElCapitan]) {
+		[(NSNotificationCenter *)[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(didExitFullScreen:) name:@"NSWindowDidExitFullScreenNotification" object:nil];
+	}
+	
+	// Setup security method hint accessory view in top right corner of the window.
+	[self setupSecurityMethodHintAccessoryView];
+	
+	GPGMAIL_SECURITY_METHOD securityMethod = ((ComposeBackEnd_GPGMail *)((MailDocumentEditor *)self).backEnd).guessedSecurityMethod;
     if(((ComposeBackEnd_GPGMail *)((MailDocumentEditor *)self).backEnd).securityMethod)
         securityMethod = ((ComposeBackEnd_GPGMail *)((MailDocumentEditor *)self).backEnd).securityMethod;
     [self updateSecurityMethod:securityMethod];
@@ -113,20 +131,31 @@ static const NSString *kUnencryptedReplyToEncryptedMessage = @"unencryptedReplyT
 }
 
 - (void)setupSecurityMethodHintAccessoryView {
-    GMSecurityMethodAccessoryView *accessoryView = [[GMSecurityMethodAccessoryView alloc] init];
+	// On El Capitan there's no more space on top of the title bar, so
+	// the security method accessory view is inserted as toolbar item in
+	// -[ComposeViewController toolbar:itemForItemIdentifier:willBeInsertedIntoToolbar:]
+	GMSecurityMethodAccessoryView *accessoryView = nil;
+	if([GPGMailBundle isElCapitan]) {
+		accessoryView = [self securityMethodAccessoryView];
+	}
+	else {
+		accessoryView = [[GMSecurityMethodAccessoryView alloc] init];
+	}
     accessoryView.delegate = self;
-    NSWindow *window = [self valueForKey:@"_window"];
 	
-   if([NSApp mainWindow].styleMask & NSFullScreenWindowMask) // Only check the mein window to detect fullscreen.
-       [accessoryView configureForFullScreenWindow:window];
-   else
-       [accessoryView configureForWindow:window];
-    
-    [self setIvar:@"SecurityMethodHintAccessoryView" value:accessoryView];
+	if(![GPGMailBundle isElCapitan]) {
+		NSWindow *window = [self valueForKey:@"_window"];
+		
+		if([NSApp mainWindow].styleMask & NSFullScreenWindowMask) // Only check the mein window to detect fullscreen.
+			[accessoryView configureForFullScreenWindow:window];
+		else
+			[accessoryView configureForWindow:window];
+		[self setSecurityMethodAccessoryView:accessoryView];
+	}
 }
 
 - (void)hideSecurityMethodAccessoryView {
-    GMSecurityMethodAccessoryView *accessoryView = [self getIvar:@"SecurityMethodHintAccessoryView"];
+	GMSecurityMethodAccessoryView *accessoryView = [self securityMethodAccessoryView]; //[self getIvar:@"SecurityMethodHintAccessoryView"];
     accessoryView.hidden = YES;
 }
 
@@ -241,7 +270,11 @@ static const NSString *kUnencryptedReplyToEncryptedMessage = @"unencryptedReplyT
 				[strongSelf sendMessageAfterChecking:checklist];
 			}
 			else {
-				[[strongSelf headersEditor] setAGoodFirstResponder];
+				// Seems not to be necessary on El Capitan.
+				if(![GPGMailBundle isElCapitan]) {
+					[[strongSelf headersEditor] setAGoodFirstResponder];
+				}
+		
 			}
 		}];
 	}
@@ -273,20 +306,62 @@ static const NSString *kUnencryptedReplyToEncryptedMessage = @"unencryptedReplyT
 	[self MASendMessageAfterChecking:checklist];
 }
 
-- (void)MABackEnd:(id)backEnd didCancelMessageDeliveryForEncryptionError:(MFError *)error {
-	if ([((NSDictionary *)error.userInfo)[@"GPGErrorCode"] integerValue] == GPGErrorCancelled) {
-		return;
+- (void)restoreComposerView {
+	ComposeBackEnd *backEnd = ((MailDocumentEditor *)self).backEnd;
+	[backEnd setIsDeliveringMessage:NO];
+	[(ComposeWindowController_GPGMail *)[self delegate] restorePositionBeforeAnimation];
+}
+
+- (BOOL)backEnd:(id)backEnd handleDeliveryError:(MFError *)error {
+	
+	NSNumber *errorCode = ((NSDictionary *)error.userInfo)[@"GPGErrorCode"];
+	// If the pinentry dialog was cancelled, there's no need to show any error.
+	// Simply let the user continue editing.
+	if(errorCode && [errorCode integerValue] == GPGErrorCancelled) {
+		if([GPGMailBundle isElCapitan]) {
+			// Cancel the send animation, the window is gone and can't be restored.
+			[(ComposeWindowController_GPGMail *)[self delegate] cancelSendAnimation];
+		}
+		return NO;
 	}
-	[self MABackEnd:backEnd didCancelMessageDeliveryForEncryptionError:error];
+	
+	return YES;
+}
+
+- (void)MABackEnd:(id)backEnd didCancelMessageDeliveryForEncryptionError:(MFError *)error {
+	if([self backEnd:backEnd handleDeliveryError:error])
+		[self MABackEnd:backEnd didCancelMessageDeliveryForEncryptionError:error];
+	
+	if([GPGMailBundle isElCapitan])
+		[self restoreComposerView];
 }
 
 - (void)MABackEnd:(id)backEnd didCancelMessageDeliveryForError:(MFError *)error {
-	if ([((NSDictionary *)error.userInfo)[@"GPGErrorCode"] integerValue] == GPGErrorCancelled) {
-		return;
-	}
-	[self MABackEnd:backEnd didCancelMessageDeliveryForError:error];
+	if([self backEnd:backEnd handleDeliveryError:error])
+		[self MABackEnd:backEnd didCancelMessageDeliveryForEncryptionError:error];
+
+	if([GPGMailBundle isElCapitan])
+		[self restoreComposerView];
 }
 
+- (void)MABackEndDidAppendMessageToOutbox:(id)backEnd result:(long long)result {
+	[self MABackEndDidAppendMessageToOutbox:backEnd result:result];
+	// If result == 3 the message was successfully sent, and now it's time to really dismiss the tab,
+	// in order to free the resources, Mail wanted to free as soon as it started the send animation.
+	// Unfortunately, if let it do that at the point of the send animation, there's no way we could
+	// display an error.
+	if(result == 3) {
+		[self setIvar:@"GMAllowReleaseOfTabBarViewItem" value:@(YES)];
+		[[self delegate] composeViewControllerDidSend:self];
+		[self removeIvar:@"GMAllowReleaseOfTabBarViewItem"];
+	}
+}
 
+- (void)MASetDelegate:(id)delegate {
+	[self MASetDelegate:delegate];
+	// Store the delegate as associated object, otherwise Mail.app releases it to soon (when performing the send animation.)!
+	// Will be automatically released, when the ComposeViewController is released.
+	[self setIvar:@"GMDelegate" value:delegate];
+}
 
 @end

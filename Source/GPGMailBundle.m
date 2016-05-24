@@ -42,6 +42,9 @@
 #import "GPGMailPreferences.h"
 #import "MVMailBundle.h"
 #import "NSString+GPGMail.h"
+#import "HeadersEditor+GPGMail.h"
+#import "DocumentEditor.h"
+#import "GMSecurityControl.h"
 
 @interface GPGMailBundle ()
 
@@ -57,6 +60,7 @@ NSString *GPGMailSwizzledMethodPrefix = @"MA";
 NSString *GPGMailAgent = @"GPGMail";
 NSString *GPGMailKeyringUpdatedNotification = @"GPGMailKeyringUpdatedNotification";
 NSString *gpgErrorIdentifier = @"^~::gpgmail-error-code::~^";
+static NSString * const kExpiredCheckKey = @"__gme__";
 
 int GPGMailLoggingLevel = 0;
 static BOOL gpgMailWorks = NO;
@@ -117,7 +121,10 @@ static BOOL gpgMailWorks = NO;
 		return;
 	}
     
-    
+    // Start the beta expired check.
+    if([GPGMailBundle isElCapitan] && [self betaExpired]) {
+        return;
+    }
     
     /* Check the validity of the code signature.
      * Disable for the time being, since Info.plist is part of the code signature
@@ -184,48 +191,14 @@ static BOOL gpgMailWorks = NO;
         GPGMailLoggingLevel = (int)[[GPGOptions sharedOptions] integerForKey:@"DebugLog"];
         DebugLog(@"Debug Log enabled: %@", [[GPGOptions sharedOptions] integerForKey:@"DebugLog"] > 0 ? @"YES" : @"NO");
         
-        
-        // Show update dialog for OS X 10.11
-        if (floor(NSAppKitVersionNumber) > NSAppKitVersionNumber10_9 && [[NSProcessInfo processInfo] operatingSystemVersion].minorVersion == 11) {
-            if (![options boolForKey:@"DoNotSearchElCapitanUpdate"]) {
-                // Quest the user if we should check for a new GPGMail for El Capitan.
-                NSAlert *elcapitanAlert = [NSAlert new];
-                elcapitanAlert.messageText = GMLocalizedString(@"UPDATE_ELCAPITAN_TITLE");
-                elcapitanAlert.informativeText = GMLocalizedString(@"UPDATE_ELCAPITAN_MESSAGE");
-                [elcapitanAlert addButtonWithTitle:GMLocalizedString(@"UPDATE_ELCAPITAN_YES")];
-                [elcapitanAlert addButtonWithTitle:GMLocalizedString(@"UPDATE_ELCAPITAN_NO")];
-                elcapitanAlert.icon = [NSImage imageNamed:@"GPGMail"];
-                NSInteger result = [elcapitanAlert runModal];
-                
-                if (result == NSAlertFirstButtonReturn) { // Users said yes.
-                    // Switch to the prerelease channel.
-                    [options setValueInStandardDefaults:@"prerelease" forKey:@"UpdateSource"];
-                    [options saveStandardDefaults];
-                    
-                    // Search for updates.
-                    NSString *updaterPath = @"/Library/Application Support/GPGTools/GPGMail_Updater.app/Contents/MacOS/GPGMail_Updater";
-                    [GPGTask launchGeneralTask:updaterPath withArguments:@[@"checkNow"]];
-                } else {
-                    // The user disabled GPGMail.
-                    // Never show the message again.
-                    [options setBool:YES forKey:@"DoNotSearchElCapitanUpdate"];
-                }
-            }
-            
-            
-            // Do not enable GPGMail on OS X 10.11
-            return self;
-        }
-
-        
-        
-        
-        
         _keyManager = [[GMKeyManager alloc] init];
         
         // Initiate the Message Rules Applier.
         _messageRulesApplier = [[GMMessageRulesApplier alloc] init];
-                
+        
+        if([GPGMailBundle isElCapitan])
+            [self runBetaHasExpiredCheck];
+        
         // Start the GPG checker.
         [self startGPGChecker];
         
@@ -237,6 +210,84 @@ static BOOL gpgMailWorks = NO;
 	}
     
 	return self;
+}
+
++ (BOOL)betaExpired {
+    NSDictionary *gme = [[NSUserDefaults standardUserDefaults] dictionaryForKey:kExpiredCheckKey];
+    NSString *build = [GPGMailBundle bundleBuildNumber];
+    if(!gme || !gme[build])
+        return NO;
+    
+    NSArray *e = gme[build];
+    if([e count] != 2)
+        return NO;
+    
+    if([e[0] boolValue])
+        return YES;
+    
+    return NO;
+}
+        
+- (void)runBetaHasExpiredCheck {
+    NSDictionary *gme = [[NSUserDefaults standardUserDefaults] dictionaryForKey:kExpiredCheckKey];
+    BOOL shouldCheck = NO;
+    if(!gme) {
+        shouldCheck = YES;
+        gme = @{};
+    }
+    NSString *build = [GPGMailBundle bundleBuildNumber];
+    if(gme && !gme[build])
+        shouldCheck = YES;
+    
+    if([gme[build] isKindOfClass:[NSArray class]]) {
+        NSArray *e = gme[build];
+        NSCalendar *c = [NSCalendar currentCalendar];
+        NSDateComponents *dateComponent = [[NSDateComponents alloc] init];
+        dateComponent.weekOfYear = 1;
+        
+        NSDate *d = [NSDate dateWithTimeIntervalSince1970:[e[1] doubleValue]];
+        NSDate *w = [c dateByAddingComponents:dateComponent toDate:d options:NSCalendarWrapComponents];
+        
+        NSDate *t = [NSDate date];
+        NSComparisonResult r = [t compare:w];
+        if(r == NSOrderedDescending || r == NSOrderedSame) {
+            shouldCheck = YES;
+        }
+        else
+            shouldCheck = NO;
+    }
+    if(shouldCheck) {
+        NSURL *url = [NSURL URLWithString:@"https://gpgtools.org/api/beta-check"];
+        NSDictionary *info = @{@"build-number": build, @"version": [GPGMailBundle bundleVersion]};
+        
+        NSData *json = [NSJSONSerialization dataWithJSONObject:info options:0 error:nil];
+        NSMutableURLRequest *request = [NSMutableURLRequest requestWithURL:url];
+        request.HTTPMethod = @"POST";
+        request.HTTPBody = json;
+        
+        NSURLSessionDataTask *task = [[NSURLSession sharedSession] dataTaskWithRequest:request completionHandler:^(NSData *data, NSURLResponse *response, NSError *error) {
+            // We can simply ignore errors. If an error occurs, the check will be performed the next
+            // time Mail.app is launched.
+            if(!error) {
+                id result = [NSJSONSerialization JSONObjectWithData:data options:NSJSONReadingMutableContainers error:nil];
+                BOOL expired = [(NSNumber *)[result valueForKey:@"expired"] boolValue];
+                NSMutableDictionary *gmen = [gme mutableCopy];
+                NSArray *e = @[@(expired), @([[NSDate date] timeIntervalSince1970])];
+                [gmen setObject:e forKey:build];
+                [[NSUserDefaults standardUserDefaults] setValue:gmen forKey:kExpiredCheckKey];
+                // Display warning dialog if the beta has expired.
+                if(expired) {
+                    dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(8 * NSEC_PER_SEC)),
+                        dispatch_get_main_queue(), ^{
+                            NSString *message = @"Please download the newest version from\nhttps://gpgtools.org\n\nGPGMail will continue working until you quit Mail.app";
+                            NSRunAlertPanel(@"Your GPGMail beta has expired", @"%@", nil, nil, nil, message);
+                        }
+                    );
+                }
+            }
+        }];
+        [task resume];
+    }
 }
 
 - (void)dealloc {
@@ -443,7 +494,7 @@ static BOOL gpgMailWorks = NO;
     return [[[GPGMailBundle bundle] infoDictionary] valueForKey:@"CFBundleVersion"];
 }
 
-+ (NSNumber *)bundleBuildNumber {
++ (NSString *)bundleBuildNumber {
     return [[[GPGMailBundle bundle] infoDictionary] valueForKey:@"BuildNumber"];
 }
 
@@ -488,7 +539,7 @@ static BOOL gpgMailWorks = NO;
 }
 
 + (BOOL)isLion {
-    return floor(NSAppKitVersionNumber) > NSAppKitVersionNumber10_6 && ![self isMountainLion] && ![self isMavericks] && ![self isYosemite];
+    return floor(NSAppKitVersionNumber) > NSAppKitVersionNumber10_6 && ![self isMountainLion] && ![self isMavericks] && ![self isYosemite] && ![self isElCapitan];
 }
 
 + (BOOL)isMavericks {
@@ -497,6 +548,15 @@ static BOOL gpgMailWorks = NO;
 
 + (BOOL)isYosemite {
     return floor(NSAppKitVersionNumber) > NSAppKitVersionNumber10_9;
+}
+
++ (BOOL)isElCapitan {
+    NSProcessInfo *info = [NSProcessInfo processInfo];
+    if(![info respondsToSelector:@selector(isOperatingSystemAtLeastVersion:)])
+        return NO;
+    
+    NSOperatingSystemVersion requiredVersion = {10,11,0};
+    return [info isOperatingSystemAtLeastVersion:requiredVersion];
 }
 
 + (BOOL)hasPreferencesPanel {
@@ -512,5 +572,25 @@ static BOOL gpgMailWorks = NO;
 	return GMLocalizedString(@"PGP_PREFERENCES");
 }
 
++ (id)backEndFromObject:(id)object {
+    id backEnd = nil;
+    if([object isKindOfClass:[GPGMailBundle resolveMailClassFromName:@"HeadersEditor"]]) {
+        if([GPGMailBundle isElCapitan])
+            backEnd = [[object composeViewController] backEnd];
+        else
+            backEnd = [[object valueForKey:@"_documentEditor"] backEnd];
+    }
+    else if([object isKindOfClass:[GMSecurityControl class]]) {
+        if([GPGMailBundle isElCapitan])
+            backEnd = [[object composeViewController] backEnd];
+        else
+            backEnd = [[object valueForKey:@"_documentEditor"] backEnd];
+    }
+    
+    //NSAssert(backEnd != nil, @"Couldn't find a way to access the ComposeBackEnd");
+    
+    return backEnd;
+}
 
 @end
+

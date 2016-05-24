@@ -42,17 +42,6 @@ NSString *SUScheduledCheckIntervalKey = @"SUScheduledCheckInterval";
 
 @implementation GPGMailPreferences
 
--(id)init {
-	self = [super init];
-	if (self) {
-		NSDictionary *defaults = [[NSDictionary alloc] initWithContentsOfFile:[[GPGMailBundle bundle] pathForResource:@"SparkleDefaults" ofType:@"plist"]];
-		GPGOptions *options = [GPGOptions sharedOptions];
-		[options registerDefaults:defaults];
-	}
-	
-	return self;
-}
-
 - (GPGMailBundle *)bundle {
 	return [GPGMailBundle sharedInstance];
 }
@@ -199,35 +188,6 @@ NSString *SUScheduledCheckIntervalKey = @"SUScheduledCheckInterval";
 }
 
 
-- (BOOL)enableAutomaticChecks {
-	GPGOptions *options = [GPGOptions sharedOptions];
-	NSNumber *interval = [options valueForKey:SUScheduledCheckIntervalKey];
-	if (interval && interval.integerValue == 0) {
-		return false;
-	}
-	NSNumber *value = [options valueForKey:SUEnableAutomaticChecksKey];
-	if (!value) {
-		return true;
-	}
-	return value.boolValue;
-}
-- (void)setEnableAutomaticChecks:(BOOL)value {
-	GPGOptions *options = [GPGOptions sharedOptions];
-	[options setBool:value forKey:SUEnableAutomaticChecksKey];
-	if (value) {
-		NSNumber *interval = [options valueForKey:SUScheduledCheckIntervalKey];
-		if (interval && interval.integerValue == 0) {
-			[options setValue:@86400 forKey:SUScheduledCheckIntervalKey];
-		}
-	}
-}
-
-- (void)checkForUpdates:(id)sender {
-	NSString *updaterPath = @"/Library/Application Support/GPGTools/GPGMail_Updater.app/Contents/MacOS/GPGMail_Updater";
-	[GPGTask launchGeneralTask:updaterPath withArguments:@[@"checkNow"]];
-}
-
-
 - (BOOL)validateEncryptDrafts:(NSNumber **)value error:(NSError **)error {
 	if ([*value boolValue] == NO) {
 		NSArray *accounts = (NSArray *)[GM_MAIL_CLASS(@"MailAccount") allMailAccounts];
@@ -294,55 +254,56 @@ NSString *SUScheduledCheckIntervalKey = @"SUScheduledCheckInterval";
 
 @implementation GMSpecialBox
 - (void)showSpecial {
-	if (displayed || working) return;	
-	working = YES;
-
-	if (!viewPositions) {
-		viewPositions = [[NSMapTable alloc] initWithKeyOptions:NSMapTableZeroingWeakMemory valueOptions:NSMapTableStrongMemory capacity:10];
-	}
-	
-	NSSize size = self.bounds.size;
-	srandom((unsigned int)time(NULL));
-
-	webView = [[WebView alloc] initWithFrame:NSMakeRect(0, 0, size.width, size.height)];
-	webView.autoresizingMask = NSViewWidthSizable | NSViewHeightSizable;
-	webView.drawsBackground = NO;
-	webView.UIDelegate = self;
-	webView.editingDelegate = self;
-
-	
-	[NSAnimationContext beginGrouping];
-	[[NSAnimationContext currentContext] setDuration:2.0f];
-	[NSAnimationContext currentContext].completionHandler = ^{
-		[self addSubview:webView];
-        
-		[[webView mainFrame] loadRequest:[NSURLRequest requestWithURL:[[GPGMailBundle bundle] URLForResource:@"Special" withExtension:@"html"]]];
-		displayed = YES;
-		working = NO;
-	};
-	
-	for (NSView *view in [self.contentView subviews]) {
-		NSRect frame = view.frame;
-		
-		if (!positionsFilled) {
-			[viewPositions setObject:[NSValue valueWithRect:frame] forKey:view];
-		}
-		
-		long angle = (random() % 360);	
-		
-		double x = (size.width + frame.size.width) / 2 * sin(angle * M_PI / 180) * 1.5;
-		double y = (size.height + frame.size.height) / 2 * cos(angle * M_PI / 180) * 1.5;
-		
-		x += (size.width - frame.size.width) / 2;
-		y += (size.height - frame.size.height) / 2;
-		
-		frame.origin.x = x;
-		frame.origin.y = y;
-		
-		[(NSView *)[view animator] setFrame:frame];
-	}
-	positionsFilled = YES;
-	[NSAnimationContext endGrouping];
+	return;
+//	if (displayed || working) return;	
+//	working = YES;
+//
+//	if (!viewPositions) {
+//		viewPositions = [[NSMapTable alloc] initWithKeyOptions:NSMapTableZeroingWeakMemory valueOptions:NSMapTableStrongMemory capacity:10];
+//	}
+//	
+//	NSSize size = self.bounds.size;
+//	srandom((unsigned int)time(NULL));
+//
+//	webView = [[WebView alloc] initWithFrame:NSMakeRect(0, 0, size.width, size.height)];
+//	webView.autoresizingMask = NSViewWidthSizable | NSViewHeightSizable;
+//	webView.drawsBackground = NO;
+//	webView.UIDelegate = self;
+//	webView.editingDelegate = self;
+//
+//	
+//	[NSAnimationContext beginGrouping];
+//	[[NSAnimationContext currentContext] setDuration:2.0f];
+//	[NSAnimationContext currentContext].completionHandler = ^{
+//		[self addSubview:webView];
+//        
+//		[[webView mainFrame] loadRequest:[NSURLRequest requestWithURL:[[GPGMailBundle bundle] URLForResource:@"Special" withExtension:@"html"]]];
+//		displayed = YES;
+//		working = NO;
+//	};
+//	
+//	for (NSView *view in [self.contentView subviews]) {
+//		NSRect frame = view.frame;
+//		
+//		if (!positionsFilled) {
+//			[viewPositions setObject:[NSValue valueWithRect:frame] forKey:view];
+//		}
+//		
+//		long angle = (random() % 360);	
+//		
+//		double x = (size.width + frame.size.width) / 2 * sin(angle * M_PI / 180) * 1.5;
+//		double y = (size.height + frame.size.height) / 2 * cos(angle * M_PI / 180) * 1.5;
+//		
+//		x += (size.width - frame.size.width) / 2;
+//		y += (size.height - frame.size.height) / 2;
+//		
+//		frame.origin.x = x;
+//		frame.origin.y = y;
+//		
+//		[(NSView *)[view animator] setFrame:frame];
+//	}
+//	positionsFilled = YES;
+//	[NSAnimationContext endGrouping];
 }
 - (void)hideSpecial {
 	if (!displayed || working) return;

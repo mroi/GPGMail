@@ -1,7 +1,7 @@
-/* GPGMailPreferences.h created by dave on Thu 29-Jun-2000 */
+/* ComposeWindowController+GPGMail.h created by Lukas Pitschl on Tue 22-09-2015 */
 
 /*
- * Copyright (c) 2000-2011, GPGTools Project Team <gpgtools-devel@lists.gpgtools.org>
+ * Copyright (c) 2000-2015, GPGTools <team@gpgtools.org>
  * All rights reserved.
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -11,11 +11,11 @@
  *     * Redistributions in binary form must reproduce the above copyright
  *       notice, this list of conditions and the following disclaimer in the
  *       documentation and/or other materials provided with the distribution.
- *     * Neither the name of GPGTools Project Team nor the names of GPGMail
+ *     * Neither the name of GPGTools nor the names of GPGMail
  *       contributors may be used to endorse or promote products
  *       derived from this software without specific prior written permission.
  *
- * THIS SOFTWARE IS PROVIDED BY THE GPGTools Project Team ``AS IS'' AND ANY
+ * THIS SOFTWARE IS PROVIDED BY THE GPGTools ``AS IS'' AND ANY
  * EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
  * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
  * DISCLAIMED. IN NO EVENT SHALL THE GPGTools Project Team BE LIABLE FOR ANY
@@ -27,40 +27,18 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#import <NSPreferences.h>
-#import <AppKit/AppKit.h>
-#import "NSPreferencesModule.h"
+#import <Foundation/Foundation.h>
 
-@class GPGMailBundle, GPGOptions, GMSpecialBox;
+@interface ComposeWindowController_GPGMail : NSObject
 
-@interface GPGMailPreferences : NSPreferencesModule {}
-
-- (IBAction)openSupport:(id)sender;
-- (IBAction)openDonate:(id)sender;
-- (IBAction)openKnowledgeBase:(id)sender;
-
-- (IBAction)openGPGStatusHelp:(id)sender;
-
-
-
-@property (weak, readonly) NSString *copyright, *versionDescription, *gpgStatusToolTip, *gpgStatusTitle;
-@property (weak, readonly) NSAttributedString *credits, *websiteLink, *buildNumberDescription;
-@property (weak, readonly) GPGMailBundle *bundle;
-@property (weak, readonly) NSImage *gpgStatusImage;
-@property (weak, readonly) GPGOptions *options;
-@property BOOL encryptDrafts;
+- (void)restorePositionBeforeAnimation;
 
 @end
 
+@interface ComposeWindowController_GPGMail (NotImplemented)
 
-@interface NSButton_LinkCursor : NSButton
-@end
+- (void)_performSendAnimation;
+- (void)composeViewControllerDidSend:(id)composeViewController;
+- (void)cancelSendAnimation;
 
-@interface GMSpecialBox : NSBox {
-	NSMapTable *viewPositions;
-	BOOL working;
-	BOOL positionsFilled;
-	BOOL displayed;
-	WebView *webView;
-}
 @end

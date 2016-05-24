@@ -30,6 +30,7 @@
 #import "CCLog.h"
 #import "GPGMail_Prefix.pch"
 #import "JRLPSwizzle.h"
+#import "GPGMailBundle.h"
 #import "GMCodeInjector.h"
 
 @implementation GMCodeInjector
@@ -196,6 +197,10 @@
                      @"status": @"renamed",
                      @"name": @"DocumentEditor"
              },
+             @"MessageRouter": @{
+                     @"status": @"renamed",
+                     @"name": @"MFMessageRouter"
+            },
              @"MessageContentController": @{
                      @"status": @"renamed",
                      @"name": @"MessageViewController",
@@ -296,6 +301,48 @@
     };
 }
 
++ (NSDictionary *)hookChangesForElCapitan {
+	return @{
+			 // Insert the security method switcher into the toolbar as a toolbar item.
+			 @"MailToolbar": @{
+					 @"selectors": @[
+							 @"_plistForToolbarWithIdentifier:"
+							 ]
+					 },
+			 @"ComposeWindowController": @{
+					 @"selectors": @[
+							 @"toolbarDefaultItemIdentifiers:",
+							 @"toolbar:itemForItemIdentifier:willBeInsertedIntoToolbar:",
+							 @"_performSendAnimation",
+							 @"_tabBarView:performSendAnimationOfTabBarViewItem:"
+							 ]
+					 },
+			 @"ComposeBackEnd": @{
+					 @"selectors": @{
+							 @"added": @[
+									 @"init"
+									 ],
+							 @"removed": @[
+									 @"initCreatingDocumentEditor:",
+									 ]
+							 }
+					 },
+			 @"DocumentEditor": @{
+					 @"status": @"renamed",
+					 @"name": @"ComposeViewController",
+					 @"selectors": @{
+							 @"removed": @[
+									 @"initWithBackEnd:"
+									 ],
+							 @"added": @[
+								 @"setDelegate:",
+								 @"backEndDidAppendMessageToOutbox:result:"
+								 ]
+							 }
+					 }
+			 };
+}
+
 + (NSDictionary *)hooks {
 	static dispatch_once_t onceToken;
 	static NSDictionary *_hooks;
@@ -313,7 +360,9 @@
 			[self applyHookChangesForVersion:@"10.9" toHooks:hooks];
 		if(floor(NSAppKitVersionNumber) > NSAppKitVersionNumber10_9)
             [self applyHookChangesForVersion:@"10.10" toHooks:hooks];
-        
+		if([GPGMailBundle isElCapitan])
+			[self applyHookChangesForVersion:@"10.11" toHooks:hooks];
+
 		_hooks = [NSDictionary dictionaryWithDictionary:hooks];
 	});
 	
@@ -326,7 +375,9 @@
 		hookChanges = [self hookChangesForMavericks];
 	else if([osxVersion isEqualToString:@"10.10"])
         hookChanges = [self hookChangesForYosemite];
-    
+	else if([osxVersion isEqualToString:@"10.11"])
+		hookChanges = [self hookChangesForElCapitan];
+	
 	for(NSString *class in hookChanges) {
 		NSDictionary *hook = hookChanges[class];
 		
@@ -337,8 +388,9 @@
 			// Interestingly enough, this is done in the arclite implementation of the sdk this code is compiled on.
 			// Setting hook[class] to hook[selectors] would crash on previous version if the code was compiled on 10.9 or lower
 			// since no nil check was added in the arclite implementation of setObject:forKeyedSubscript:
-			if(hook[@"selectors"])
+			if(hook[@"selectors"]) {
 				hooks[class] = hook[@"selectors"];
+			}
 			continue;
 		}
 		// Class was removed.
@@ -393,7 +445,10 @@
     
     if([className isEqualToString:@"HeaderViewController"])
         return @"MessageHeaderDisplay";
-    
+	
+	if([GPGMailBundle isElCapitan] && [className isEqualToString:@"ComposeViewController"])
+		return @"MailDocumentEditor";
+	
     return className;
 }
 

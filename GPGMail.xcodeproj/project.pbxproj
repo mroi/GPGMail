@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		1B00D9071B544C0300DBDCD7 /* WebKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 1B00D9061B544C0300DBDCD7 /* WebKit.framework */; };
 		1B01AC5C17C82A77008FC246 /* dsa_pub.pem in Resources */ = {isa = PBXBuildFile; fileRef = 1B01AC5B17C82A77008FC246 /* dsa_pub.pem */; };
 		1B02D70813F1E9D80032CFD1 /* GPGFlaggedString.m in Sources */ = {isa = PBXBuildFile; fileRef = 1B02D70713F1E9D80032CFD1 /* GPGFlaggedString.m */; };
 		1B02D70A13F1E9F00032CFD1 /* NSArray+Functional.m in Sources */ = {isa = PBXBuildFile; fileRef = 1B02D70913F1E9F00032CFD1 /* NSArray+Functional.m */; };
@@ -32,6 +33,8 @@
 		1B51232514093795004D0818 /* NSBezierPath_KBAdditions.m in Sources */ = {isa = PBXBuildFile; fileRef = 1B51232314093795004D0818 /* NSBezierPath_KBAdditions.m */; };
 		1B51232614093795004D0818 /* NSBezierPath+StrokeExtensions.m in Sources */ = {isa = PBXBuildFile; fileRef = 1B51232414093795004D0818 /* NSBezierPath+StrokeExtensions.m */; };
 		1B56ECA916175AA8004A3ABE /* GPGMail-Entitlements.plist in Resources */ = {isa = PBXBuildFile; fileRef = 1B56ECA816175AA8004A3ABE /* GPGMail-Entitlements.plist */; };
+		1B73B8DA1BB2079C007D601B /* ComposeWindowController+GPGMail.m in Sources */ = {isa = PBXBuildFile; fileRef = 1B73B8D91BB2079C007D601B /* ComposeWindowController+GPGMail.m */; };
+		1B73B8DD1BB2099F007D601B /* MailToolbar+GPGMail.m in Sources */ = {isa = PBXBuildFile; fileRef = 1B73B8DC1BB2099F007D601B /* MailToolbar+GPGMail.m */; };
 		1B7E4DB714EEEAD90069E69C /* JRLPSwizzle.m in Sources */ = {isa = PBXBuildFile; fileRef = 1B7E4DB614EEEAD90069E69C /* JRLPSwizzle.m */; };
 		1B8289FB13FD62880007E6A2 /* Message+GPGMail.m in Sources */ = {isa = PBXBuildFile; fileRef = 1B8289FA13FD62880007E6A2 /* Message+GPGMail.m */; };
 		1B8437661404AB9C00968293 /* NSData+GPGMail.m in Sources */ = {isa = PBXBuildFile; fileRef = 1B8437651404AB9C00968293 /* NSData+GPGMail.m */; };
@@ -100,7 +103,6 @@
 		301380DC17569815005948EE /* CertLargeNotTrusted@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = 301380DB17569814005948EE /* CertLargeNotTrusted@2x.png */; };
 		301380DE17569819005948EE /* CertLargeNotTrusted.png in Resources */ = {isa = PBXBuildFile; fileRef = 301380DD17569819005948EE /* CertLargeNotTrusted.png */; };
 		301380E217578133005948EE /* GPGMail.iconset in Resources */ = {isa = PBXBuildFile; fileRef = 301380E117578133005948EE /* GPGMail.iconset */; };
-		3033BF601A1FA6F700935374 /* SparkleDefaults.plist in Resources */ = {isa = PBXBuildFile; fileRef = 3033BF5F1A1FA6F700935374 /* SparkleDefaults.plist */; };
 		3057F2EB1507C9C000FA3C0D /* Special.html in Resources */ = {isa = PBXBuildFile; fileRef = 3057F2E91507C9C000FA3C0D /* Special.html */; };
 		3066C60A17579F5900384E29 /* CertSmallStd_Invalid.png in Resources */ = {isa = PBXBuildFile; fileRef = 3066C60617579F5900384E29 /* CertSmallStd_Invalid.png */; };
 		3066C60B17579F5900384E29 /* CertSmallStd_Invalid@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = 3066C60717579F5900384E29 /* CertSmallStd_Invalid@2x.png */; };
@@ -156,26 +158,19 @@
 			remoteGlobalIDString = 1BD78B9F1726B2820005F251;
 			remoteInfo = LeakFinder;
 		};
-		1B87636B1786020A00B24BBC /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = 089C1669FE841209C02AAC07 /* Project object */;
-			proxyType = 1;
-			remoteGlobalIDString = 8D5B49AC048680CD000E48DA;
-			remoteInfo = GPGMail;
-		};
-		304DD04F1C3D49A30018D217 /* PBXContainerItemProxy */ = {
+		1B73B8D71BB20787007D601B /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = 1B06268F1746992B00E51308 /* Libmacgpg.xcodeproj */;
 			proxyType = 2;
 			remoteGlobalIDString = 30BE73BE1B54015C001A2137;
 			remoteInfo = UnitTests;
 		};
-		305354FA1920FE57006C1D39 /* PBXContainerItemProxy */ = {
+		1B87636B1786020A00B24BBC /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
-			containerPortal = 305354F61920FE57006C1D39 /* GPGMail_Updater.xcodeproj */;
-			proxyType = 2;
-			remoteGlobalIDString = 30EE569916E8A6550075330E;
-			remoteInfo = GPGMail_Updater;
+			containerPortal = 089C1669FE841209C02AAC07 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 8D5B49AC048680CD000E48DA;
+			remoteInfo = GPGMail;
 		};
 /* End PBXContainerItemProxy section */
 
@@ -195,6 +190,7 @@
 
 /* Begin PBXFileReference section */
 		1058C7ADFEA557BF11CA2CBB /* Cocoa.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Cocoa.framework; path = /System/Library/Frameworks/Cocoa.framework; sourceTree = "<absolute>"; };
+		1B00D9061B544C0300DBDCD7 /* WebKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = WebKit.framework; path = System/Library/Frameworks/WebKit.framework; sourceTree = SDKROOT; };
 		1B01AC5B17C82A77008FC246 /* dsa_pub.pem */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = dsa_pub.pem; sourceTree = "<group>"; };
 		1B02D70713F1E9D80032CFD1 /* GPGFlaggedString.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = GPGFlaggedString.m; sourceTree = "<group>"; };
 		1B02D70913F1E9F00032CFD1 /* NSArray+Functional.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "NSArray+Functional.m"; sourceTree = "<group>"; };
@@ -245,6 +241,10 @@
 		1B56ECA816175AA8004A3ABE /* GPGMail-Entitlements.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = "GPGMail-Entitlements.plist"; sourceTree = "<group>"; };
 		1B637BC313E39FDF00196286 /* GPGMail TODOs */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = "GPGMail TODOs"; sourceTree = "<group>"; };
 		1B64F62013E38E9200C5B4C9 /* GPG related notes */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = "GPG related notes"; sourceTree = "<group>"; };
+		1B73B8D01BB20787007D601B /* ComposeWindowController+GPGMail.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "ComposeWindowController+GPGMail.h"; sourceTree = "<group>"; };
+		1B73B8D91BB2079C007D601B /* ComposeWindowController+GPGMail.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "ComposeWindowController+GPGMail.m"; sourceTree = "<group>"; };
+		1B73B8DB1BB20994007D601B /* MailToolbar+GPGMail.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "MailToolbar+GPGMail.h"; sourceTree = "<group>"; };
+		1B73B8DC1BB2099F007D601B /* MailToolbar+GPGMail.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "MailToolbar+GPGMail.m"; sourceTree = "<group>"; };
 		1B7E4DB514EEEACE0069E69C /* JRLPSwizzle.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = JRLPSwizzle.h; sourceTree = "<group>"; };
 		1B7E4DB614EEEAD90069E69C /* JRLPSwizzle.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = JRLPSwizzle.m; sourceTree = "<group>"; };
 		1B8289F913FD62880007E6A2 /* Message+GPGMail.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "Message+GPGMail.h"; sourceTree = "<group>"; };
@@ -3265,21 +3265,8 @@
 		302FF18A175CAEC500DB03EB /* sk */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = sk; path = sk.lproj/GPGAttachments.xib; sourceTree = "<group>"; };
 		302FF18B175CAEC600DB03EB /* sv */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = sv; path = sv.lproj/GPGAttachments.xib; sourceTree = "<group>"; };
 		303174A013F1E0D400279CFB /* en */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.strings; name = en; path = en.lproj/GPGSignatureView.xib.strings; sourceTree = "<group>"; };
-		3033BF5F1A1FA6F700935374 /* SparkleDefaults.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = SparkleDefaults.plist; sourceTree = "<group>"; };
 		303F16261500EF92002AC36B /* en */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.strings; name = en; path = en.lproj/GPGAttachments.xib.strings; sourceTree = "<group>"; };
 		303F16271500EF9A002AC36B /* de */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.strings; name = de; path = de.lproj/GPGAttachments.xib.strings; sourceTree = "<group>"; };
-		304DD0511C3D4A3B0018D217 /* en_US */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = en_US; path = en_US.lproj/GPGSignatureView.xib; sourceTree = "<group>"; };
-		304DD0521C3D4A3B0018D217 /* en_US */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = en_US; path = en_US.lproj/GPGMailPreferences.xib; sourceTree = "<group>"; };
-		304DD0531C3D4A3B0018D217 /* en_US */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = en_US; path = en_US.lproj/GPGAttachments.xib; sourceTree = "<group>"; };
-		304DD0541C3D4A3B0018D217 /* en_US */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = en_US; path = en_US.lproj/GPGAttachments.xib.strings; sourceTree = "<group>"; };
-		304DD0551C3D4A3B0018D217 /* en_US */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = en_US; path = en_US.lproj/GPGSignatureView.xib.strings; sourceTree = "<group>"; };
-		304DD0561C3D4A3B0018D217 /* en_US */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = en_US; path = en_US.lproj/GPGMailPreferences.xib.strings; sourceTree = "<group>"; };
-		304DD0571C3D4A3B0018D217 /* en_US */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = en_US; path = en_US.lproj/GPGMail.strings; sourceTree = "<group>"; };
-		304DD0581C3D4A3B0018D217 /* en_US */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = en_US; path = en_US.lproj/SignatureView.strings; sourceTree = "<group>"; };
-		304DD0591C3D4A3B0018D217 /* en_US */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = en_US; path = en_US.lproj/GPGAttachment.strings; sourceTree = "<group>"; };
-		304DD05A1C3D4A3B0018D217 /* en_US */ = {isa = PBXFileReference; lastKnownFileType = text.html; name = en_US; path = en_US.lproj/Special.html; sourceTree = "<group>"; };
-		304DD05B1C3D4A3B0018D217 /* en_US */ = {isa = PBXFileReference; lastKnownFileType = text.rtf; name = en_US; path = en_US.lproj/Credits.rtf; sourceTree = "<group>"; };
-		305354F61920FE57006C1D39 /* GPGMail_Updater.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; path = GPGMail_Updater.xcodeproj; sourceTree = "<group>"; };
 		3057F2EA1507C9C000FA3C0D /* en */ = {isa = PBXFileReference; lastKnownFileType = text.html; name = en; path = en.lproj/Special.html; sourceTree = "<group>"; };
 		3066C60617579F5900384E29 /* CertSmallStd_Invalid.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = CertSmallStd_Invalid.png; sourceTree = "<group>"; };
 		3066C60717579F5900384E29 /* CertSmallStd_Invalid@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "CertSmallStd_Invalid@2x.png"; sourceTree = "<group>"; };
@@ -3485,6 +3472,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				1B00D9071B544C0300DBDCD7 /* WebKit.framework in Frameworks */,
 				30E75A671731A7F900C9E391 /* Libmacgpg.framework in Frameworks */,
 				8D5B49B4048680CD000E48DA /* Cocoa.framework in Frameworks */,
 				559A81330838EEFD0052F47C /* Security.framework in Frameworks */,
@@ -3499,7 +3487,6 @@
 		089C166AFE841209C02AAC07 /* GPGMail */ = {
 			isa = PBXGroup;
 			children = (
-				305354F61920FE57006C1D39 /* GPGMail_Updater.xcodeproj */,
 				1B06268F1746992B00E51308 /* Libmacgpg.xcodeproj */,
 				559A7FB30838E4200052F47C /* Documentation */,
 				1BFDB138180B30DB00B677C2 /* MailHeaders */,
@@ -3517,6 +3504,7 @@
 		089C1671FE841209C02AAC07 /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				1B00D9061B544C0300DBDCD7 /* WebKit.framework */,
 				1B19E83F13A2AEA4002E59ED /* AppKit.framework */,
 				1058C7ADFEA557BF11CA2CBB /* Cocoa.framework */,
 				1BCD9A4B13A8C6B5003024C7 /* CoreFoundation.framework */,
@@ -3545,7 +3533,6 @@
 				1BCEE1E211CC051500488D19 /* LICENSE.txt */,
 				1B56ECA816175AA8004A3ABE /* GPGMail-Entitlements.plist */,
 				300DD0D41853ADF90057B05F /* How to get the source code */,
-				3033BF5F1A1FA6F700935374 /* SparkleDefaults.plist */,
 			);
 			path = Resources;
 			sourceTree = "<group>";
@@ -3563,7 +3550,7 @@
 			isa = PBXGroup;
 			children = (
 				1B0626AA1746998D00E51308 /* Libmacgpg.framework */,
-				304DD0501C3D49A30018D217 /* UnitTests.xctest */,
+				1B73B8D81BB20787007D601B /* UnitTests.xctest */,
 				1B0626AE1746998D00E51308 /* org.gpgtools.Libmacgpg.xpc */,
 				1B0626B21746998D00E51308 /* LeakFinder.app */,
 				1B0626B01746998D00E51308 /* GPGTools.app */,
@@ -4764,6 +4751,8 @@
 		1BAEF64013E9F45B00A59CED /* UI */ = {
 			isa = PBXGroup;
 			children = (
+				1B73B8DC1BB2099F007D601B /* MailToolbar+GPGMail.m */,
+				1B73B8D91BB2079C007D601B /* ComposeWindowController+GPGMail.m */,
 				1B51232214093750004D0818 /* NSBezierPathAdditions */,
 				1BEA7AC41760AB5B0084B2AD /* BannerController+GPGMail.m */,
 				1BD06B9A18102CF300EC9902 /* WebDocumentGenerator+GPGMail.m */,
@@ -4837,6 +4826,8 @@
 		1BDAA67113EB4CAD00F27826 /* UI */ = {
 			isa = PBXGroup;
 			children = (
+				1B73B8DB1BB20994007D601B /* MailToolbar+GPGMail.h */,
+				1B73B8D01BB20787007D601B /* ComposeWindowController+GPGMail.h */,
 				1B512327140937A7004D0818 /* NSBezierPathAdditions */,
 				1BEA7AC31760AB5B0084B2AD /* BannerController+GPGMail.h */,
 				1BD06B9918102CF300EC9902 /* WebDocumentGenerator+GPGMail.h */,
@@ -6780,14 +6771,6 @@
 			path = MailUIFW;
 			sourceTree = "<group>";
 		};
-		305354F71920FE57006C1D39 /* Products */ = {
-			isa = PBXGroup;
-			children = (
-				305354FB1920FE57006C1D39 /* GPGMail_Updater.app */,
-			);
-			name = Products;
-			sourceTree = "<group>";
-		};
 		30CDB07312B2D44700F5F8B7 /* XIBs */ = {
 			isa = PBXGroup;
 			children = (
@@ -6925,7 +6908,6 @@
 				1B49BC7B1A98C21B000440E9 /* Copy "How to get the source code" into Resources */,
 				30F151E21500BE8D00980642 /* Install GPGMail */,
 				1BC07F3517466697004263BB /* Copy Libmacgpg into the sandbox container */,
-				30E05DD41BF3663E00E7272F /* Languages fixes */,
 			);
 			buildRules = (
 			);
@@ -6981,15 +6963,10 @@
 				sk,
 				tr_TR,
 				zh_CN,
-				en_US,
 			);
 			mainGroup = 089C166AFE841209C02AAC07 /* GPGMail */;
 			projectDirPath = "";
 			projectReferences = (
-				{
-					ProductGroup = 305354F71920FE57006C1D39 /* Products */;
-					ProjectRef = 305354F61920FE57006C1D39 /* GPGMail_Updater.xcodeproj */;
-				},
 				{
 					ProductGroup = 1B0626A21746998D00E51308 /* Products */;
 					ProjectRef = 1B06268F1746992B00E51308 /* Libmacgpg.xcodeproj */;
@@ -7032,18 +7009,11 @@
 			remoteRef = 1B0626B11746998D00E51308 /* PBXContainerItemProxy */;
 			sourceTree = BUILT_PRODUCTS_DIR;
 		};
-		304DD0501C3D49A30018D217 /* UnitTests.xctest */ = {
+		1B73B8D81BB20787007D601B /* UnitTests.xctest */ = {
 			isa = PBXReferenceProxy;
 			fileType = wrapper.cfbundle;
 			path = UnitTests.xctest;
-			remoteRef = 304DD04F1C3D49A30018D217 /* PBXContainerItemProxy */;
-			sourceTree = BUILT_PRODUCTS_DIR;
-		};
-		305354FB1920FE57006C1D39 /* GPGMail_Updater.app */ = {
-			isa = PBXReferenceProxy;
-			fileType = wrapper.application;
-			path = GPGMail_Updater.app;
-			remoteRef = 305354FA1920FE57006C1D39 /* PBXContainerItemProxy */;
+			remoteRef = 1B73B8D71BB20787007D601B /* PBXContainerItemProxy */;
 			sourceTree = BUILT_PRODUCTS_DIR;
 		};
 /* End PBXReferenceProxy section */
@@ -7106,7 +7076,6 @@
 				301380D517567D26005948EE /* CertLargeStd@2x.png in Resources */,
 				1B01AC5C17C82A77008FC246 /* dsa_pub.pem in Resources */,
 				301380DC17569815005948EE /* CertLargeNotTrusted@2x.png in Resources */,
-				3033BF601A1FA6F700935374 /* SparkleDefaults.plist in Resources */,
 				301380DE17569819005948EE /* CertLargeNotTrusted.png in Resources */,
 				301380E217578133005948EE /* GPGMail.iconset in Resources */,
 				3066C60A17579F5900384E29 /* CertSmallStd_Invalid.png in Resources */,
@@ -7183,22 +7152,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "[[ \"$LOCALIZE\" == \"NO\" ]] && exit 0\n [[ -d \"$DEPLOY_RESOURCES_DIR\" ]] || exit 0\n \n alias localizeXIB=\"$DEPLOY_RESOURCES_DIR/bin/localizeXIB\"\n ignore=\"$DEPLOY_RESOURCES_DIR/config/l10n_ignored_strings.txt\"\n langs=\"ca cs da de en_US es et fi fr gl id_ID it nb nl_NL pl pt_BR pt_PT ru sk sv tr_TR zh_CN\"\n sourceDir=Resources/en.lproj\n \n localizeXIB -i \"$ignore\" $sourceDir/GPGMailPreferences.xib $langs || exit 1\n localizeXIB -i \"$ignore\" $sourceDir/GPGSignatureView.xib   $langs || exit 1\n localizeXIB -i \"$ignore\" $sourceDir/GPGAttachments.xib     $langs || exit 1\n";
-			showEnvVarsInLog = 0;
-		};
-		30E05DD41BF3663E00E7272F /* Languages fixes */ = {
-			isa = PBXShellScriptBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			inputPaths = (
-			);
-			name = "Languages fixes";
-			outputPaths = (
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-			shellPath = /bin/sh;
-			shellScript = "RESOURCES_DIR=\"$BUILT_PRODUCTS_DIR/$UNLOCALIZED_RESOURCES_FOLDER_PATH\"\n\n# Link pt.lproj -> pt_BR.lproj\nln -hfs pt_BR.lproj \"$RESOURCES_DIR/pt.lproj\"\n\n# Link en.lproj -> en_US.lproj\nln -hfs en_US.lproj \"$RESOURCES_DIR/en.lproj\"\n# 'en' is our source language, don't change existing strings to not break transifex.\n# 'en' isn't copied into the app. (Build setting \"EXCLUDED_SOURCE_FILE_NAMES = en.lproj\")\n# 'en_US' is the \"localized\" 'en' and linked as 'en'.\n\n";
+			shellScript = "[[ \"$LOCALIZE\" == \"NO\" ]] && exit 0\n [[ -d \"$DEPLOY_RESOURCES_DIR\" ]] || exit 0\n \n localizeXIB=\"$DEPLOY_RESOURCES_DIR/bin/localizeXIB\"\n ignore=\"$DEPLOY_RESOURCES_DIR/config/l10n_ignored_strings.txt\"\n langs=\"ca cs da de es et fi fr gl id_ID it nb nl_NL pl pt_BR pt_PT ru sk sv tr_TR zh_CN\"\n sourceDir=Resources/en.lproj\n \n \"$localizeXIB\" -i \"$ignore\" $sourceDir/GPGMailPreferences.xib $langs || exit 1\n \"$localizeXIB\" -i \"$ignore\" $sourceDir/GPGSignatureView.xib   $langs || exit 1\n \"$localizeXIB\" -i \"$ignore\" $sourceDir/GPGAttachments.xib     $langs || exit 1\n";
 			showEnvVarsInLog = 0;
 		};
 		30F151C51500BD4500980642 /* Fill Info.plist */ = {
@@ -7299,6 +7253,7 @@
 				1BC4778D1468AA4F0061120C /* GPGAttachmentController.m in Sources */,
 				1B7E4DB714EEEAD90069E69C /* JRLPSwizzle.m in Sources */,
 				1B4741D014F550B800F36C54 /* GMSecurityControl.m in Sources */,
+				1B73B8DD1BB2099F007D601B /* MailToolbar+GPGMail.m in Sources */,
 				1B45481A14F7D0F0000F1646 /* GMSecurityHistory.m in Sources */,
 				1B89E21614FC40F00012D4AD /* NSWindow+GPGMail.m in Sources */,
 				1B9287C919F9E99700D540DF /* MCMessageGenerator+GPGMail.m in Sources */,
@@ -7309,6 +7264,7 @@
 				1B49855A17A6EB79007FE67F /* MessageRouter+GPGMail.m in Sources */,
 				300F29BB175F460E00C435D2 /* GMComposeKeyEventHandler.m in Sources */,
 				1BEA7AC51760AB5B0084B2AD /* BannerController+GPGMail.m in Sources */,
+				1B73B8DA1BB2079C007D601B /* ComposeWindowController+GPGMail.m in Sources */,
 				1BD7D27F1765E59C00F5A266 /* MessageCriterion+GPGMail.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -7349,7 +7305,6 @@
 				30A5EC69175CACE50023E231 /* sv */,
 				30A5EC6F175CACE90023E231 /* tr_TR */,
 				309DF976175CACFD0062ADE3 /* zh_CN */,
-				304DD0571C3D4A3B0018D217 /* en_US */,
 			);
 			name = GPGMail.strings;
 			sourceTree = "<group>";
@@ -7387,7 +7342,6 @@
 				302FF166175CAE7900DB03EB /* es */,
 				302FF167175CAE7A00DB03EB /* da */,
 				302FF168175CAE7B00DB03EB /* fr */,
-				304DD0511C3D4A3B0018D217 /* en_US */,
 			);
 			name = GPGSignatureView.xib;
 			sourceTree = "<group>";
@@ -7417,7 +7371,6 @@
 				30A5EC67175CACE50023E231 /* sv */,
 				30A5EC6D175CACE90023E231 /* tr_TR */,
 				309DF974175CACFD0062ADE3 /* zh_CN */,
-				304DD0591C3D4A3B0018D217 /* en_US */,
 			);
 			name = GPGAttachment.strings;
 			sourceTree = "<group>";
@@ -7447,7 +7400,6 @@
 				302FF189175CAEC400DB03EB /* pl */,
 				302FF18A175CAEC500DB03EB /* sk */,
 				302FF18B175CAEC600DB03EB /* sv */,
-				304DD0531C3D4A3B0018D217 /* en_US */,
 			);
 			name = GPGAttachments.xib;
 			path = Resources;
@@ -7478,7 +7430,6 @@
 				30A5EC6C175CACE50023E231 /* sv */,
 				30A5EC72175CACE90023E231 /* tr_TR */,
 				309DF979175CACFD0062ADE3 /* zh_CN */,
-				304DD0581C3D4A3B0018D217 /* en_US */,
 			);
 			name = SignatureView.strings;
 			sourceTree = "<group>";
@@ -7508,7 +7459,6 @@
 				30A5EC6A175CACE50023E231 /* sv */,
 				30A5EC70175CACE90023E231 /* tr_TR */,
 				309DF977175CACFD0062ADE3 /* zh_CN */,
-				304DD0561C3D4A3B0018D217 /* en_US */,
 			);
 			name = GPGMailPreferences.xib.strings;
 			sourceTree = "<group>";
@@ -7538,7 +7488,6 @@
 				30A5EC6B175CACE50023E231 /* sv */,
 				30A5EC71175CACE90023E231 /* tr_TR */,
 				309DF978175CACFD0062ADE3 /* zh_CN */,
-				304DD0551C3D4A3B0018D217 /* en_US */,
 			);
 			name = GPGSignatureView.xib.strings;
 			sourceTree = "<group>";
@@ -7568,7 +7517,6 @@
 				30A5EC68175CACE50023E231 /* sv */,
 				30A5EC6E175CACE90023E231 /* tr_TR */,
 				309DF975175CACFD0062ADE3 /* zh_CN */,
-				304DD0541C3D4A3B0018D217 /* en_US */,
 			);
 			name = GPGAttachments.xib.strings;
 			sourceTree = "<group>";
@@ -7577,7 +7525,6 @@
 			isa = PBXVariantGroup;
 			children = (
 				3057F2EA1507C9C000FA3C0D /* en */,
-				304DD05A1C3D4A3B0018D217 /* en_US */,
 			);
 			name = Special.html;
 			sourceTree = "<group>";
@@ -7607,7 +7554,6 @@
 				302FF177175CAEAB00DB03EB /* sv */,
 				302FF178175CAEAB00DB03EB /* tr-TR */,
 				302FF179175CAEAC00DB03EB /* zh-Hans */,
-				304DD0521C3D4A3B0018D217 /* en_US */,
 			);
 			name = GPGMailPreferences.xib;
 			sourceTree = "<group>";
@@ -7619,7 +7565,6 @@
 				30FC04E614FFE61100AA19FE /* de */,
 				30C37B6514FFE65400649F0B /* fr */,
 				30C37C0014FFE67300649F0B /* sv */,
-				304DD05B1C3D4A3B0018D217 /* en_US */,
 			);
 			name = Credits.rtf;
 			sourceTree = "<group>";
@@ -7710,7 +7655,8 @@
 				CODE_SIGN_IDENTITY = "";
 				COMBINE_HIDPI_IMAGES = YES;
 				COPY_PHASE_STRIP = NO;
-				EXCLUDED_SOURCE_FILE_NAMES = "en.lproj/*";
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				DEPLOYMENT_POSTPROCESSING = NO;
 				GCC_DYNAMIC_NO_PIC = NO;
 				GCC_ENABLE_OBJC_GC = unsupported;
 				GCC_GENERATE_DEBUGGING_SYMBOLS = YES;
@@ -7739,6 +7685,7 @@
 					suppress,
 				);
 				PRODUCT_NAME = GPGMail;
+				STRIP_STYLE = "non-global";
 				VALID_ARCHS = "x86_64 i386";
 				WRAPPER_EXTENSION = mailbundle;
 			};
@@ -7755,9 +7702,9 @@
 				COMBINE_HIDPI_IMAGES = YES;
 				COPY_PHASE_STRIP = YES;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
-				DEPLOYMENT_POSTPROCESSING = NO;
-				EXCLUDED_SOURCE_FILE_NAMES = "en.lproj/*";
+				DEPLOYMENT_POSTPROCESSING = YES;
 				GCC_ENABLE_OBJC_GC = unsupported;
+				GCC_GENERATE_DEBUGGING_SYMBOLS = YES;
 				GCC_OPTIMIZATION_LEVEL = s;
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				GCC_PREFIX_HEADER = Source/GPGMail_Prefix.pch;
@@ -7780,6 +7727,8 @@
 					suppress,
 				);
 				PRODUCT_NAME = GPGMail;
+				SEPARATE_STRIP = NO;
+				STRIP_STYLE = "non-global";
 				VALID_ARCHS = "x86_64 i386";
 				WRAPPER_EXTENSION = mailbundle;
 			};
@@ -7794,6 +7743,10 @@
 				CLANG_WARN_EMPTY_BODY = YES;
 				CLANG_WARN_ENUM_CONVERSION = YES;
 				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_OBJC_EXPLICIT_OWNERSHIP_TYPE = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_REPEATED_USE_OF_WEAK = YES;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				DEPLOY_RESOURCES_DIR = "$(SRCROOT)/Dependencies/DeployResources";
 				FRAMEWORK_SEARCH_PATHS = (
@@ -7828,6 +7781,7 @@
 				GCC_WARN_UNKNOWN_PRAGMAS = YES;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_LABEL = YES;
+				GCC_WARN_UNUSED_PARAMETER = YES;
 				GCC_WARN_UNUSED_VALUE = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
 				LD_RUNPATH_SEARCH_PATHS = "$(HOME)/Library/Containers/com.apple.mail/Data/Library/Frameworks $(HOME)/Library/Frameworks /Library/Frameworks";
@@ -7852,6 +7806,10 @@
 				CLANG_WARN_EMPTY_BODY = YES;
 				CLANG_WARN_ENUM_CONVERSION = YES;
 				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_OBJC_EXPLICIT_OWNERSHIP_TYPE = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_REPEATED_USE_OF_WEAK = YES;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				DEPLOY_RESOURCES_DIR = "$(SRCROOT)/Dependencies/DeployResources";
 				FRAMEWORK_SEARCH_PATHS = (
@@ -7887,6 +7845,7 @@
 				GCC_WARN_UNKNOWN_PRAGMAS = YES;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_LABEL = YES;
+				GCC_WARN_UNUSED_PARAMETER = YES;
 				GCC_WARN_UNUSED_VALUE = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
 				LD_RUNPATH_SEARCH_PATHS = "/Library/Frameworks $(HOME)/Library/Frameworks $(HOME)/Library/Containers/com.apple.mail/Data/Library/Frameworks";
