@@ -29,9 +29,9 @@ install: all
 	-launchctl uncache gui/$$UID/org.gpgtools.Libmacgpg.xpc
 
 update:
-	git subtree merge --prefix=gpgmail --squash gpgmail/dev
-	git subtree merge --prefix=libmacgpg --squash libmacgpg/dev
 	git subtree merge --prefix=pinentry --squash pinentry/master
+	git subtree merge --prefix=libmacgpg --squash libmacgpg/dev
+	git subtree merge --prefix=gpgmail --squash gpgmail/dev
 
 clean:
 	$(MAKE) -C gpgmail $@
