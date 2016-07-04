@@ -26,7 +26,7 @@ install: all
 	codesign -s "`id -F`" $(FRAMEWORK_DIR)/Libmacgpg.framework
 	codesign -s "`id -F`" $(PLUGIN_DIR)/GPGMail.mailbundle
 	sed 's|/Library/Application Support/GPGTools|$(RESOURCE_DIR)|' < libmacgpg/build/org.gpgtools.Libmacgpg.xpc.plist > ~/Library/LaunchAgents/org.gpgtools.Libmacgpg.xpc.plist
-	launchctl uncache gui/$$UID/org.gpgtools.Libmacgpg.xpc
+	-launchctl uncache gui/$$UID/org.gpgtools.Libmacgpg.xpc
 
 update:
 	git subtree merge --prefix=gpgmail --squash gpgmail/dev
