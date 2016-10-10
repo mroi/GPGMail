@@ -1,7 +1,7 @@
 
-GetPassphraseDescription = "You need a passphrase to unlock the secret key for user: \"%@\", ID %@";
-GetPassphraseDescription_Subkey = "You need a passphrase to unlock the secret key for user: \"%@\", ID %@, (main key ID %@)";
-PassphraseLabel = "Passphrase:";
+GetPassphraseDescription = "You need a password to unlock the secret key for user: \"%@\", ID %@";
+GetPassphraseDescription_Subkey = "You need a password to unlock the secret key for user: \"%@\", ID %@, (main key ID %@)";
+PassphraseLabel = "Password:";
 
 
 
@@ -23,7 +23,7 @@ Undo_CleanKey = "Clean";
 Undo_MinimizeKey = "Minimize";
 Undo_RevokeKey = "Revoke Key";
 Undo_ChangeExpirationDate = "Change Expiration Date";
-Undo_ChangePassphrase = "Change Passphrase";
+Undo_ChangePassphrase = "Change Password";
 Undo_AlgorithmPreferences = "Change Algorithm Preferences";
 Undo_Import = "Import";
 Undo_AddSignature = "Add Signature";
@@ -82,11 +82,11 @@ GPG_DiffieHellmanAlgorithm = "DiffieHellman";
 "Signed" = "Signed";
 "Signature expired" = "Signature expired";
 "Key expired" = "Key expired";
-"Bad signature" = "Bad signature";
+"Bad signature" = "Signature and data do not match. This could mean the data has been tampered with.";
 "Signature revoked" = "Signature revoked";
 "Signature error" = "Signature error";
-"Unverifiable signature" = "Unverifiable signature";
-"Signed by stranger" = "Signed by stranger";
+"Unverifiable signature" = "Signature can not be verified.";
+"Signed by stranger" = "Signature can not be verified, because the corresponding public key is missing.";
 
 
 
