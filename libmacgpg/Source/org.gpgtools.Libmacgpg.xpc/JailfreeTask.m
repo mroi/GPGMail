@@ -13,6 +13,8 @@
 #import "GPGException.h"
 #import "GPGTaskHelper.h"
 
+#include <xpc/xpc.h>
+
 @interface JailfreeTask ()
 - (BOOL)isCodeSignatureValidAtPath:(NSString *)path;
 @end
