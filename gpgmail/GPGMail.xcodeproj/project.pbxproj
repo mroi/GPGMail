@@ -288,7 +288,6 @@
 		1BAEF64213E9F57700A59CED /* MailAccount+GPGMail.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "MailAccount+GPGMail.h"; sourceTree = "<group>"; };
 		1BAEF64313E9F57700A59CED /* MailAccount+GPGMail.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "MailAccount+GPGMail.m"; sourceTree = "<group>"; };
 		1BAFDD6F1784DAB100E9BA6A /* RegexKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = RegexKit.framework; path = Frameworks/RegexKit.framework; sourceTree = "<group>"; };
-		1BB3DCCC1407F1CA00870DEB /* LibraryStore+GPGMail.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "LibraryStore+GPGMail.h"; sourceTree = "<group>"; };
 		1BBB07E21489A64600530876 /* en */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = en; path = en.lproj/GPGAttachment.strings; sourceTree = "<group>"; };
 		1BBEF49A13A9115E0037E53D /* NSSet+Functional.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "NSSet+Functional.h"; sourceTree = "<group>"; };
 		1BBEF49B13A9115E0037E53D /* NSSet+Functional.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "NSSet+Functional.m"; sourceTree = "<group>"; };
@@ -765,7 +764,6 @@
 				1BADCE74176B6501009D3785 /* GMMessageRulesApplier.h */,
 				4555EA49150922DF00723E1F /* GPGException+GPGMail.h */,
 				1B938AC517693F48007A0854 /* Library+GPGMail.h */,
-				1BB3DCCC1407F1CA00870DEB /* LibraryStore+GPGMail.h */,
 				1BAEF64213E9F57700A59CED /* MailAccount+GPGMail.h */,
 				1B9287C719F9E99700D540DF /* MCMessageGenerator+GPGMail.h */,
 				1B8289F913FD62880007E6A2 /* Message+GPGMail.h */,
