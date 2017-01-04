@@ -1,7 +1,7 @@
 /* GPGMailBundle.m created by dave on Thu 29-Jun-2000 */
 /* GPGMailBundle.m completely re-created by Lukas Pitschl (@lukele) on Thu 13-Jun-2013 */
 /*
- * Copyright (c) 2000-2011, GPGTools Project Team <gpgtools-devel@lists.gpgtools.org>
+ * Copyright (c) 2000-2016, GPGTools Project Team <gpgtools-devel@lists.gpgtools.org>
  * All rights reserved.
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -43,8 +43,139 @@
 #import "MVMailBundle.h"
 #import "NSString+GPGMail.h"
 #import "HeadersEditor+GPGMail.h"
-#import "DocumentEditor.h"
 #import "GMSecurityControl.h"
+#import "ComposeViewController.h"
+
+#import "NSObject+LPDynamicIvars.h"
+@interface CertificateBannerViewController_GPGMail : NSObject
+
+@end
+
+@interface CertificateBannerViewController_GPGMail (NotImplemented)
+
+- (id)webDocument;
+- (NSError *)parseError;
+- (void)setWantsDisplay:(BOOL)wantsDisplay;
+
+@end
+
+@implementation CertificateBannerViewController_GPGMail
+
+- (void)MAUpdateWantsDisplay {
+    // By default Mail.app only displays the error if it's a verification error.
+    // GPGMail however wants to display any error found during verification or decryption.
+    // In order to do that, if an error is found on the security properties of the
+    // message, it will force the error to be shown, regardless of error code (which is used by Mail's updateWantsDisplay to determine whether or not to show the banner)
+    NSError *error = [[self webDocument] parseError];
+    if([error ivarExists:@"ParseErrorIsPGPError"]) {
+        [self setWantsDisplay:YES];
+    }
+    else {
+        [self MAUpdateWantsDisplay];
+    }
+}
+
+@end
+
+@interface MCDataAttachmentDataSource_GPGMail : NSObject
+
+@end
+
+@implementation MCDataAttachmentDataSource_GPGMail
+
+- (id)MAInitWithData:(id)arg1 {
+    id ret = [self MAInitWithData:arg1];
+    return ret;
+}
+
+- (id)MAData {
+    id ret = [self MAData];
+    return ret;
+}
+
+@end
+
+@interface MCAttachment_GPGMail : NSObject
+
+- (NSImage *)iconImage;
+
+@end
+
+@implementation MCAttachment_GPGMail
+
+- (NSImage *)MAIconImage {
+    id ret = [self MAIconImage];
+    return ret;
+}
+
+@end
+
+@interface MailWebAttachment_GPGMail : NSObject
+@end
+
+@implementation MailWebAttachment_GPGMail
+
+- (id)MAFilename {
+    id ret = [self MAFilename];
+    return ret;
+}
+
+- (NSImage *)MAIconImage {
+    id ret = [self MAIconImage];
+    return ret;
+}
+
+@end
+
+@interface MFLibraryAttachmentDataSource_GPGMail : NSObject
+
+@end
+
+@implementation MFLibraryAttachmentDataSource_GPGMail
+
+- (id)MAInitWithMessage:(id)arg1 mimePartNumber:(id)arg2 attachment:(id)arg3 remoteDataSource:(id)arg4 {
+    id decryptedMessage = [arg3 getIvar:@"DecryptedMessage"];
+    if(decryptedMessage) {
+        arg1 = decryptedMessage;
+    }
+    id ret = [self MAInitWithMessage:(id)arg1 mimePartNumber:(id)arg2 attachment:(id)arg3 remoteDataSource:(id)arg4];
+    return ret;
+}
+
+@end
+
+
+
+@interface IMAPMessageDownload_GPGMail : NSObject
+@end
+
+@implementation IMAPMessageDownload_GPGMail
+
+- (void)MASetAllowsPartialDownloads:(BOOL)arg1 {
+    [self MASetAllowsPartialDownloads:arg1];
+}
+
+- (id)MACollectDataAndWriteToDisk:(BOOL)arg1 {
+    id ret = [self MACollectDataAndWriteToDisk:arg1];
+    return ret;
+}
+
+@end
+
+
+@interface MCKeychainManager_GPGMail : NSObject
+@end
+
+@implementation MCKeychainManager_GPGMail
+
++ (struct OpaqueSecIdentityRef *)MACopySigningIdentityForAddress:(id)arg1 {
+    id ret = [self MACopySigningIdentityForAddress:arg1];
+    
+    return (__bridge struct OpaqueSecIdentityRef *)(ret);
+}
+
+@end
+
 
 @interface GPGMailBundle ()
 
@@ -554,6 +685,15 @@ static BOOL gpgMailWorks = NO;
     return [info isOperatingSystemAtLeastVersion:requiredVersion];
 }
 
++ (BOOL)isSierra {
+    NSProcessInfo *info = [NSProcessInfo processInfo];
+    if(![info respondsToSelector:@selector(isOperatingSystemAtLeastVersion:)])
+        return NO;
+    
+    NSOperatingSystemVersion requiredVersion = {10,12,0};
+    return [info isOperatingSystemAtLeastVersion:requiredVersion];
+}
+
 + (BOOL)hasPreferencesPanel {
     // LEOPARD Invoked on +initialize. Else, invoked from +registerBundle.
 	return YES;
@@ -571,7 +711,7 @@ static BOOL gpgMailWorks = NO;
     id backEnd = nil;
     if([object isKindOfClass:[GPGMailBundle resolveMailClassFromName:@"HeadersEditor"]]) {
         if([GPGMailBundle isElCapitan])
-            backEnd = [[object composeViewController] backEnd];
+            backEnd = [(ComposeViewController *)[object composeViewController] backEnd];
         else
             backEnd = [[object valueForKey:@"_documentEditor"] backEnd];
     }
@@ -586,6 +726,19 @@ static BOOL gpgMailWorks = NO;
     
     return backEnd;
 }
+
++ (NSError *)errorWithCode:(NSInteger)code userInfo:(nullable NSDictionary *)userInfo {
+    NSString *errorDomain = [GPGMailBundle isMavericks] ? @"MCMailErrorDomain" : @"MFMessageErrorDomain";
+    
+    NSError *mailError = nil;
+    NSMutableDictionary *extendedUserInfo = [userInfo mutableCopy];
+    extendedUserInfo[@"NSLocalizedDescription"] = userInfo[@"_MFShortDescription"];
+    extendedUserInfo[@"NSLocalizedRecoverySuggestion"] = userInfo[@"NSLocalizedDescription"];
+    mailError = [NSError errorWithDomain:errorDomain code:code userInfo:extendedUserInfo];
+    
+    return mailError;
+}
+
 
 @end
 

@@ -30,9 +30,9 @@
 #define restrict
 #import <RegexKit/RegexKit.h>
 #import <Libmacgpg/Libmacgpg.h>
-#import <NSString-NSStringUtils.h>
+//#import <NSString-NSStringUtils.h>
 #import "NSData+GPGMail.h"
-#import "NSData-MessageAdditions.h"
+#import "NSData-MailCoreAdditions.h"
 
 @implementation NSData (GPGMail)
 
@@ -41,7 +41,7 @@
         return @"";
     
     // Attempt to convert with hint encoding.
-    NSString *string = [NSString stringWithData:self encoding:encoding];
+    NSString *string = [[NSString alloc] initWithData:self encoding:encoding];
     if(![string length])
         return [self stringByGuessingEncoding];
     
@@ -63,7 +63,7 @@
         NSASCIIStringEncoding};
 
     for(int i = 0; i < items; i++) {
-        retString = [NSString stringWithData:self encoding:encodings[i]];
+        retString = [[NSString alloc] initWithData:self encoding:encodings[i]];
         if([retString length] > 0)
             return retString;
         

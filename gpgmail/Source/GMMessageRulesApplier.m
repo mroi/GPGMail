@@ -31,7 +31,7 @@
 #import "CCLog.h"
 #import "GMMessageRulesApplier.h"
 #import "Message+GPGMail.h"
-#import "MessageStore.h"
+//#import "MessageStore.h"
 #import "NSObject+LPDynamicIvars.h"
 
 @interface GMMessageRulesApplier ()
@@ -52,7 +52,7 @@
 	return self;
 }
 
-- (void)scheduleMessage:(Message *)message isEncrypted:(BOOL)isEncrypted {
+- (void)scheduleMessage:(MCMessage *)message isEncrypted:(BOOL)isEncrypted {
 	id messageID = [message messageID];
 	
 	// EWSMessage seems to be a special type of message related
@@ -76,16 +76,18 @@
 		
 		// Apply the rules for the message.
 		[message setIvar:@"OnlyIncludeEncryptedAndSignedRules" value:@(YES)];
-		[[(Message_GPGMail *)message dataSourceProxy] routeMessages:@[message] isUserAction:NO];
+        // TODO: Find method replacing this one!
+        //		[[(Message_GPGMail *)message dataSourceProxy] routeMessages:@[message] isUserAction:NO];
 		
 		// Add it to the rules dict, except if the message was encrypted and couldn't be decrypted
 		// because in that case, it's not possible to check if it was encrypted AND SIGNED.
-		BOOL saveRulesApplied = [(Message_GPGMail *)message PGPEncrypted] && ![(Message_GPGMail *)message PGPDecrypted] ? NO : YES;
+		// TODO: If this method is every used again, check what it should really do.
+        //BOOL saveRulesApplied = [(Message_GPGMail *)message PGPEncrypted] && ![(Message_GPGMail *)message PGPDecrypted] ? NO : YES;
 		
-		if(saveRulesApplied) {
-			[_rulesDict setValue:@(YES) forKey:messageID];
-			[[GPGOptions sharedOptions] setValue:_rulesDict forKey:@"MapOfMessagesWereRulesWereApplied"];
-		}
+//		if(saveRulesApplied) {
+//			[_rulesDict setValue:@(YES) forKey:messageID];
+//			[[GPGOptions sharedOptions] setValue:_rulesDict forKey:@"MapOfMessagesWereRulesWereApplied"];
+//		}
 	});
 }
 

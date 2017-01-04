@@ -32,12 +32,25 @@
 #import "CCLog.h"
 #import "NSObject+LPDynamicIvars.h"
 #import "NSData+GPGMail.h"
-#import "Message.h"
-#import "MessageStore.h"
-#import "MimeBody.h"
+//#import "Message.h"
+//#import "MessageStore.h"
+//#import "MimeBody.h"
 #import "Message+GPGMail.h"
 #import "MimeBody+GPGMail.h"
 #import "MimePart+GPGMail.h"
+
+#import "GMMessageSecurityFeatures.h"
+
+#define MAIL_SELF ((MCMimeBody *)self)
+
+const static NSString *kMessageSecurityFeaturesKey = @"MessageSecurityFeaturesKey";
+const NSString *kMimeBodyMessageKey = @"MimeBodyMessageKey";
+
+@interface MimeBody_GPGMail (NotImplemented)
+
+- (id)messageDataIncludingFromSpace:(BOOL)arg1 newDocumentID:(id)arg2 fetchIfNotAvailable:(BOOL)arg3;
+
+@end
 
 @implementation MimeBody_GPGMail
 
@@ -46,7 +59,8 @@
     // signatures internally, if some are set.
     // This results in a crash, since Mail.app
     // can't handle GPGSignature signatures.
-    NSArray *messageSigners = [[self message] PGPSignatures];
+    GMMessageSecurityFeatures *securityProperties = [self securityFeatures];
+    NSArray *messageSigners = [securityProperties PGPSignatures];
     if([messageSigners count] && [messageSigners[0] isKindOfClass:[GPGSignature class]]) {
         return YES;
     }
@@ -70,46 +84,45 @@
 - (BOOL)MA_isPossiblySignedOrEncrypted {
     // Check if message should be processed (-[Message shouldBePGPProcessed] - Snippet generation check)
     // otherwise out of here!
-    if(![[self message] shouldBePGPProcessed])
+    if(![(Message_GPGMail *)[self message] shouldBePGPProcessed])
         return [self MA_isPossiblySignedOrEncrypted];
     
     return [self MA_isPossiblySignedOrEncrypted];
 }
 
-- (BOOL)containsPGPEncryptedData {
-    if(![[self message] ivarExists:@"containsPGPEncryptedData"]) {
-        // This might be expensive, but heck...
-        // The problem is, for messages with large attachments Mail.app doesn't return the complete
-        // body data for -[MimeBody bodyData].
-        // To get the complete data, the message store has to be asked directly.
-        NSRange encryptedDataRange = [[[[self message] dataSourceProxy] fullBodyDataForMessage:[self message]] rangeOfPGPInlineEncryptedData];
-        if(encryptedDataRange.location != NSNotFound)
-            [[self message] setIvar:@"containsPGPEncryptedData" value:@YES];
-        else
-            [[self message] setIvar:@"containsPGPEncryptedData" value:@NO];
-    }   
-    return [[[self message] getIvar:@"containsPGPEncryptedData"] boolValue];
+// TODO: Fix this, since on older versions this will create a crash.
+- (id)message {
+    return [self getIvar:kMimeBodyMessageKey];
 }
 
-- (BOOL)containsPGPSignedData {
-    if(![[self message] ivarExists:@"containsPGPSignedData"]) {
-        NSRange signedDataRange = [[self bodyData] rangeOfPGPSignatures];
-        if(signedDataRange.location != NSNotFound)
-            [[self message] setIvar:@"containsPGPSignedData" value:@YES];
-        else
-            [[self message] setIvar:@"containsPGPSignedData" value:@NO];
-    }
-    // In case of a inline decrypted message body, the decrypted data doesn't contain the signature
-    // but only the top level part of the decrypted message body.
-    return [[[self message] getIvar:@"containsPGPSignedData"] boolValue] || [[self topLevelPart] PGPSigned];
+- (NSData *)MAParsedMessage {
+    DebugLog(@"Has message? %@", [self getIvar:kMimeBodyMessageKey]);
+    id parsedMessage = [self MAParsedMessage];
+    [parsedMessage setIvar:kMimeBodyMessageKey value:[self getIvar:kMimeBodyMessageKey]];
+    
+    [self collectSecurityFeatures];
+    [parsedMessage setIvar:kMessageSecurityFeaturesKey value:[self securityFeatures]];
+    
+    return parsedMessage;
 }
 
-- (BOOL)containsPGPData {
-    if([self containsPGPEncryptedData])
-        return YES;
-    if([self containsPGPSignedData])
-        return YES;
-    return NO;
+- (void)collectSecurityFeatures {
+    // Collect the security parse result.
+    GMMessageSecurityFeatures *securityFeatures = [GMMessageSecurityFeatures securityFeaturesFromMimeBody:self];
+    // TODO: What to do if the security features are already set?
+    [self setSecurityFeatures:securityFeatures];
+    [[self getIvar:kMimeBodyMessageKey] setIvar:kMessageSecurityFeaturesKey value:securityFeatures];
+}
+
+- (void)setSecurityFeatures:(GMMessageSecurityFeatures *)securityFeatures {
+    [self setIvar:kMessageSecurityFeaturesKey value:securityFeatures];
+}
+
+- (GMMessageSecurityFeatures *)securityFeatures {
+    return [self getIvar:kMessageSecurityFeaturesKey];
 }
 
 @end
+
+#undef MAIL_SELF
+

@@ -28,9 +28,9 @@
  */
 
 #import <Foundation/Foundation.h>
-#import "MessageCriterion.h"
+#import "MFMessageCriterion.h"
 
-@class Message;
+@class MCMessage;
 
 /**
  It's necessary to hook into this class, since Mail.app only checks
@@ -48,12 +48,12 @@
  Return YES if either the message flags have the signed bit on
  or [message isSigned] returns YES.
  */
-- (BOOL)MA_evaluateIsDigitallySignedCriterion:(Message *)message;
+- (BOOL)MA_evaluateIsDigitallySignedCriterion:(MCMessage *)message;
 
 /**
  Return YES if either the message flags have the encrypted bit on
  or [message isEncrypted] returns YES.
  */
-- (BOOL)MA_evaluateIsEncryptedCriterion:(Message *)message;
+- (BOOL)MA_evaluateIsEncryptedCriterion:(MCMessage *)message;
 
 @end

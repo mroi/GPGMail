@@ -26,10 +26,10 @@
  */
 
 #import "NSObject+LPDynamicIvars.h"
-#import "Message.h"
+#import "MCMessage.h"
 #import "GPGMailBundle.h"
 #import "ComposeBackEnd.h"
-#import "MailDocumentEditor.h"
+//#import "MailDocumentEditor.h"
 #import "Message+GPGMail.h"
 #import "ComposeBackEnd+GPGMail.h"
 #import "GMSecurityControl.h"

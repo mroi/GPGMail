@@ -28,16 +28,17 @@
  */
 
 #import <Foundation/Foundation.h>
-#import "BannerController.h"
-
-@interface BannerController_GPGMail : NSObject
-
-/**
- Mail.app calls this method, when a error banner or other banner should be shown
- above the message content.
- This is where GPGMail will force the error banner to be shown, if there was an
- error decrypting or verifying a message or attached file.
- */
-- (void)MAUpdateBannerForViewingState:(MessageViewingState *)viewingState;
-
-@end
+// TODO: Was renamed to BannerViewController. Figure out if this is still used.
+//#import "BannerController.h"
+//
+//@interface BannerController_GPGMail : NSObject
+//
+///**
+// Mail.app calls this method, when a error banner or other banner should be shown
+// above the message content.
+// This is where GPGMail will force the error banner to be shown, if there was an
+// error decrypting or verifying a message or attached file.
+// */
+//- (void)MAUpdateBannerForViewingState:(MessageViewingState *)viewingState;
+//
+//@end

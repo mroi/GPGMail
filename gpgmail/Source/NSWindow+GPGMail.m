@@ -29,7 +29,7 @@
 
 #import "CCLog.h"
 #import "GPGMailBundle.h"
-#import "MailDocumentEditor.h"
+//#import "MailDocumentEditor.h"
 #import "MailDocumentEditor+GPGMail.h"
 #import "NSWindow+GPGMail.h"
 
@@ -76,12 +76,13 @@
 - (void)MAToggleFullScreen:(id)sender {
     // Loop through all document editors and remove the security method
     // accessory view, so there's no animation glitch.
-    DebugLog(@"Toggle fullscreen: remove security method accessory view");
-    for(MailDocumentEditor *editor in [NSClassFromString(@"MailDocumentEditor") documentEditors]) {
-        if(editor.isModal)
-            [((MailDocumentEditor_GPGMail *)editor) hideSecurityMethodAccessoryView];
-    }
-    [self MAToggleFullScreen:sender];
+    // TODO: Figure out if this is still called, and if so, what we should be doing here in Sierra!
+//    DebugLog(@"Toggle fullscreen: remove security method accessory view");
+//    for(MailDocumentEditor *editor in [NSClassFromString(@"MailDocumentEditor") documentEditors]) {
+//        if(editor.isModal)
+//            [((MailDocumentEditor_GPGMail *)editor) hideSecurityMethodAccessoryView];
+//    }
+//    [self MAToggleFullScreen:sender];
 }
 
 @end

@@ -28,10 +28,10 @@
  */
 
 #import "MessageRouter+GPGMail.h"
-#import "MessageCriterion.h"
+#import "MFMessageCriterion.h"
 #import "NSObject+LPDynamicIvars.h"
 #import "NSArray+Functional.h"
-#import "MessageRule.h"
+#import "MFMessageRule.h"
 
 @implementation MessageRouter_GPGMail
 
@@ -44,9 +44,9 @@
 		return;
 	
 	// Only keep the rules which evaluate the encrypted or signed flag.
-	NSArray *encryptedOrSignedRules = [rules filter:^MessageRule *(MessageRule *rule) {
+	NSArray *encryptedOrSignedRules = [rules filter:^MFMessageRule *(MFMessageRule *rule) {
 		BOOL criteriaMatches = NO;
-		for(MessageCriterion *criterion in rule.criteria) {
+		for(MFMessageCriterion *criterion in rule.criteria) {
 			if(criterion.criterionType == 18 || criterion.criterionType == 19) {
 				criteriaMatches = YES;
 				break;

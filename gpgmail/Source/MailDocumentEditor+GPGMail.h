@@ -48,9 +48,16 @@
  to reflect the chosen security method and sign and encrypt status.
  
  Updates the security method accessory view, the sender selector to add
- additional keys for OpenPGP if necessary. 
+ additional keys for OpenPGP if necessary.
+ 
+ Deprecated: use updateSecurityMethodAccessoryView instead.
  */
 - (void)updateSecurityMethodHighlight;
+
+/**
+ Deprecates updateSecurityMethodHighlight.
+ */
+- (void)updateSecurityMethodAccessoryView;
 
 /**
  Updates the security method accessory view to show the new security method.

@@ -28,7 +28,7 @@
  */
 
 #import "CCLog.h"
-#import "NSString-EmailAddressString.h"
+//#import "NSString-EmailAddressString.h"
 #import "GPGFlaggedString.h"
 #import "NSString+GPGMail.h"
 

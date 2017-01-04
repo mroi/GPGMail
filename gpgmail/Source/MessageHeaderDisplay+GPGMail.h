@@ -45,12 +45,6 @@
 - (void)_showAttachmentsPanel;
 
 /**
- Starts the decryption of a message. Invoked when clicking on the decrypt icon.
- (Only used if automatic decryption is disabled.)
- */
-- (void)_decryptMessage;
-
-/**
  This method displays the S/MIME security headers.
  If a message is encrypted a encrypted icon is displayed. If a message is signed,
  a signed icon is displayed, accompanied by the email address(es) of the sender.

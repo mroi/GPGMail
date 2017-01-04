@@ -27,7 +27,7 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#import <MessageContentController.h>
+//#import <MessageContentController.h>
 
 @interface MessageContentController_GPGMail : NSObject
 

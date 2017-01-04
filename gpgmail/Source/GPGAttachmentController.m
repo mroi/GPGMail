@@ -8,10 +8,10 @@
 #define localized(key) [[GPGMailBundle bundle] localizedStringForKey:(key) value:(key) table:@"SignatureView"]
 #define localizedAttachmentMessage(key) [[GPGMailBundle bundle] localizedStringForKey:(key) value:(key) table:@"GPGAttachment"]
 
-#import "MimePart.h"
+#import "MCMimePart.h"
 #import "NSObject+LPDynamicIvars.h"
 #import "MimePart+GPGMail.h"
-#import "MFError.h"
+//#import "MFError.h"
 #import "GPGAttachmentController.h"
 #import "GPGSignatureView.h"
 #import "GPGMailBundle.h"
@@ -33,7 +33,7 @@
             [attachment setValue:@(part.PGPEncrypted) forKey:@"encrypted"];
             [attachment setValue:@(part.PGPSigned) forKey:@"signed"];
             [attachment setValue:part.PGPError forKey:@"error"];
-            [attachment setValue:[part dispositionParameterForKey:@"filename"] forKey:@"decrypted-name"];
+            [attachment setValue:[(MCMimePart *)part dispositionParameterForKey:@"filename"] forKey:@"decrypted-name"];
             if(part.PGPSignatures)
                 [attachment setValue:(part.PGPSignatures)[0] forKey:@"signature"];
             BOOL decrypted = part.PGPDecrypted;
@@ -59,13 +59,14 @@
                 [attachment setValue:@YES forKey:@"showSignatureView"];
                 if(part.PGPSigned) {
                     [attachment setValue:[NSImage imageNamed:@"certificate"] forKey:@"errorBadgeImage"];
-                    [attachment setValue:[[(MFError *)[attachment valueForKey:@"error"] userInfo] valueForKey:@"_MFShortDescription"] forKey:@"errorTitle"];
-                    [attachment setValue:[[(MFError *)[attachment valueForKey:@"error"] userInfo] valueForKey:@"NSLocalizedDescription"] forKey:@"errorMessage"];
+                    // TODO: Find out if the value for key information is still correct on Sierra!
+                    [attachment setValue:[[(NSError *)[attachment valueForKey:@"error"] userInfo] valueForKey:@"_MFShortDescription"] forKey:@"errorTitle"];
+                    [attachment setValue:[[(NSError *)[attachment valueForKey:@"error"] userInfo] valueForKey:@"NSLocalizedDescription"] forKey:@"errorMessage"];
                 }
                 else if(!decrypted) {
                     [attachment setValue:[NSImage imageNamed:@"encryption"] forKey:@"errorBadgeImage"];
-                    [attachment setValue:[[(MFError *)[attachment valueForKey:@"error"] userInfo] valueForKey:@"_MFShortDescription"] forKey:@"errorTitle"];
-                    [attachment setValue:[[(MFError *)[attachment valueForKey:@"error"] userInfo] valueForKey:@"NSLocalizedDescription"] forKey:@"errorMessage"];
+                    [attachment setValue:[[(NSError *)[attachment valueForKey:@"error"] userInfo] valueForKey:@"_MFShortDescription"] forKey:@"errorTitle"];
+                    [attachment setValue:[[(NSError *)[attachment valueForKey:@"error"] userInfo] valueForKey:@"NSLocalizedDescription"] forKey:@"errorMessage"];
                 }                
             }
             

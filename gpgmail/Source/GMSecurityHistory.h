@@ -31,7 +31,7 @@
 #define GPGMAIL_SECURITY_OPTIONS_HISTORY_FILE @"security-options-history.data"
 #define GPGMAIL_SECURITY_OPTIONS_HISTORY_DOMAIN @"org.gpgtools.gpgmail"
 
-@class GMSecurityOptions;
+@class GMSecurityOptions, MCMessage;
 
 @interface GMSecurityHistory : NSObject
 
@@ -39,9 +39,9 @@
 
 - (GMSecurityOptions *)bestSecurityOptionsForSender:(NSString *)sender recipients:(NSArray *)recipients signFlags:(GPGMAIL_SIGN_FLAG)signFlags 
                                      encryptFlags:(GPGMAIL_ENCRYPT_FLAG)encryptFlags;
-- (GMSecurityOptions *)bestSecurityOptionsForReplyToMessage:(Message *)message signFlags:(GPGMAIL_SIGN_FLAG)signFlags 
+- (GMSecurityOptions *)bestSecurityOptionsForReplyToMessage:(MCMessage *)message signFlags:(GPGMAIL_SIGN_FLAG)signFlags
                                                encryptFlags:(GPGMAIL_ENCRYPT_FLAG)encryptFlags;
-- (GMSecurityOptions *)bestSecurityOptionsForMessageDraft:(Message *)message signFlags:(GPGMAIL_SIGN_FLAG)signFlags
+- (GMSecurityOptions *)bestSecurityOptionsForMessageDraft:(MCMessage *)message signFlags:(GPGMAIL_SIGN_FLAG)signFlags
 											 encryptFlags:(GPGMAIL_ENCRYPT_FLAG)encryptFlags;
 - (GMSecurityOptions *)bestSecurityOptionsForSender:(NSString *)sender recipients:(NSArray *)recipients securityMethod:(GPGMAIL_SECURITY_METHOD)securityMethod
                                             canSign:(BOOL)canSign canEncrypt:(BOOL)canEncrypt;

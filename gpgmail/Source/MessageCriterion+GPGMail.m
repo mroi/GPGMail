@@ -32,11 +32,11 @@
 
 @implementation MessageCriterion_GPGMail
 
-- (BOOL)MA_evaluateIsDigitallySignedCriterion:(Message *)message {
+- (BOOL)MA_evaluateIsDigitallySignedCriterion:(MCMessage *)message {
     return [self MA_evaluateIsDigitallySignedCriterion:message] || ((Message_GPGMail *)message).isSigned;
 }
 
-- (BOOL)MA_evaluateIsEncryptedCriterion:(Message *)message {
+- (BOOL)MA_evaluateIsEncryptedCriterion:(MCMessage *)message {
     return [self MA_evaluateIsEncryptedCriterion:message] || ((Message_GPGMail *)message).isEncrypted;
 }
 

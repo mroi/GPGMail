@@ -27,9 +27,11 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#import "MimePart.h"
-#import "MimeBody.h"
-#import <Message.h>
+#import "MCMimePart.h"
+#import "MCMimeBody.h"
+#import "MCMessage.h"
+
+@class GMMessageSecurityFeatures;
 
 @interface Message_GPGMail : NSObject
 
@@ -57,8 +59,9 @@
 
 - (void)fakeMessageFlagsIsEncrypted:(BOOL)isEncrypted isSigned:(BOOL)isSigned;
 
-- (void)collectPGPInformationStartingWithMimePart:(GM_CAST_CLASS(MimePart *, id))topPart decryptedBody:(GM_CAST_CLASS(MimeBody *, id))decryptedBody;
-- (void)clearPGPInformation;
+// This is now on the GMMessageSecurityParseResult
+//- (void)collectPGPInformationStartingWithMimePart:(GM_CAST_CLASS(MimePart *, id))topPart decryptedBody:(GM_CAST_CLASS(MimeBody *, id))decryptedBody;
+//- (void)clearPGPInformation;
 
 /**
  Determines whetehr or not the message should be processed with PGP operations.
@@ -92,18 +95,19 @@
  */
 - (BOOL)userDidActivelySelectMessageCheckingMessageOnly:(BOOL)messageOnly;
 
-@property (assign) BOOL PGPInfoCollected;
-@property (assign) BOOL PGPEncrypted;
-@property (assign) BOOL PGPPartlyEncrypted;
-@property (assign) BOOL PGPSigned;
-@property (assign) BOOL PGPPartlySigned;
-@property (assign) BOOL PGPDecrypted;
-@property (assign) BOOL PGPVerified;
-@property (retain) NSArray *PGPSignatures;
-@property (retain, readonly) NSArray *PGPSignatureLabels;
-@property (retain) NSArray *PGPErrors;
-@property (assign) NSUInteger numberOfPGPAttachments;
-@property (retain) NSArray *PGPAttachments; 
+// These are now on the GMMessageSecurityParseResult
+//@property (assign) BOOL PGPInfoCollected;
+//@property (assign) BOOL PGPEncrypted;
+//@property (assign) BOOL PGPPartlyEncrypted;
+//@property (assign) BOOL PGPSigned;
+//@property (assign) BOOL PGPPartlySigned;
+//@property (assign) BOOL PGPDecrypted;
+//@property (assign) BOOL PGPVerified;
+//@property (retain) NSArray *PGPSignatures;
+//@property (retain, readonly) NSArray *PGPSignatureLabels;
+//@property (retain) NSArray *PGPErrors;
+//@property (assign) NSUInteger numberOfPGPAttachments;
+//@property (retain) NSArray *PGPAttachments; 
 
 /**
  Check if the message is genereally signed or encrypted, either S/MIME or PGP/MIME
@@ -119,11 +123,8 @@
 @property (assign, readonly) BOOL isSMIMEEncrypted;
 @property (assign, readonly) BOOL isSMIMESigned;
 
-@end
+- (GMMessageSecurityFeatures *)securityFeatures;
 
-@interface Message ()
-// Prevent instance method not found.
-- (id)dataSource;
 @end
 
 @interface Message_GPGMail (MailMethods)

@@ -28,44 +28,44 @@
  */
 
 #import "BannerController+GPGMail.h"
-#import "MessageViewingState.h"
-#import "MFError.h"
-
-@implementation BannerController_GPGMail
-
-- (void)MAUpdateBannerForViewingState:(MessageViewingState *)viewingState {
-	// First off, we'll call the original method, which will set the banner
-	// Mail.app finds appropriate.
-	// Now this works perfectly for PGP/MIME and PGP/MIME encrpyted (?) messages
-	// since they look to Mail.app just like S/MIME signed/encrypted messages.
-	// (Internally, Mail.app checks if the sign flag is set on the message.)
-	
-	// For inline, we have to help Mail a little.
-	// If no banner was set yet, but [viewingState error] matches error domain MFMessageErrorDomain
-	// we'll force displaying the certificateBanner.
-	[self MAUpdateBannerForViewingState:viewingState];
-	
-	// Now, let's check if a banner is already shown.
-	NSView *bannerContainer = [self valueForKey:@"_bannerContainerView"];
-	BOOL bannerAvailable = NO;
-	for(id view in [bannerContainer subviews]) {
-		if([view isKindOfClass:NSClassFromString(@"BannerView")]) {
-			bannerAvailable = YES;
-			break;
-		}
-	}
-	
-	// A banner is already available or there's no error needed to be displayed,
-	// let's not mess with that and out!
-	if(bannerAvailable || ![viewingState error])
-		return;
-	
-	// Otherwise remove the current banner and display the certificate banner.
-	if([viewingState error] && [[[viewingState error] domain] isEqualToString:@"MFMessageErrorDomain"]) {
-		BannerController *this = (BannerController *)self;
-		[this removeCurrentBanner];
-		[this _showCertificateBanner];
-	}
-}
-
-@end
+//#import "MessageViewingState.h"
+//#import "MFError.h"
+//
+//@implementation BannerController_GPGMail
+//
+//- (void)MAUpdateBannerForViewingState:(MessageViewingState *)viewingState {
+//	// First off, we'll call the original method, which will set the banner
+//	// Mail.app finds appropriate.
+//	// Now this works perfectly for PGP/MIME and PGP/MIME encrpyted (?) messages
+//	// since they look to Mail.app just like S/MIME signed/encrypted messages.
+//	// (Internally, Mail.app checks if the sign flag is set on the message.)
+//	
+//	// For inline, we have to help Mail a little.
+//	// If no banner was set yet, but [viewingState error] matches error domain MFMessageErrorDomain
+//	// we'll force displaying the certificateBanner.
+//	[self MAUpdateBannerForViewingState:viewingState];
+//	
+//	// Now, let's check if a banner is already shown.
+//	NSView *bannerContainer = [self valueForKey:@"_bannerContainerView"];
+//	BOOL bannerAvailable = NO;
+//	for(id view in [bannerContainer subviews]) {
+//		if([view isKindOfClass:NSClassFromString(@"BannerView")]) {
+//			bannerAvailable = YES;
+//			break;
+//		}
+//	}
+//	
+//	// A banner is already available or there's no error needed to be displayed,
+//	// let's not mess with that and out!
+//	if(bannerAvailable || ![viewingState error])
+//		return;
+//	
+//	// Otherwise remove the current banner and display the certificate banner.
+//	if([viewingState error] && [[[viewingState error] domain] isEqualToString:@"MFMessageErrorDomain"]) {
+//		BannerController *this = (BannerController *)self;
+//		[this removeCurrentBanner];
+//		[this _showCertificateBanner];
+//	}
+//}
+//
+//@end

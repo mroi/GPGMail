@@ -31,6 +31,14 @@
 #import <CoreFoundation/CoreFoundation.h>
 #import <Libmacgpg/Libmacgpg.h>
 
+
+#if !__has_feature(nullability)
+#define nullable
+#endif
+
+
+
+
 extern NSString *GPGMailKeyringUpdatedNotification;
 extern NSString *gpgErrorIdentifier; // This identifier is used to set and find GPGErrorCodes in NSData.
 
@@ -91,6 +99,7 @@ extern NSString *gpgErrorIdentifier; // This identifier is used to set and find 
 + (BOOL)isYosemite;
 + (BOOL)isLion;
 + (BOOL)isElCapitan;
++ (BOOL)isSierra;
 
 /**
  Schedules a message which should have rules applied.
@@ -160,6 +169,8 @@ extern NSString *gpgErrorIdentifier; // This identifier is used to set and find 
  Returns the ComposeBackEnd which is linked to a given object.
  */
 + (id)backEndFromObject:(id)object;
+
++ (NSError *)errorWithCode:(NSInteger)code userInfo:(nullable NSDictionary *)userInfo;
 
 @property (readonly) GPGErrorCode gpgStatus;
 @property (readonly, strong) NSSet *allGPGKeys;

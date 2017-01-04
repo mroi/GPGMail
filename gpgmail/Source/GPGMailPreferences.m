@@ -29,10 +29,11 @@
 
 #import "GPGMailPreferences.h"
 #import "GPGMailBundle.h"
-#import "MailAccount.h"
-#import "ExchangeAccount.h"
+
 #import <pwd.h>
 
+#import "MFMailAccount.h"
+#import "MFRemoteStoreAccount.h"
 
 #define localized(key) [GPGMailBundle localizedStringForKey:key]
 
@@ -190,7 +191,7 @@ NSString *SUScheduledCheckIntervalKey = @"SUScheduledCheckInterval";
 
 - (BOOL)validateEncryptDrafts:(NSNumber **)value error:(NSError **)error {
 	if ([*value boolValue] == NO) {
-		NSArray *accounts = (NSArray *)[GM_MAIL_CLASS(@"MailAccount") allMailAccounts];
+		NSArray *accounts = (NSArray *)[MFMailAccount mailAccounts];
 		for (id account in accounts) {
 			if ([account respondsToSelector:@selector(storeDraftsOnServer)] && [account storeDraftsOnServer]) {
 				
