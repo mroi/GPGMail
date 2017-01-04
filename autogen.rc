@@ -1,0 +1,27 @@
+# autogen.sh configuration for Pinentry                      -*- sh -*-
+
+#version_parts=3
+
+case "$myhost:$myhostsub" in
+  w32:ce)
+    extraoptions="--disable-pinentry-gtk2 --disable-pinentry-qt"
+    ;;
+  w32:)
+    extraoptions=""
+    ;;
+esac
+
+case "$myhost" in
+  w32)
+    configure_opts="
+      --with-gpg-error-prefix=@SYSROOT@
+      --with-libassuan-prefix=@SYSROOT@
+      --with-libiconv-prefix=@SYSROOT@
+      PKG_CONFIG_LIBDIR=@SYSROOT@/lib/pkgconfig
+      "
+    ;;
+esac
+
+extra_aclocal_flags=
+
+final_info="./configure --enable-maintainer-mode && make"
