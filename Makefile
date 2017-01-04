@@ -20,7 +20,7 @@ install: all
 		pinentry/build/Release/pinentry-mac.app $(RESOURCE_DIR)/
 	uuid=`defaults read /Applications/Mail.app/Contents/Info PluginCompatibilityUUID` ; \
 		fgrep -q $$uuid $(PLUGIN_DIR)/GPGMail.mailbundle/Contents/Info.plist || \
-		defaults write $(PLUGIN_DIR)/GPGMail.mailbundle/Contents/Info SupportedPluginCompatibilityUUIDs -array-add $$uuid
+		defaults write $(PLUGIN_DIR)/GPGMail.mailbundle/Contents/Info Supported`sw_vers -productVersion | cut -d '.' -f 1,2`PluginCompatibilityUUIDs -array-add $$uuid
 	codesign -s "`id -F`" $(RESOURCE_DIR)/pinentry-mac.app
 	codesign -s "`id -F`" $(RESOURCE_DIR)/org.gpgtools.Libmacgpg.xpc -i org.gpgtools.Libmacgpg.xpc
 	codesign -s "`id -F`" $(FRAMEWORK_DIR)/Libmacgpg.framework
@@ -31,7 +31,7 @@ install: all
 update:
 	git subtree merge --prefix=pinentry --squash pinentry/master
 	git subtree merge --prefix=libmacgpg --squash libmacgpg/dev
-	git subtree merge --prefix=gpgmail --squash gpgmail/dev
+	git subtree merge --prefix=gpgmail --squash gpgmail/beta
 
 clean:
 	$(MAKE) -C gpgmail $@
