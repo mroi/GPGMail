@@ -1,0 +1,74 @@
+/* dialog.rc - Resource definitions                             -*- c -*-
+   Copyright (C) 2004, 2010 g10 Code GmbH
+
+   This program is free software; you can redistribute it and/or
+   modify it under the terms of the GNU General Public License as
+   published by the Free Software Foundation; either version 2 of the
+   License, or (at your option) any later version.
+
+   This program is distributed in the hope that it will be useful, but
+   WITHOUT ANY WARRANTY; without even the implied warranty of
+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+   General Public License for more details.
+
+   You should have received a copy of the GNU General Public License
+   along with this program; if not, write to the Free Software
+   Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA
+   02111-1307, USA  */
+
+#include <config.h>
+#include <winuser.h>
+#include <windows.h>
+#include "resource.h"
+
+/*
+ * Main dialog
+ */
+
+#ifdef HAVE_W32CE_SYSTEM
+
+IDD_PINENT DIALOG DISCARDABLE  0, 0, 150, 100
+STYLE DS_MODALFRAME | DS_SYSMODAL | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Pinentry"
+FONT 8, "MS Shell Dlg"
+BEGIN
+    LTEXT           "", IDC_PINENT_DESC, 2, 2, 140, 24
+    LTEXT           "", IDC_PINENT_ERR, 2, 30, 140, 12
+
+    LTEXT           "", IDC_PINENT_PROMPT, 2, 56, 20, 12
+    EDITTEXT        IDC_PINENT_TEXT, 30, 56, 100, 12, ES_PASSWORD | ES_AUTOHSCROLL
+
+    DEFPUSHBUTTON   "O&K", IDOK, 2, 70, 50, 14
+    PUSHBUTTON      "&Cancel", IDCANCEL, 60, 70, 50, 14
+
+END
+
+#else /* Standard Windows.  */
+
+IDB_ICON_32    BITMAP   DISCARDABLE   "logo-32.bmp"
+IDB_ICON_48    BITMAP   DISCARDABLE   "logo-48.bmp"
+IDB_ICON_64    BITMAP   DISCARDABLE   "logo-64.bmp"
+IDB_ICON_96    BITMAP   DISCARDABLE   "logo-96.bmp"
+IDB_ICON_128   BITMAP   DISCARDABLE   "logo-128.bmp"
+
+IDD_PINENT DIALOG DISCARDABLE  0, 0, 186, 116
+STYLE DS_MODALFRAME | DS_SYSMODAL | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Pinentry"
+FONT 10, "MS Sans Serif"
+BEGIN
+    CONTROL         "", IDC_PINENT_ICON,
+                    "Static", SS_BITMAP|SS_CENTERIMAGE,
+                                           4,   6,  32, 32
+    LTEXT           "", IDC_PINENT_DESC,  40,   6, 140, 50
+    RTEXT           "", IDC_PINENT_PROMPT, 6,  60,  60, 12
+    EDITTEXT        IDC_PINENT_TEXT,      70,  59, 110, 12, ES_PASSWORD | ES_AUTOHSCROLL
+    CTEXT           "", IDC_PINENT_ERR,    6,  76, 174, 12
+    DEFPUSHBUTTON   "O&K", IDOK,          74,  96,  50, 14
+    PUSHBUTTON      "&Cancel", IDCANCEL, 130,  96,  50, 14
+END
+
+
+
+#endif /* Standard Windows.  */
+
+
