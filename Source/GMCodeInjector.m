@@ -43,27 +43,27 @@
 			 ],
 			 @"ComposeBackEnd": @[
 					 @"_makeMessageWithContents:isDraft:shouldSign:shouldEncrypt:shouldSkipSignature:shouldBePlainText:",
-					 @"canEncryptForRecipients:sender:",
-					 @"canSignFromAddress:",
-					 @"recipientsThatHaveNoKeyForEncryption",
-					 @"setEncryptIfPossible:",
-					 @"setSignIfPossible:",
-					 @"_saveThreadShouldCancel",
+//					 @"canEncryptForRecipients:sender:",
+//					 @"canSignFromAddress:",
+//					 @"recipientsThatHaveNoKeyForEncryption",
+//					 @"setEncryptIfPossible:",
+//					 @"setSignIfPossible:",
+//					 @"_saveThreadShouldCancel",
 					 @"_configureLastDraftInformationFromHeaders:overwrite:",
-					 @"sender",
-					 @"outgoingMessageUsingWriter:contents:headers:isDraft:shouldBePlainText:",
-					 @"initCreatingDocumentEditor:"
+//					 @"sender",
+//					 @"outgoingMessageUsingWriter:contents:headers:isDraft:shouldBePlainText:",
+//					 @"initCreatingDocumentEditor:"
 			 ],
 			 @"HeadersEditor": @[
-					 @"securityControlChanged:",
-					 @"_updateFromAndSignatureControls:",
+//					 @"securityControlChanged:",
+//					 @"_updateFromAndSignatureControls:",
 					 @"changeFromHeader:",
-					 @"dealloc",
-					 @"awakeFromNib",
-					 @"_updateSignButtonTooltip",
-					 @"_updateEncryptButtonTooltip",
+//					 @"dealloc",
+//					 @"awakeFromNib",
+//					 @"_updateSignButtonTooltip",
+//					 @"_updateEncryptButtonTooltip",
 					 @"updateSecurityControls",
-					 @"_updateSecurityStateInBackgroundForRecipients:sender:"
+//					 @"_updateSecurityStateInBackgroundForRecipients:sender:"
 			 ],
              @"MailDocumentEditor": @[
 					 @"backEndDidLoadInitialContent:",
@@ -73,15 +73,15 @@
                      @"initWithBackEnd:",
 					 @"sendMessageAfterChecking:"
              ],
-			 @"NSWindow": @[
-					 @"toggleFullScreen:"
-			 ],
+//			 @"NSWindow": @[
+//					 @"toggleFullScreen:"
+//			 ],
 			 @"MessageContentController": @[
 					 @"setMessageToDisplay:"
 			 ],
-			 @"BannerController": @[
-					 @"updateBannerForViewingState:"
-			 ],
+//			 @"BannerController": @[
+//					 @"updateBannerForViewingState:"
+//			 ],
 			 @"Message": @[],
 			 @"MimePart": @[
 					 @"isEncrypted",
@@ -139,20 +139,20 @@
 							 ]
 					 },
 			 },
-             @"HeadersEditor": @{
-                     @"selectors": @{
-                             @"renamed": @[
-                                @[
-                                    @"_updateSignButtonTooltip",
-                                    @"_updateSignButtonToolTip"
-                                 ],
-                                @[
-                                    @"_updateEncryptButtonTooltip",
-                                    @"_updateEncryptButtonToolTip"
-                                 ]
-                             ]
-                     }
-             },
+//             @"HeadersEditor": @{
+//                     @"selectors": @{
+//                             @"renamed": @[
+//                                @[
+//                                    @"_updateSignButtonTooltip",
+//                                    @"_updateSignButtonToolTip"
+//                                 ],
+//                                @[
+//                                    @"_updateEncryptButtonTooltip",
+//                                    @"_updateEncryptButtonToolTip"
+//                                 ]
+//                             ]
+//                     }
+//             },
 			 @"EAEmailAddressParser": @{
 					 @"selectors": @[
 							 @"rawAddressFromFullAddress:"
@@ -230,14 +230,14 @@
                                              
                      }
              },
-             @"BannerController": @{
-                     @"status": @"removed"
-             },
-             @"ConversationMember": @{
-                     @"selectors": @[
-                             @"_reloadSecurityProperties"
-                     ]
-             },
+//             @"BannerController": @{
+//                     @"status": @"removed"
+//             },
+//             @"ConversationMember": @{
+//                     @"selectors": @[
+//                             @"_reloadSecurityProperties"
+//                     ]
+//             },
 			 @"WebDocumentGenerator": @{
 					 @"selectors": @[
 							 @"setWebDocument:"
@@ -245,7 +245,9 @@
 			},
 			 @"MCMessageGenerator": @{
 					 @"selectors": @[
-							 @"_newDataForMimePart:withPartData:"
+							 @"_newDataForMimePart:withPartData:",
+                             @"_newOutgoingMessageFromTopLevelMimePart:topLevelHeaders:withPartData:",
+                             @"setSigningIdentity:"
 					 ]
 			}
 	};
@@ -255,49 +257,49 @@
     return @{
              @"HeadersEditor": @{
                      @"selectors": @{
-                             @"renamed": @[
-                                     @[@"updateSecurityControls",
-                                       @"_updateSecurityControls"
-                                     ]
-                                    
-                             ],
-                             @"removed": @[
-                                     @"_updateSignButtonToolTip",
-                                     @"_updateEncryptButtonToolTip",
-                                     @"toggleDetails",
-                                     @"_updateFromAndSignatureControls:"
-                            ],
+//                             @"renamed": @[
+//                                     @[@"updateSecurityControls",
+//                                       @"_updateSecurityControls"
+//                                     ]
+//                                    
+//                             ],
+//                             @"removed": @[
+//                                     @"_updateSignButtonToolTip",
+//                                     @"_updateEncryptButtonToolTip",
+//                                     @"toggleDetails",
+//                                     @"_updateFromAndSignatureControls:"
+//                            ],
                             @"added": @[
                                      @"_updateFromControl",
-                                     @"setMessageIsToBeEncrypted:",
-                                     @"setMessageIsToBeSigned:",
-                                     @"setCanSign:",
-                                     @"setCanEncrypt:"
+//                                     @"setMessageIsToBeEncrypted:",
+//                                     @"setMessageIsToBeSigned:",
+//                                     @"setCanSign:",
+//                                     @"setCanEncrypt:"
                             ]
                      }
              },
-             @"ComposeBackEnd": @{
-                     @"selectors": @{
-                            @"added": @[
-                                    @"setKnowsCanSign:"
-                            ]
-                     }
-             },
-             @"HeaderViewController": @{
-                     @"selectors": @{
-                            @"removed": @[
-                                @"_displayStringForSecurityKey",
-                                @"toggleDetails:" // TODO: Implement again?
-                            ]
-                     }
-             },
-             @"ConversationMember": @{
-                     @"selectors": @{
-                            @"removed": @[
-                                @"_reloadSecurityProperties"
-                            ]
-                     }
-             }
+//             @"ComposeBackEnd": @{
+//                     @"selectors": @{
+//                            @"added": @[
+//                                    @"setKnowsCanSign:"
+//                            ]
+//                     }
+//             },
+//             @"HeaderViewController": @{
+//                     @"selectors": @{
+//                            @"removed": @[
+//                                @"_displayStringForSecurityKey",
+//                                @"toggleDetails:" // TODO: Implement again?
+//                            ]
+//                     }
+//             },
+//             @"ConversationMember": @{
+//                     @"selectors": @{
+//                            @"removed": @[
+//                                @"_reloadSecurityProperties"
+//                            ]
+//                     }
+//             }
     };
 }
 
@@ -310,12 +312,12 @@
 							 ]
 					 },
 			 @"ComposeWindowController": @{
-					 @"selectors": @[
-							 @"toolbarDefaultItemIdentifiers:",
-							 @"toolbar:itemForItemIdentifier:willBeInsertedIntoToolbar:",
-							 @"_performSendAnimation",
-							 @"_tabBarView:performSendAnimationOfTabBarViewItem:"
-							 ]
+                     @"selectors": @[
+                             @"toolbarDefaultItemIdentifiers:",
+                             @"toolbar:itemForItemIdentifier:willBeInsertedIntoToolbar:",
+                             @"_performSendAnimation",
+                             @"_tabBarView:performSendAnimationOfTabBarViewItem:"
+                                 ]
 					 },
 			 @"ComposeBackEnd": @{
 					 @"selectors": @{
@@ -343,6 +345,114 @@
 			 };
 }
 
++ (NSDictionary *)hookChangesForSierra {
+    return @{
+             @"MCMimeBody": @{
+                     @"selectors": @{
+                             @"added": @[
+                                     @"message",
+                                     @"parsedMessage"
+                                     ]
+                             }
+                     },
+             @"MCMimePart": @{
+                     @"selectors": @{
+                             @"added": @[
+                                     @"mimeBody",
+                                     @"decode",
+                                     @"isAttachment",
+                                     @"newEncryptedPartWithData:certificates:encryptedData:"
+                                     ]
+                             }
+                     },
+             @"MCMessage": @{
+                     @"selectors": @{
+                             @"added": @[
+                                     @"parsedMessage"
+                                     ]
+                             }
+                     },
+             @"MFMessageStore": @{
+                     @"selectors": @[
+                             @"bodyDataForMessage:fetchIfNotAvailable:allowPartial:"
+                                     ]
+                     },
+             
+             
+             
+             @"MFLibrary": @{
+                     @"selectors": @{
+                             @"added": @[
+                                     @"mimeBodyForMessage:",
+                                     @"setData:forMessage:isPartial:hasCompleteText:",
+                                     @"parsedMessageForMessage:",
+//                                     @"isMessageContentLocallyAvailable:",
+                                     ]}
+                     },
+             @"MCKeychainManager": @{
+                     @"selectors": @[
+                             @"copySigningIdentityForAddress:"
+                             ]
+                     },
+             @"HeadersEditor": @{
+                     @"selectors": @{
+                            @"added": @[
+                                    @"_toggleEncryption",
+                                    @"securityControlChanged:"
+                            ],
+                             @"renamed": @[
+                                     @[@"updateSecurityControls",
+                                       @"_updateSecurityControls"
+                                       ]
+                                     
+                                     ],
+                             }
+                     },
+
+             @"ComposeBackEnd": @{
+                     @"selectors": @{
+                             @"added": @[
+                                     @"updateSMIMEStatus:"]
+                             }
+                     },
+             @"IMAPMessageDownload": @{
+                     @"selectors": @[
+                             @"setAllowsPartialDownloads:",
+                             @"collectDataAndWriteToDisk:"
+                             ]
+                     },
+             @"CertificateBannerViewController": @{
+                     @"selectors": @[
+                             @"updateWantsDisplay"
+                             ]
+                     },
+             @"MCDataAttachmentDataSource": @{
+                     @"selectors": @[
+                             @"initWithData:",
+                             @"data"
+                             ]
+                     },
+             @"MCAttachment": @{
+                     @"selectors": @[
+                             @"iconImage"
+                             ]
+                     },
+             @"MailWebAttachment": @{
+                     @"selectors": @[
+                             @"iconImage",
+                             @"filename"
+                            ]
+                     },
+             @"MFLibraryAttachmentDataSource": @{
+                     @"selectors": @[
+                             @"initWithMessage:mimePartNumber:attachment:remoteDataSource:"
+                             ]
+                     },
+             };
+}
+
+
+
 + (NSDictionary *)hooks {
 	static dispatch_once_t onceToken;
 	static NSDictionary *_hooks;
@@ -362,7 +472,10 @@
             [self applyHookChangesForVersion:@"10.10" toHooks:hooks];
 		if([GPGMailBundle isElCapitan])
 			[self applyHookChangesForVersion:@"10.11" toHooks:hooks];
-
+        if([GPGMailBundle isSierra]) {
+            [self applyHookChangesForVersion:@"10.12" toHooks:hooks];
+        }
+        
 		_hooks = [NSDictionary dictionaryWithDictionary:hooks];
 	});
 	
@@ -377,10 +490,13 @@
         hookChanges = [self hookChangesForYosemite];
 	else if([osxVersion isEqualToString:@"10.11"])
 		hookChanges = [self hookChangesForElCapitan];
+    else if([osxVersion isEqualToString:@"10.12"])
+        hookChanges = [self hookChangesForSierra];
 	
 	for(NSString *class in hookChanges) {
 		NSDictionary *hook = hookChanges[class];
-		
+        // class seems to be a protected identifier in lldb.
+        NSString *klass = class;
 		// Class was added.
 		if(!hooks[class]) {
 			// This check is necessary on older systems. 10.10+ has an additional check for nil value.

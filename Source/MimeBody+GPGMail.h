@@ -28,7 +28,9 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#import <MimeBody.h>
+#import "MCMimeBody.h"
+
+@class GMMessageSecurityFeatures, MCMessage;
 
 @interface MimeBody_GPGMail : NSObject
 
@@ -54,28 +56,22 @@
  */
 - (BOOL)MA_isPossiblySignedOrEncrypted;
 
-/**
- Returns true if the PGP encrypted data armor is found in the message body.
- */
-- (BOOL)containsPGPEncryptedData;
-
-/**
- Returns true if the PGP signed data armor is found in the message body.
- */
-- (BOOL)containsPGPSignedData;
-
-/**
- Returns true if either the PGP signed data armor or the PGP encrypted
- data armor is found in the message body.
- */
-- (BOOL)containsPGPData;
+- (void)collectSecurityFeatures;
+- (void)setSecurityFeatures:(GMMessageSecurityFeatures *)securityFeatures;
+- (GMMessageSecurityFeatures *)securityFeatures;
 
 @end
 
-@interface MimeBody_GPGMail (NativeMailMethod)
+@interface MimeBody_GPGMail (MissingInSierra)
 
-- (GM_CAST_CLASS(Message *, id))message;
-- (NSData *)bodyData;
-- (GM_CAST_CLASS(MimePart *, id))topLevelPart;
+- (MCMessage *)message;
 
 @end
+
+//@interface MimeBody_GPGMail (NativeMailMethod)
+//
+//- (GM_CAST_CLASS(Message *, id))message;
+//- (NSData *)bodyData;
+//- (GM_CAST_CLASS(MimePart *, id))topLevelPart;
+//
+//@end

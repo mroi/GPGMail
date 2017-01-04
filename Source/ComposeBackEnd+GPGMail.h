@@ -28,8 +28,8 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#import <Subdata.h>
-#import <MutableMessageHeaders.h>
+#import <MCSubdata.h>
+#import <MCMutableMessageHeaders.h>
 #import <WebComposeMessageContents.h>
 #import "GPGConstants.h"
 
@@ -69,6 +69,8 @@ typedef struct {
 	unsigned int isAppleScriptMessage:1;
 	unsigned long long encodingHint;
 } mailFlags;
+
+@class GMComposeMessagePreferredSecurityProperties;
 
 @interface ComposeBackEnd_GPGMail : NSObject
 
@@ -119,7 +121,7 @@ typedef struct {
 /**
  Creates a new message with pgp-keys attached on it.
  */
-- (Subdata *)_newPGPBodyDataWithOriginalData:(NSData *)originalData headers:(MutableMessageHeaders *)headers keysToAttach:(NSData *)keysToAttach;
+- (MCSubdata *)_newPGPBodyDataWithOriginalData:(NSData *)originalData headers:(MCMutableMessageHeaders *)headers keysToAttach:(NSData *)keysToAttach;
 
 
 
@@ -130,7 +132,7 @@ typedef struct {
  shouldBeMIME decides whether the returned message data is a inline gpg message or a mime
  gpg message.
  */
-- (Subdata *)_newPGPBodyDataWithEncryptedData:(NSData *)encryptedData headers:(MutableMessageHeaders *)headers shouldBeMIME:(BOOL)shouldBeMIME keysToAttach:(NSData *)keysToAttach;
+- (MCSubdata *)_newPGPBodyDataWithEncryptedData:(NSData *)encryptedData headers:(MCMutableMessageHeaders *)headers shouldBeMIME:(BOOL)shouldBeMIME keysToAttach:(NSData *)keysToAttach;
 
 /**
  This method adds some info to the original method headers which is relevant
@@ -192,7 +194,7 @@ typedef struct {
  */
 - (id)MARecipientsThatHaveNoKeyForEncryption;
 
-- (Subdata *)_newPGPInlineBodyDataWithData:(NSData *)data headers:(MutableMessageHeaders *)headers shouldSign:(BOOL)shouldSign shouldEncrypt:(BOOL)shouldEncrypt;
+- (MCSubdata *)_newPGPInlineBodyDataWithData:(NSData *)data headers:(MCMutableMessageHeaders *)headers shouldSign:(BOOL)shouldSign shouldEncrypt:(BOOL)shouldEncrypt;
 
 /**
  Determines whether or not the -[MailDocumentEditor backEndDidLoadInitialContent:] method was already called.
@@ -257,6 +259,8 @@ typedef struct {
  is set in a _flags struct. On Yosemite, there's a bool property which is used.
  */
 - (BOOL)GMSignIfPossible;
+
+@property (readwrite, retain) GMComposeMessagePreferredSecurityProperties *preferredSecurityProperties;
 
 @end
 

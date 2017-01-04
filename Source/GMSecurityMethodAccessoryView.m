@@ -77,23 +77,31 @@
 	return [self initWithStyle:GMSecurityMethodAccessoryViewStyleWindowAccessory];
 }
 
+- (id)initWithStyle:(GMSecurityMethodAccessoryViewStyle)style size:(NSSize)size {
+    self = [self initWithFrame:NSMakeRect(0.0f, 0.0f, size.width, size.height) pullsDown:NO];
+    if(!self) {
+        return nil;
+    }
+    
+    self.autoresizingMask = NSViewMinYMargin | NSViewMinXMargin;
+    
+    // The arrow is hidden, since it's strangely aligned by default.
+    // GPGMail adds its own.
+    self.cell.arrowPosition = NSPopUpNoArrow;
+    
+    _attributedTitlesCache = [NSMapTable mapTableWithStrongToStrongObjects];
+    _style = style;
+    [self _configurePopupWithSecurityMethods:@[@"OpenPGP", @"S/MIME"]];
+    [self _configureArrow];
+    
+    return self;
+}
+
 - (id)initWithStyle:(GMSecurityMethodAccessoryViewStyle)style {
-	self = [super initWithFrame:NSMakeRect(0.0f, 0.0f, GMSMA_DEFAULT_WIDTH, GMSMA_DEFAULT_HEIGHT) pullsDown:NO];
+    self = [self initWithStyle:style size:NSMakeSize(GMSMA_DEFAULT_WIDTH, GMSMA_DEFAULT_HEIGHT)];
 	if (!self) {
 		return nil;
 	}
-	
-	
-	self.autoresizingMask = NSViewMinYMargin | NSViewMinXMargin;
-	
-	// The arrow is hidden, since it's strangely aligned by default.
-	// GPGMail adds its own.
-	self.cell.arrowPosition = NSPopUpNoArrow;
-	
-	_attributedTitlesCache = [NSMapTable mapTableWithStrongToStrongObjects];
-	_style = style;
-	[self _configurePopupWithSecurityMethods:@[@"OpenPGP", @"S/MIME"]];
-	[self _configureArrow];
 	
     return self;
 }
@@ -209,6 +217,8 @@
 	if (self.securityMethod == sender.tag) {
 		return;
 	}
+    
+    self.securityMethod = (GPGMAIL_SECURITY_METHOD)sender.tag;
 	
 	[self.delegate securityMethodAccessoryView:self didChangeSecurityMethod:(GPGMAIL_SECURITY_METHOD)sender.tag];
 }
@@ -218,6 +228,7 @@
         return;
 	}
 	
+    _previousSecurityMethod = _securityMethod;
     _securityMethod = securityMethod;
     // Update the selection and center the menu title again.
     [self selectItemAtIndex:securityMethod == GPGMAIL_SECURITY_METHOD_OPENPGP ? 0 : 1];
@@ -375,6 +386,7 @@
     
     NSUInteger greyStart = 146.0f;
     NSUInteger greyStep = 18.0f;
+    NSUInteger strokeGrey = 219.0f;
     
     if(!self.fullscreen) {
         gradient = [[NSGradient alloc] initWithColorsAndLocations:[NSColor colorWithDeviceRed:greyStart/255.0f green:128.0f/255.0f blue:128.0f/255.0f alpha:1.0], 0.0f,
@@ -395,7 +407,7 @@
     }
     
     
-    *strokeColor = [NSColor colorWithDeviceRed:greyStart/255.0f green:greyStart/255.0f blue:greyStart/255.0f alpha:1.0];
+    *strokeColor = [NSColor colorWithDeviceRed:strokeGrey/255.0f green:strokeGrey/255.0f blue:strokeGrey/255.0f alpha:1.0];
     
     return gradient;
 }

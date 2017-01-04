@@ -27,7 +27,7 @@
 	<key>BuildNumber</key>
 	<string>AUTOFILL</string>
 	<key>NSHumanReadableCopyright</key>
-	<string>Copyright © GPGTools, 2013</string>
+	<string>Copyright © GPGTools, 2016</string>
 	<key>NSPrincipalClass</key>
 	<string>GPGMailBundle</string>
 	<key>GMOSXVersions</key>
@@ -38,9 +38,17 @@
 		<string>10.9</string>
 		<string>10.10</string>
 	</array>
+	<key>Supported10.12PluginCompatibilityUUIDs</key>
+	<array>
+		<string></string>
+		<string>1CD3B36A-0E3B-4A26-8F7E-5BDF96AAC97E</string>
+		<string>9054AFD9-2607-489E-8E63-8B09A749BC61</string>
+		<string>36CCB8BB-2207-455E-89BC-B9D6E47ABB5B</string>
+	</array>
 	<key>SupportedPluginCompatibilityUUIDs</key>
 	<array>
 		<string>71562B89-0D90-4588-8E94-A75B701D6443</string>
+		<string>36CCB8BB-2207-455E-89BC-B9D6E47ABB5B</string>
 		<string>1550C683-EA48-4036-B7CE-FB6F5D13EE02</string>
 		<string>DAF41AB7-F9AD-4273-9934-C81C74705B69</string>
 		<string>AB695A2B-4605-4A74-A99F-AF9F9C92C41B</string>

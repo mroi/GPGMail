@@ -52,6 +52,7 @@ typedef NS_ENUM(NSInteger, GMSecurityMethodAccessoryViewStyle) {
     BOOL _fullscreen;
     BOOL _active;
     GPGMAIL_SECURITY_METHOD _securityMethod;
+    GPGMAIL_SECURITY_METHOD _previousSecurityMethod;
 	GMSecurityMethodAccessoryViewStyle _style;
 	
     id <GMSecurityMethodAccessoryViewDelegate> __weak _delegate;
@@ -64,12 +65,14 @@ typedef NS_ENUM(NSInteger, GMSecurityMethodAccessoryViewStyle) {
 }
 
 @property (nonatomic, assign) GPGMAIL_SECURITY_METHOD securityMethod;
+@property (nonatomic, assign) GPGMAIL_SECURITY_METHOD previousSecurityMethod;
 @property (nonatomic, assign) BOOL active;
 @property (nonatomic, weak) id <GMSecurityMethodAccessoryViewDelegate> delegate;
 @property (nonatomic, assign) GMSecurityMethodAccessoryViewStyle style;
 
 - (id)init;
 - (id)initWithStyle:(GMSecurityMethodAccessoryViewStyle)style;
+- (id)initWithStyle:(GMSecurityMethodAccessoryViewStyle)style size:(NSSize)size;
 
 /**
  Configures the popup menu with the given security methods.

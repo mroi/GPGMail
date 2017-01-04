@@ -8,6 +8,45 @@ DON'T EVER DELETE THIS FOLDER!
 
 * Reverse Engineering *
 
+-- Access block captured variables by using the offsets seen in Hopper --
+
+1.) Find the block (subroutine) Hopper
+2.) Copy the start address of the block and set a breakpoint to it in lldb (e.g. 0x1000fa522)
+
+(lldb) breakpoint s -a 0x1000fa522
+
+3.) Once your application hits the breakpoint, you can now compare the assembly with the pseudo code in Hopper,
+to find out where the a captured block variable is first captured.
+
+var_30 = *___stack_chk_guard;
+rax = [*(arg0 + 0x20)->_smimeLock retain];
+var_1A0 = rax;
+
+4.) In the assembly view now step through until you hit the assembly instruction which correlates to the Hopper pseudocode.
+
+0x1000fa547 <+37>:   movq   0x20(%r12), %rax
+
+5.) This line tells you that the register r12 contains the block object. Through this block object,
+we can now inspect the captured variables using the offset we see in Hopper (and the assembly)
+
+6.) To access the captured variable at offset 0x20 you would run
+
+(lldb) po *(id *)((char *)$r12 + 0x20)
+<ComposeBackEnd: 0x10a1c3c90>: id: DE1BE572-555E-4E20-AD3C-0D1863A36476 subject: <Empty>*: id: DE1BE572-555E-4E20-AD3C-0D1863A36476 subject:
+
+* Access the current value of a "variable" in assembly *
+
+movq   %rbx, -0x88(%rbp)
+
+If you want to know the value stored at -0x88(%rbp), lldb will show you that by running
+
+po *(id *)((char *)$rbp - 0x88)
+
+Note: if the offset starts with - it has to be subtracted, otherwise added, so 0x88 becomes $rbp + 0x88, -0x88 instead becomes
+$rbp - 0x88
+
+
+
 - Sometimes it's not to easy to find out what happens to an
   object you created. In that case you can over release it,
   using autorelease or release. This way, the object will be

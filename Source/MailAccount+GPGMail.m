@@ -27,7 +27,7 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#import <MailAccount.h>
+#import <MFMailAccount.h>
 #import "MailAccount+GPGMail.h"
 #import "GPGMailBundle.h"
 #import <objc/runtime.h>

@@ -28,10 +28,12 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#import <MimePart.h>
 #import <Libmacgpg/Libmacgpg.h>
 
+#import "MCMimePart.h"
+
 @class MimeBody;
+@class MCMessage;
 
 #define PGP_ATTACHMENT_EXTENSION @"pgp"
 #define PGP_PART_MARKER_START @"::gpgmail-start-pgp-part::"
@@ -74,10 +76,10 @@ enum {
 @property (assign) BOOL PGPVerified;
 @property (assign) BOOL PGPAttachment;
 @property (retain) NSArray *PGPSignatures;
-@property (retain) MFError *PGPError;
-@property (retain) NSData *PGPDecryptedData;
-@property (retain) MessageBody *PGPDecryptedBody;
-@property (retain) NSString *PGPDecryptedContent;
+@property (retain) NSError *PGPError;
+//@property (retain) NSData *PGPDecryptedData;
+@property (retain) MCMimeBody *PGPDecryptedBody;
+//@property (retain) NSString *PGPDecryptedContent;
 @property (retain) NSString *PGPVerifiedContent;
 @property (retain) NSData *PGPVerifiedData;
 
@@ -102,14 +104,14 @@ enum {
 /**
  * Loops through all mime parts and runs a block on them.
  */
-- (void)enumerateSubpartsWithBlock:(void (^)(MimePart *))partBlock;
+- (void)enumerateSubpartsWithBlock:(void (^)(MCMimePart *))partBlock;
 
 /**
  Calling topLevelPart on the mimeBody forces the parts to be regenerated.
  This way it's possible to access the top level part by walking up
  the mime part tree avoiding the regeneration.
  */
-- (MimePart *)topPart;
+- (MCMimePart *)topPart;
 
 /**
  Is called for every text/plain part. Firt checks if it contains any encrypted or
@@ -190,14 +192,14 @@ enum {
  Checks the GPGController for decryption errors and returns the appropriate
  error message.
  */
-- (MFError *)errorFromDecryptionOperation:(GPGController *)gpgc;
+- (NSError *)errorFromDecryptionOperation:(GPGController *)gpgc;
 
 
 /**
  Checks the GPGController for verification errors and returns the appropriate
  error message.
  */
-- (MFError *)errorFromVerificationOperation:(GPGController *)gpgc;
+- (NSError *)errorFromVerificationOperation:(GPGController *)gpgc;
 
 /**
  Helper method to process GPGController NODATA errors.
@@ -229,7 +231,7 @@ enum {
 /**
  Creates a new message similar the way S/MIME does it, from the decryptedData.
  */
-- (MimeBody *)decryptedMessageBodyFromDecryptedData:(NSData *)decryptedData;
+- (MCMimeBody *)decryptedMessageBodyFromDecryptedData:(NSData *)decryptedData;
 
 /**
  Returns the complete part data but replaces the encrypted data with the decrypted
@@ -322,7 +324,7 @@ enum {
 /**
  Create a new message text/plain message for decrypted pgp inline data.
  */
-- (Message *)messageWithMessageData:(NSData *)messageData;
+- (MCMessage *)messageWithMessageData:(NSData *)messageData;
 
 /**
  Is called when the decrypted body is supposed to be cleared.
@@ -342,6 +344,8 @@ enum {
  */
 - (id)MANewEncryptedPartWithData:(NSData *)data recipients:(id)recipients encryptedData:(NSData **)encryptedData NS_RETURNS_RETAINED;
 
+- (id)newEncryptedPartWithData:(NSData *)data certificates:(id)certificates partData:(__autoreleasing NSMapTable **)partData;
+
 /**
  Like newEncryptedPartWithData (see above), this method is called from MessageWriter
  too when creating the outgoing message and shouldSign is set to true.
@@ -353,6 +357,12 @@ enum {
  to the *signatureData pointer. 
  */
 - (id)MANewSignedPartWithData:(id)data sender:(id)sender signatureData:(id *)signatureData NS_RETURNS_RETAINED;
+
+/**
+  Replaces the hook into -[MCMimePart newSignedPartWithData:sender:signatureData:] which is no longer
+  necessary/used on Sierra.
+*/
+- (id)newSignedPartWithData:(NSData *)data sender:(NSString *)sender signingKey:(GPGKey *)signingKey signatureData:(id *)signatureData;
 
 /**
  Get the (autoreleased) data for a new PGP/Inline signed message.
@@ -376,19 +386,21 @@ enum {
 
 @interface MimePart_GPGMail (MailMethods)
 
-- (MimeBody *)mimeBody;
-- (MimePart *)parentPart;
-- (NSData *)bodyData;
-- (id)dispositionParameterForKey:(NSString *)key;
-- (BOOL)isType:(NSString *)type subtype:(NSString *)subtype;
-- (id)bodyParameterForKey:(NSString *)key;
-- (NSArray *)subparts;
-- (id)decryptedMessageBody;
-- (void)setDispositionParameter:(id)parameter forKey:(id)key;
-- (BOOL)isAttachment;
-- (NSData *)signedData;
-- (NSString *)type;
-- (NSString *)subtype;
-- (id)contentTransferEncoding;
+//- (MCMimePart *)parentPart;
+//- (NSData *)bodyData;
+//- (id)dispositionParameterForKey:(NSString *)key;
+//- (BOOL)isType:(NSString *)type subtype:(NSString *)subtype;
+//- (id)bodyParameterForKey:(NSString *)key;
+//- (NSArray *)subparts;
+//- (id)decryptedMessageBody;
+//- (void)setDispositionParameter:(id)parameter forKey:(id)key;
+//- (BOOL)isAttachment;
+//- (NSData *)signedData;
+//- (NSString *)type;
+//- (NSString *)subtype;
+//- (id)contentTransferEncoding;
+//
+//- (id)dataSource;
+//- (id)bodyDataForMessage:(id)arg1 fetchIfNotAvailable:(BOOL)arg2 allowPartial:(BOOL)arg3;
 
 @end

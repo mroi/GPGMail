@@ -35,6 +35,9 @@
 #import "ConversationMember+GPGMail.h"
 #import "NSObject+LPDynamicIvars.h"
 
+#import "GMMessageSecurityFeatures.h"
+#import "Message+GPGMail.h"
+
 @implementation WebDocumentGenerator_GPGMail
 
 - (void)MASetWebDocument:(MUIWebDocument *)webDocument {
@@ -45,9 +48,13 @@
     else if([GPGMailBundle isYosemite]) {
         message = [(ConversationMember *)[(WebDocumentGenerator *)self valueForKey:@"_conversationMember"] originalMessage];
     }
-    id error = [message getIvar:@"PGPMainError"];
-	if(error)
-		[webDocument setParseError:error];
+    // Re-Implement using security features.
+    NSArray *errors = [[(Message_GPGMail *)message securityFeatures] PGPErrors];
+    if([errors count] > 0) {
+        NSError *error = [errors objectAtIndex:0];
+        [error setIvar:@"ParseErrorIsPGPError" value:@(YES)];
+        [webDocument setParseError:error];
+    }
 	[self MASetWebDocument:webDocument];
 }
 

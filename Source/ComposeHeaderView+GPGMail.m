@@ -29,24 +29,22 @@
 
 #import <AppKit/AppKit.h>
 #import <ComposeBackEnd.h>
-#import <DocumentEditor.h>
-#import <OptionalView.h>
 #import <Libmacgpg/Libmacgpg.h>
 #import "CCLog.h"
 #import "NSObject+LPDynamicIvars.h"
 #import "ComposeBackEnd+GPGMail.h"
-#import "ComposeHeaderView.h"
 #import "ComposeHeaderView+GPGMail.h"
 
 @implementation ComposeHeaderView_GPGMail
 
-- (void)MAAwakeFromNib {
-    if(![[GPGOptions sharedOptions] boolForKey:@"UseOpenPGPToSend"])
-        return [self MAAwakeFromNib];
-    ComposeBackEnd *backEnd = [(DocumentEditor *)[[((ComposeHeaderView *)self) delegate] valueForKey:@"_documentEditor"] backEnd];
-    [backEnd setIvar:@"PGPEnabled" value:@YES];
-
-    [self MAAwakeFromNib];
-}
+// TODO: Remove? No longer exists afaik.
+//- (void)MAAwakeFromNib {
+//    if(![[GPGOptions sharedOptions] boolForKey:@"UseOpenPGPToSend"])
+//        return [self MAAwakeFromNib];
+//    ComposeBackEnd *backEnd = [(DocumentEditor *)[[((ComposeHeaderView *)self) delegate] valueForKey:@"_documentEditor"] backEnd];
+//    [backEnd setIvar:@"PGPEnabled" value:@YES];
+//
+//    [self MAAwakeFromNib];
+//}
 
 @end

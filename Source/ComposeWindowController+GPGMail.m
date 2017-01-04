@@ -57,13 +57,14 @@
 	// The delegate of GMSecurityMethodAccessoryView will be the current composeViewController.
 	// At this point it's however not yet set on the ComposeWindowController, so once the
 	// compose view controller is ready, it will set if self up as delegate.
-	GMSecurityMethodAccessoryView *securityMethodAccessoryView = [[GMSecurityMethodAccessoryView alloc] initWithStyle:GMSecurityMethodAccessoryViewStyleToolbarItem];
+    NSSize toolbarItemSize = NSMakeSize(75.0, 23.0);
+    GMSecurityMethodAccessoryView *securityMethodAccessoryView = [[GMSecurityMethodAccessoryView alloc] initWithStyle:GMSecurityMethodAccessoryViewStyleToolbarItem size:toolbarItemSize];
 	[self setIvar:@"SecurityMethodAccessoryView" value:securityMethodAccessoryView];
 	
 	NSToolbarItem *item = [[NSToolbarItem alloc] initWithItemIdentifier:itemIdentifier];
 	
 	[item setView:securityMethodAccessoryView];
-	[item setMinSize:NSMakeSize(75, 23)];
+	[item setMinSize:toolbarItemSize];
 	[item setTarget:nil];
 	
 	return item;
