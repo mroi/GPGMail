@@ -1,3 +1,4 @@
+*.a
 *.lo
 *.o
 .deps/
@@ -10,6 +11,8 @@
 /config.status
 /configure
 /Makefile.in
+/Makefile
+/stamp-h1
 autom4te.cache/
 assuan/Makefile.in
 assuan/Makefile
@@ -20,10 +23,17 @@ doc/Makefile
 doc/pinentry.info
 doc/stamp-vti
 doc/version.texi
+emacs/Makefile
 gtk+-2/Makefile.in
 gtk+-2/Makefile
 gnome3/Makefile.in
 gnome3/Makefile
+m4/Makefile
+macosx/*.lproj/Localizable.strings
+macosx/Main.nib
+macosx/Pinentry.nib
+macosx/pinentry-mac
+macosx/pinentry-mac.app
 pinentry/Makefile.in
 pinentry/Makefile
 qt/Makefile.in
