@@ -4,10 +4,16 @@ RESOURCE_DIR = $(FRAMEWORK_DIR)/Libmacgpg.framework/Resources
 
 .PHONY: all install update clean
 
-all:
-	$(MAKE) -C pinentry -B all
-	$(MAKE) -C libmacgpg -B all XPC_INSTALLATION_DIR=$(RESOURCE_DIR)
+all: pinentry/Makefile
+	$(MAKE) -C pinentry SUBDIRS='secmem pinentry macosx'
+	$(MAKE) -C libmacgpg -B XPC_INSTALLATION_DIR=$(RESOURCE_DIR)
 	$(MAKE) -C gpgmail -B GPGMail.mailbundle
+
+pinentry/Makefile: pinentry/configure
+	cd $(<D) ; ./$(<F) --enable-fallback-curses
+
+pinentry/configure: pinentry/autogen.sh
+	cd $(<D) ; ./$(<F)
 
 install: all
 	rsync -rlcv --delete --exclude=GPGMail.mailbundle/Contents/Frameworks/Libmacgpg.framework \
@@ -17,7 +23,7 @@ install: all
 	rsync -rlcv --delete \
 		libmacgpg/build/Release/org.gpgtools.Libmacgpg.xpc $(RESOURCE_DIR)/
 	rsync -rlcv --delete \
-		pinentry/build/Release/pinentry-mac.app $(RESOURCE_DIR)/
+		pinentry/macosx/pinentry-mac.app $(RESOURCE_DIR)/
 	uuid=`defaults read /Applications/Mail.app/Contents/Info PluginCompatibilityUUID` ; \
 		fgrep -q $$uuid $(PLUGIN_DIR)/GPGMail.mailbundle/Contents/Info.plist || \
 		defaults write $(PLUGIN_DIR)/GPGMail.mailbundle/Contents/Info Supported`sw_vers -productVersion | cut -d '.' -f 1,2`PluginCompatibilityUUIDs -array-add $$uuid

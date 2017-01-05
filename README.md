@@ -7,7 +7,7 @@ and so cleaning up after each update became increasingly tiresome. Thus, I creat
 stripped down version, which just inludes
 * the [GPGMail plugin](https://github.com/GPGTools/GPGMail) itself,
 * the [Libmacgpg](https://github.com/GPGTools/Libmacgpg) library, and
-* the [pinentry](https://github.com/GPGTools/pinentry-mac) tool.
+* the [pinentry](https://github.com/GPGTools/pinentry) tool.
 
 I use the `gnupg` command from [Fink](http://finkproject.org), so I don’t need anything 
 else. No auto-updating, no key managment UI. Just the things needed to get nice GPG 
