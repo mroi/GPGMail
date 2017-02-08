@@ -289,5 +289,8 @@
 @property(readonly, nonatomic) BOOL isSmartMailbox;
 @property(readonly) Class superclass;
 
+// Added in 10.12.4b1
+- (id)senderWithValidation:(BOOL)arg1;
+
 @end
 

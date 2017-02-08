@@ -4,9 +4,7 @@
 //     class-dump is Copyright (C) 1997-1998, 2000-2001, 2004-2013 by Steve Nygard.
 //
 
-#import "NSTabViewItem.h"
-
-#import "TabBarViewItem.h"
+#import "TabBarViewItem-Protocol.h"
 
 @class ComposeViewController, NSArray, NSImage, NSString;
 
@@ -16,7 +14,7 @@
 }
 
 @property(readonly, copy, nonatomic) NSArray *accessoryViews; // @synthesize accessoryViews=_accessoryViews;
-- (void).cxx_destruct;	// IMP=0x000000010010845f
+//- (void).cxx_destruct;	// IMP=0x000000010010845f
 @property(retain) ComposeViewController *viewController;
 
 // Remaining properties

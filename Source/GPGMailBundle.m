@@ -609,6 +609,10 @@ static BOOL gpgMailWorks = NO;
     static dispatch_once_t onceToken;
     dispatch_once(&onceToken, ^{
         bundle = [NSBundle bundleForClass:[GPGMailBundle class]];
+        
+        if ([bundle respondsToSelector:@selector(useGPGLocalizations)]) {
+            [bundle useGPGLocalizations];
+        }
     });
     return bundle;
 }

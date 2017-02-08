@@ -74,31 +74,6 @@ typedef struct {
 
 @interface ComposeBackEnd_GPGMail : NSObject
 
-- (BOOL)setupSecurityPropertiesQueue;
-
-/**
- Is called by Mail.app when the user clicks on the encrypt button in the
- compose window.
- 
- When a message should be saved as draft, the encrypted and signed flags are
- not send along as arguments to the _makeContents method and there's no way
- to access the information since it is internally stored in a struct, which 
- unfortunately can't be easily accessed on runtime.
- 
- This entry point allows GPGMail to save the encrypted status in a dynamic ivar,
- which can later be accessed when the message is saved as draft.
- */
-- (void)MASetEncryptIfPossible:(BOOL)encryptIfPossible;
-
-/**
- Is called by Mail.app when the user clicks on the sign button in the
- compose window.
- 
- See -[self MASetEncryptIfPossible:] for further information why this is an important
- entry point.
- */
-- (void)MASetSignIfPossible:(BOOL)signIfPossible;
-
 /**
  This method is called by Mail.app when a new message is to be sent or a draft
  is to be saved.
@@ -158,31 +133,6 @@ typedef struct {
  */
 - (void)_addGPGFlaggedStringsToHeaders:(NSMutableDictionary *)headers forEncrypting:(BOOL)forEncrypting forSigning:(BOOL)forSigning forSymmetric:(BOOL)forSymmetric isDraft:(BOOL)isDraft;
 
-/**
- Is called whenever a recipient is added to the message and decides
- whether or not the encrypt button in the security view is activated or not.
- 
- If the OpenPGP checkbox is not checked it calls the original method for S/MIME support.
- Otherwise each recipient is checked against GPGMail's internal list of
- recipients a public key exists for.
- Only if public keys for all recipients are found it returns true.
- */
-- (BOOL)MACanEncryptForRecipients:(NSArray *)recipients sender:(NSString *)sender;
-
-/**
- Is called whenever the 'from' account is changed
- and decides whether or not the sign button in the security view is activated 
- or not.
- 
- If the OpenPGP checkbox is not checked it calls the original method for S/MIME support.
- Otherwise the sender is checked against GPGMail's internal list to find
- a matching sender with a valid private key.
- If a matching sender and valid private key is found, returns true.
- 
- The email address might include the name which is extracted using uncommentedAddress. 
- */
-- (BOOL)MACanSignFromAddress:(NSString *)address;
-
 /* 
  Is called whenever the user clicks on the encrypt button
  in the security view.
@@ -195,31 +145,6 @@ typedef struct {
 - (id)MARecipientsThatHaveNoKeyForEncryption;
 
 - (MCSubdata *)_newPGPInlineBodyDataWithData:(NSData *)data headers:(MCMutableMessageHeaders *)headers shouldSign:(BOOL)shouldSign shouldEncrypt:(BOOL)shouldEncrypt;
-
-/**
- Determines whether or not the -[MailDocumentEditor backEndDidLoadInitialContent:] method was already called.
- When a new security method is set, this flag is first checked, so that no notification
- of a security method change is sent, before the editor was fully initialized.
- */
-@property (nonatomic, assign) BOOL wasInitialized;
-
-/**
- Holds and sets the security method to be used.
- If the security method is changed, it sents a SecurityMethodDidChangeNotification,
- so the Account list and the security method hint accessory view can be updated
- appropiately.
- */
-@property (nonatomic, assign) GPGMAIL_SECURITY_METHOD securityMethod;
-@property (nonatomic, assign) GPGMAIL_SECURITY_METHOD guessedSecurityMethod;
-@property (nonatomic, copy) NSMutableDictionary *securityProperties;
-- (void)updateSecurityProperties:(NSDictionary *)updates;
-
-/**
- Sets the flag that the user has chosen a security method.
- From this point on GPGMail will no longer automatically select
- the best method.
- */
-@property (nonatomic, assign) BOOL userDidChooseSecurityMethod;
 
 /**
  Returns if the user writing a reply to a message.
@@ -248,35 +173,6 @@ typedef struct {
  */
 - (BOOL)sentActionInvokedFromiCalWithContents:(WebComposeMessageContents *)contents;
 
-/**
- Helper method to access the encryptIfPossible flag. On OS X before Yosemite, this flag
- is set in a _flags struct. On Yosemite, there's a bool property which is used.
- */
-- (BOOL)GMEncryptIfPossible;
-
-/**
- Helper method to access the signIfPossible flag. On OS X before Yosemite, this flag
- is set in a _flags struct. On Yosemite, there's a bool property which is used.
- */
-- (BOOL)GMSignIfPossible;
-
 @property (readwrite, retain) GMComposeMessagePreferredSecurityProperties *preferredSecurityProperties;
-
-@end
-
-/**
- Under Lion GCD Dispatch Queues are not represented as Objective-C objects, which leads to
- massive problems and a crash when trying to store a dispatch queue as associated objected.
- In order to fix that issue, we simply wrap the dispatch queue in an object ourseveles.
- Let's see how well that goes.
- */
-@interface GMDispatchQueueObject : NSObject {
-	NSString *_name;
-	dispatch_queue_t _dispatchQueue;
-}
-
-- (id)initWithName:(const char *)name queueAttributes:(dispatch_queue_attr_t)attributes;
-
-@property (nonatomic, readonly) dispatch_queue_t dispatchQueue;
 
 @end

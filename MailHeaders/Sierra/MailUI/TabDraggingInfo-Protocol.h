@@ -6,6 +6,8 @@
 
 //#import "NSObject.h"
 
+#import "TabBarViewItem-Protocol.h"
+
 @class NSImage, NSWindow;
 
 @protocol TabDraggingInfo <NSObject>

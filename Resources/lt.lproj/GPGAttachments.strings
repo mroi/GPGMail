@@ -6,8 +6,8 @@
 "239.title" = "Raktas";
 "240.title" = "Name:";
 "241.title" = "E-Mail:";
-"242.title" = "Comment:";
-"243.title" = "Key ID:";
+"242.title" = "Komentaras:";
+"243.title" = "Rakto ID:";
 "244.title" = "Created:";
 "245.title" = "Expires:";
 "246.title" = "Algoritmas:";
@@ -20,5 +20,5 @@
 "325.ibShadowedIsNilPlaceholder" = "No expiration is set on this signature";
 "353.ibShadowedIsNilPlaceholder" = "No expiration is set on this signature";
 "366.ibShadowedIsNilPlaceholder" = "No expiration is set on this signature";
-"382.title" = "The signature could not be verified.";
+"382.title" = "Nepavyko patvirtinti parašo.";
 "383.title" = "The signature could not be verified because the public key is not in your keychain.\nPlease download the key using GPG Keychain.";

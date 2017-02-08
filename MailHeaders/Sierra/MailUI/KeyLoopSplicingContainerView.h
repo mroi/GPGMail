@@ -4,8 +4,6 @@
 //     class-dump is Copyright (C) 1997-1998, 2000-2001, 2004-2013 by Steve Nygard.
 //
 
-#import "NSView.h"
-
 @interface KeyLoopSplicingContainerView : NSView
 {
     NSView *_firstKeyView;	// 152 = 0x98
@@ -14,7 +12,7 @@
 }
 
 @property(retain, nonatomic) NSView *externalNextKeyView; // @synthesize externalNextKeyView=_externalNextKeyView;
-- (void).cxx_destruct;	// IMP=0x00000001001b2ec7
+//- (void).cxx_destruct;	// IMP=0x00000001001b2ec7
 @property(nonatomic) __weak NSView *lastKeyView;
 @property(nonatomic) __weak NSView *firstKeyView;
 - (void)setNextKeyView:(id)arg1;	// IMP=0x00000001001b2c1f

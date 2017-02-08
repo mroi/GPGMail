@@ -6,7 +6,7 @@
 
 #import "KeyLoopSplicingContainerView.h"
 
-#import "NSAccessibilityGroup.h"
+//#import "NSAccessibilityGroup.h"
 
 @class NSColor, NSImage, NSString, NSView, NSVisualEffectView;
 
@@ -34,7 +34,7 @@
 @property(readonly, nonatomic) NSView *mainContentContainerView; // @synthesize mainContentContainerView=_mainContentContainerView;
 @property(readonly, nonatomic) BOOL becomingFirstResponder; // @synthesize becomingFirstResponder=_becomingFirstResponder;
 @property BOOL mouseDownCanMoveWindow; // @synthesize mouseDownCanMoveWindow=_mouseDownCanMoveWindow;
-- (void).cxx_destruct;	// IMP=0x00000001000e981d
+//- (void).cxx_destruct;	// IMP=0x00000001000e981d
 - (void)setDefaultKeyLoop;	// IMP=0x00000001000e9443
 @property(nonatomic) NSView *contentView;
 @property(nonatomic) BOOL usesModernToolbarAppearance;

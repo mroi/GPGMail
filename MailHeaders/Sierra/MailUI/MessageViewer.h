@@ -4,22 +4,22 @@
 //     class-dump is Copyright (C) 1997-1998, 2000-2001, 2004-2013 by Steve Nygard.
 //
 
-#import "NSResponder.h"
+//#import "NSResponder.h"
 
-#import "FlaggedStatusToolbarItemDelegate.h"
-#import "MCActivityTarget.h"
-#import "MailboxSelectionOwner.h"
-#import "MailboxesOutlineViewControllerDelegate.h"
-#import "MessageTransferDelegate.h"
-#import "MessageViewerSearchFieldFocusDelegate.h"
-#import "NSAnimationDelegate.h"
-#import "NSSpeechSynthesizerDelegate.h"
-#import "NSToolbarDelegate.h"
-#import "NSUserInterfaceValidations.h"
-#import "NSWindowDelegate.h"
-#import "NSWindowRestoration.h"
-#import "SGTSearchFieldQueryScopeDelegate.h"
-#import "TerminationHandler.h"
+#import "FlaggedStatusToolbarItemDelegate-Protocol.h"
+#import "MCActivityTarget-Protocol.h"
+#import "MailboxSelectionOwner-Protocol.h"
+#import "MailboxesOutlineViewControllerDelegate-Protocol.h"
+#import "MessageTransferDelegate-Protocol.h"
+#import "MessageViewerSearchFieldFocusDelegate-Protocol.h"
+#import "NSAnimationDelegate-Protocol.h"
+#import "NSSpeechSynthesizerDelegate-Protocol.h"
+#import "NSToolbarDelegate-Protocol.h"
+#import "NSUserInterfaceValidations-Protocol.h"
+#import "NSWindowDelegate-Protocol.h"
+#import "NSWindowRestoration-Protocol.h"
+#import "SGTSearchFieldQueryScopeDelegate-Protocol.h"
+#import "TerminationHandler-Protocol.h"
 
 @class ActivityViewController, FavoritesBarView, FavoritesBarViewController, FlaggedStatusToolbarItem, FullScreenModalCapableWindow, FullScreenWindowController, MCMessage, MFBehaviorTracker, MFMailbox, MailBarContainerView, MailToolbar, MailboxesOutlineViewController, MailboxesViewController, MessageListContentController, MessageListViewController, MessageSelection, MessageViewerFullScreenMinimizeTray, MessageViewerSearchField, NSArray, NSButton, NSDictionary, NSIndexSet, NSLayoutConstraint, NSMenu, NSMenuItem, NSMutableArray, NSNumber, NSOperationQueue, NSSplitViewController, NSString, NSTextField, NSTimer, NSToolbarItem, NSView, NSWindow, SGTMailQueryGenius, TableViewManager, ViewingPaneViewController;
 
@@ -94,7 +94,7 @@
 }
 
 + (id)_messageViewersByUniqueID;	// IMP=0x0000000100034fc5
-+ (void)restoreWindowWithIdentifier:(id)arg1 state:(id)arg2 completionHandler:(CDUnknownBlockType)arg3;	// IMP=0x00000001000036cc
+//+ (void)restoreWindowWithIdentifier:(id)arg1 state:(id)arg2 completionHandler:(CDUnknownBlockType)arg3;	// IMP=0x00000001000036cc
 + (id)newDefaultMessageViewer;	// IMP=0x000000010023499c
 + (void)clearDelayedWindowRestorations;	// IMP=0x0000000100234754
 + (void)_mailApplicationDidFinishLaunching:(id)arg1;	// IMP=0x000000010000b252
@@ -178,7 +178,7 @@
 @property(retain, nonatomic) FullScreenModalCapableWindow *window; // @synthesize window=_window;
 @property(retain, nonatomic) MessageListViewController *messageListViewController; // @synthesize messageListViewController=_messageListViewController;
 @property(retain, nonatomic) ViewingPaneViewController *viewingPaneViewController; // @synthesize viewingPaneViewController=_viewingPaneViewController;
-- (void).cxx_destruct;	// IMP=0x0000000100239c1e
+//- (void).cxx_destruct;	// IMP=0x0000000100239c1e
 - (void)window:(id)arg1 startCustomAnimationToExitFullScreenWithDuration:(double)arg2;	// IMP=0x00000001002391a6
 - (id)customWindowsToExitFullScreenForWindow:(id)arg1;	// IMP=0x0000000100238f68
 @property(readonly, nonatomic) BOOL usesCustomFullScreenAnimation;
@@ -196,7 +196,7 @@
 @property(readonly, nonatomic) FullScreenWindowController *fullScreenWindowController;
 - (void)restoreMinimizedModalWindows;	// IMP=0x000000010023865f
 - (void)minimizeModalWindows;	// IMP=0x00000001002384bd
-- (void)closeModalWindow:(id)arg1 forcibly:(BOOL)arg2 animate:(BOOL)arg3 animationType:(long long)arg4 completion:(CDUnknownBlockType)arg5;	// IMP=0x000000010023841a
+//- (void)closeModalWindow:(id)arg1 forcibly:(BOOL)arg2 animate:(BOOL)arg3 animationType:(long long)arg4 completion:(CDUnknownBlockType)arg5;	// IMP=0x000000010023841a
 - (void)presentModalWindow:(id)arg1;	// IMP=0x00000001002383a8
 @property(readonly, nonatomic) BOOL isFullScreen;
 - (struct CGRect)window:(id)arg1 willPositionSheet:(id)arg2 usingRect:(struct CGRect)arg3;	// IMP=0x00000001000b54ca

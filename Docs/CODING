@@ -45,6 +45,26 @@ po *(id *)((char *)$rbp - 0x88)
 Note: if the offset starts with - it has to be subtracted, otherwise added, so 0x88 becomes $rbp + 0x88, -0x88 instead becomes
 $rbp - 0x88
 
+* Address / Thread sanitizer *
+
+It's the possible that Xcode complains that the Thread sanitizer dylib could not be loaded, because it
+doesn't exist.
+The error message might look like the following:
+could not load inserted library '@executable_path/Frameworks/libclang_rt.tsan_osx_dynamic.dylib'
+
+This error is rather easy to fix. Follow these steps:
+
+1.) Create the Frameworks dir in /Applications/Mail.app/Contents/MacOS
+
+sudo mkdir -p /Applications/Mail.app/Contents/MacOS/Frameworks
+
+2.) Copy the dylib into the newly created Frameworks dir
+
+sudo cp /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/clang/8.0.0/lib/darwin/libclang_rt.tsan_osx_dynamic.dylib /Applications/Mail.app/Contents/MacOS/Frameworks
+
+Re-compile GPGMail and the Thread Sanitizer should kick in.
+
+--
 
 
 - Sometimes it's not to easy to find out what happens to an

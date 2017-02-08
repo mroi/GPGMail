@@ -6,8 +6,8 @@
 
 //#import "NSObject.h"
 
-#import "MailDimmingWindowDelegate.h"
-#import "NSAnimationDelegate.h"
+#import "MailDimmingWindowDelegate-Protocol.h"
+//#import "NSAnimationDelegate.h"
 
 @class CALayer, MailWindowShadowLayer, MessageViewer, ModalDimmingWindow, NSString, NSWindow;
 
@@ -37,7 +37,7 @@
 @property(retain, nonatomic) NSWindow *coverExitAnimationWindow; // @synthesize coverExitAnimationWindow=_coverExitAnimationWindow;
 @property(retain, nonatomic) ModalDimmingWindow *modalDimmingWindow; // @synthesize modalDimmingWindow=_modalDimmingWindow;
 @property(nonatomic) long long activeAnimationType; // @synthesize activeAnimationType=_activeAnimationType;
-- (void).cxx_destruct;	// IMP=0x000000010018bf46
+//- (void).cxx_destruct;	// IMP=0x000000010018bf46
 - (void)dimmingWindowClicked;	// IMP=0x000000010018bcfa
 - (void)_exitAnimationFinished:(id)arg1;	// IMP=0x000000010018bb45
 - (void)startExitAnimationWithDuration:(double)arg1;	// IMP=0x000000010018b73c
@@ -50,8 +50,8 @@
 - (void)restoreMinimizedModalWindow:(id)arg1;	// IMP=0x0000000100189078
 - (void)minimizeModalWindow:(id)arg1;	// IMP=0x0000000100188f2b
 - (id)appearanceTimingFunction;	// IMP=0x0000000100188ef7
-- (void)_animateModalWindowSend:(id)arg1 completion:(CDUnknownBlockType)arg2;	// IMP=0x0000000100188859
-- (void)_animateModalWindowClose:(id)arg1 completion:(CDUnknownBlockType)arg2;	// IMP=0x000000010018824c
+//- (void)_animateModalWindowSend:(id)arg1 completion:(CDUnknownBlockType)arg2;	// IMP=0x0000000100188859
+//- (void)_animateModalWindowClose:(id)arg1 completion:(CDUnknownBlockType)arg2;	// IMP=0x000000010018824c
 - (void)_animateModalWindowOpen:(id)arg1;	// IMP=0x0000000100187c64
 - (void)windowWillExitFullScreen;	// IMP=0x0000000100187b5f
 - (void)windowWillEnterFullScreen;	// IMP=0x0000000100187ac5
@@ -64,7 +64,7 @@
 - (double)_titleBarHeight;	// IMP=0x00000001001870e5
 - (void)prepareWindowForFullScreen:(id)arg1;	// IMP=0x0000000100187030
 - (void)presentModalWindow:(id)arg1;	// IMP=0x0000000100186761
-- (void)closeModalWindow:(id)arg1 forcibly:(BOOL)arg2 animate:(BOOL)arg3 animationType:(long long)arg4 completion:(CDUnknownBlockType)arg5;	// IMP=0x00000001001860f9
+//- (void)closeModalWindow:(id)arg1 forcibly:(BOOL)arg2 animate:(BOOL)arg3 animationType:(long long)arg4 completion:(CDUnknownBlockType)arg5;	// IMP=0x00000001001860f9
 - (BOOL)_isFullScreen;	// IMP=0x0000000100186087
 - (id)_parentWindow;	// IMP=0x0000000100186041
 @property(nonatomic) __weak MessageViewer *messageViewer;

@@ -23,14 +23,14 @@
     NSTitlebarAccessoryViewController *_toolbarNewTabButtonViewController;	// 112 = 0x70
     NSDictionary *_toolbarItems;	// 120 = 0x78
     NSMenu *_disclosureMenu;	// 128 = 0x80
-    CDUnknownBlockType _loadCompletionHandler;	// 136 = 0x88
+//    CDUnknownBlockType _loadCompletionHandler;	// 136 = 0x88
     struct CGPoint _animationStartFrameOrigin;	// 144 = 0x90
 }
 
-+ (void)restoreWindowWithIdentifier:(id)arg1 state:(id)arg2 completionHandler:(CDUnknownBlockType)arg3;	// IMP=0x0000000100122943
+//+ (void)restoreWindowWithIdentifier:(id)arg1 state:(id)arg2 completionHandler:(CDUnknownBlockType)arg3;	// IMP=0x0000000100122943
 + (id)keyPathsForValuesAffectingTitle;	// IMP=0x000000010011eb35
 @property(nonatomic) struct CGPoint animationStartFrameOrigin; // @synthesize animationStartFrameOrigin=_animationStartFrameOrigin;
-@property(copy, nonatomic) CDUnknownBlockType loadCompletionHandler; // @synthesize loadCompletionHandler=_loadCompletionHandler;
+//@property(copy, nonatomic) CDUnknownBlockType loadCompletionHandler; // @synthesize loadCompletionHandler=_loadCompletionHandler;
 @property(retain, nonatomic) NSMenu *disclosureMenu; // @synthesize disclosureMenu=_disclosureMenu;
 @property(nonatomic) BOOL inspectorBarDisplayed; // @synthesize inspectorBarDisplayed=_inspectorBarDisplayed;
 @property(nonatomic) BOOL shouldCloseWindowWhenAnimationCompletes; // @synthesize shouldCloseWindowWhenAnimationCompletes=_shouldCloseWindowWhenAnimationCompletes;
@@ -45,7 +45,7 @@
 - (void)beginRecordingKeystrokes;	// IMP=0x0000000100124a01
 - (struct CGRect)_toolbarRect;	// IMP=0x0000000100124824
 - (id)getContentGeometryData;	// IMP=0x0000000100124656
-- (void)getSnapshotParts:(CDUnknownBlockType)arg1;	// IMP=0x00000001001245fa
+//- (void)getSnapshotParts:(CDUnknownBlockType)arg1;	// IMP=0x00000001001245fa
 - (void)selectPreviousTab:(id)arg1;	// IMP=0x000000010012450d
 - (void)selectNextTab:(id)arg1;	// IMP=0x000000010012441e
 - (id)supplementalTargetForAction:(SEL)arg1 sender:(id)arg2;	// IMP=0x00000001001243ca
@@ -61,7 +61,7 @@
 - (void)composeViewControllerShouldShow:(id)arg1;	// IMP=0x0000000100123ad9
 - (void)composeViewControllerShouldClose:(id)arg1;	// IMP=0x0000000100123971
 - (void)composeViewControllerDidSend:(id)arg1;	// IMP=0x00000001001237f8
-- (void)prepareComposeViewController:(id)arg1 forSendingWithCompletionHandler:(CDUnknownBlockType)arg2;	// IMP=0x000000010012364d
+//- (void)prepareComposeViewController:(id)arg1 forSendingWithCompletionHandler:(CDUnknownBlockType)arg2;	// IMP=0x000000010012364d
 - (void)restoreFrame;	// IMP=0x0000000100123609
 - (id)_dictionaryRepresentation;	// IMP=0x0000000100123190
 - (void)window:(id)arg1 willEncodeRestorableState:(id)arg2;	// IMP=0x0000000100123046
@@ -75,7 +75,7 @@
 - (void)animationDidEnd:(id)arg1;	// IMP=0x0000000100122925
 - (void)cancelSendAnimation;	// IMP=0x0000000100122870
 - (void)_sendAnimationCompleted;	// IMP=0x00000001001227a2
-- (void)_performSendAnimationWithCompletion:(CDUnknownBlockType)arg1;	// IMP=0x00000001001220d7
+//- (void)_performSendAnimationWithCompletion:(CDUnknownBlockType)arg1;	// IMP=0x00000001001220d7
 - (BOOL)tabBarView:(id)arg1 acceptDrop:(id)arg2 index:(unsigned long long)arg3;	// IMP=0x00000001001220cf
 - (unsigned long long)tabBarView:(id)arg1 validateDrop:(id)arg2;	// IMP=0x00000001001220c7
 - (void)tabBarView:(id)arg1 didFinishTransitionAnimationForWindow:(id)arg2;	// IMP=0x00000001001220b0
@@ -94,7 +94,7 @@
 - (void)tabBarView:(id)arg1 didMoveTabBarViewItem:(id)arg2 toIndex:(unsigned long long)arg3;	// IMP=0x00000001001213f7
 - (void)_tabBarView:(id)arg1 forceCloseTabBarViewItem:(id)arg2;	// IMP=0x000000010012126e
 - (void)_tabBarView:(id)arg1 didSendTabBarViewItem:(id)arg2;	// IMP=0x00000001001211b6
-- (void)_tabBarView:(id)arg1 performSendAnimationOfTabBarViewItem:(id)arg2 completion:(CDUnknownBlockType)arg3;	// IMP=0x0000000100120e27
+//- (void)_tabBarView:(id)arg1 performSendAnimationOfTabBarViewItem:(id)arg2 completion:(CDUnknownBlockType)arg3;	// IMP=0x0000000100120e27
 - (void)tabBarView:(id)arg1 closeOtherTabsExceptTabBarViewItem:(id)arg2;	// IMP=0x0000000100120d20
 - (void)tabBarView:(id)arg1 closeTabBarViewItem:(id)arg2;	// IMP=0x0000000100120b98
 - (id)_removeTabBarViewItem:(id)arg1;	// IMP=0x0000000100120a73

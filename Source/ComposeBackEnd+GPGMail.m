@@ -57,153 +57,6 @@ extern const NSString *kComposeBackEndPreferredSecurityPropertiesKey = @"Preferr
 
 @implementation ComposeBackEnd_GPGMail
 
-- (BOOL)setupSecurityPropertiesQueue {
-	if(![self getIvar:@"GMSecurityPropertiesQueue"]) {
-		GMDispatchQueueObject *securityPropertiesQueue = [[GMDispatchQueueObject alloc] initWithName:"org.gpgtools.GPGMail.securityPropertiesQueue" queueAttributes:DISPATCH_QUEUE_CONCURRENT];
-		[self setIvar:@"GMSecurityPropertiesQueue" value:securityPropertiesQueue];
-	}
-	return YES;
-}
-
-- (dispatch_queue_t)securityPropertiesQueue {
-	GMDispatchQueueObject *securityPropertiesQueue = [self getIvar:@"GMSecurityPropertiesQueue"];
-	return securityPropertiesQueue.dispatchQueue;
-}
-
-- (id)MAInit {
-	id ret = [self MAInit];
-	
-	/** On El Capitan initCreatingDocumentEditor no longer exists, instead we'll setup our securityPropertiesQueue in init.
-	 */
-	[ret setupSecurityPropertiesQueue];
-	
-	return ret;
-}
-
-- (id)MAInitCreatingDocumentEditor:(BOOL)createDocumentEditor {
-    
-    id ret = [self MAInitCreatingDocumentEditor:createDocumentEditor];
-    
-    /** On Yosemite, if Mail was invoked via AppleScript, this queue might already have been setup.
-     */
-    [ret setupSecurityPropertiesQueue];
-    
-    return ret;
-}
-
-// TODO: Remove - no longer available on Sierra.
-//- (void)MASetKnowsCanSign:(BOOL)knowsCanSign {
-//    // In Yosemite, this is reset if the sender changes,
-//    // so let's also reset GMKnowsCanSign.
-//    if(knowsCanSign == NO) {
-//        [self updateSecurityProperties:@{@"GMKnowsCanSign": @NO}];
-//    }
-//    
-//    [self MASetKnowsCanSign:knowsCanSign];
-//}
-
-/* TODO: Remove - no longer necessary since we implement the part which calls these methods now ourselves.
-- (void)MASetEncryptIfPossible:(BOOL)encryptIfPossible {
-    DebugLog(@"[Main thread: %@] - Set Encrypt: %@", [NSThread isMainThread] ? @"YES" : @"NO", encryptIfPossible ? @"YES" : @"NO");
-    NSDictionary *securityProperties = self.securityProperties;
-    if(securityProperties[@"SetEncrypt"]) {
-        encryptIfPossible = [securityProperties[@"SetEncrypt"] boolValue];
-    }
-    
-    // Force Encrypt contains the user choice.
-    // It overrides SetEncrypt, which is checked when
-    // displaying the correct image, so it has to
-    // be reset, if ForceSign is set, otherwise the wrong
-    // image could be shown.
-    if(securityProperties[@"ForceEncrypt"]) {
-        encryptIfPossible = [securityProperties[@"ForceEncrypt"] boolValue];
-        [self updateSecurityProperties:@{@"SetEncrypt": @(encryptIfPossible)}];
-    }
-    // If SetEncrypt and CanEncrypt don't match, use CanEncrypt,
-    // since that's more important.
-    if(![securityProperties[@"EncryptIsPossible"] boolValue])
-        encryptIfPossible = NO;
-    
-    [self updateSecurityProperties:@{@"shouldEncrypt": @(encryptIfPossible)}];
-    
-    [self MASetEncryptIfPossible:encryptIfPossible];
-    // TODO: Fix all the following code for Sierra!
-//    [(MailDocumentEditor_GPGMail *)[((ComposeBackEnd *)self) delegate] updateSecurityMethodHighlight];
-//	
-//	HeadersEditor_GPGMail *headersEditor = ((MailDocumentEditor *)[((ComposeBackEnd *)self) delegate]).headersEditor;
-//	[headersEditor updateSymmetricButton];
-}
-
-- (BOOL)GMEncryptIfPossible {
-	// On Yosemite or higher there's a property to read the encryptIfPossible flag.
-	// otherwise, we have to access the _flags struct.
-	BOOL encryptIfPossible = NO;
-	if(floor(NSAppKitVersionNumber) > NSAppKitVersionNumber10_9) {
-		encryptIfPossible = [[self valueForKey:@"_encryptIfPossible"] boolValue];
-	}
-	else {
-		mailFlags backEndFlags;
-		Ivar flags = class_getInstanceVariable([self class], "_flags");
-
-		CFTypeRef cfSelf = CFBridgingRetain(self);
-		backEndFlags = *(mailFlags *)((uint8_t *)cfSelf + ivar_getOffset(flags));
-		encryptIfPossible = backEndFlags.encryptIfPossible;
-		CFBridgingRelease(cfSelf);
-	}
-
-	return encryptIfPossible;
-}
-
-- (BOOL)GMSignIfPossible {
-	// On Yosemite or higher there's a property to read the signIfPossible flag.
-	// otherwise, we have to access the _flags struct.
-	BOOL signIfPossible = NO;
-	if(floor(NSAppKitVersionNumber) > NSAppKitVersionNumber10_9) {
-		signIfPossible = [[self valueForKey:@"_signIfPossible"] boolValue];
-	}
-	else {
-		mailFlags backEndFlags;
-		Ivar flags = class_getInstanceVariable([self class], "_flags");
-
-		CFTypeRef cfSelf = CFBridgingRetain(self);
-		backEndFlags = *(mailFlags *)((uint8_t *)cfSelf + ivar_getOffset(flags));
-		signIfPossible = backEndFlags.signIfPossible;
-		CFBridgingRelease(cfSelf);
-	}
-
-	return signIfPossible;
-}
-
-- (void)MASetSignIfPossible:(BOOL)signIfPossible {
-    NSDictionary *securityProperties = self.securityProperties;
-    NSMutableDictionary *updatedSecurityProperties = [@{} mutableCopy];
-    if(securityProperties[@"SetSign"]) {
-        signIfPossible = [securityProperties[@"SetSign"] boolValue];
-    }
-
-    // Force Sign contains the user choice.
-    // It overrides SetSign, which is checked when
-    // displaying the correct image, so it has to
-    // be reset, if ForceSign is set, otherwise the wrong
-    // image could be shown.
-    if(securityProperties[@"ForceSign"]) {
-        signIfPossible = [securityProperties[@"ForceSign"] boolValue];
-        updatedSecurityProperties[@"SetSign"] = @(signIfPossible);
-    }
-    
-    // If SetSign and CanSign don't match, use CanSign,
-    // since that's more important.
-    if(![securityProperties[@"SignIsPossible"] boolValue])
-        signIfPossible = NO;
-    
-    updatedSecurityProperties[@"shouldSign"] = @(signIfPossible);
-    [self updateSecurityProperties:updatedSecurityProperties];
-    [self MASetSignIfPossible:signIfPossible];
-    // TODO: Fix for sierra!
-//    [(MailDocumentEditor_GPGMail *)[((ComposeBackEnd *)self) delegate] updateSecurityMethodHighlight];
-}
-*/
-
 - (id)MASender {
 	// If a message is to be redirected, the flagged from string,
 	// which might have been set in -[ComposeBackEnd _makeMessageWithContents:isDraft:shouldSign:shouldEncrypt:shouldSkipSignature:shouldBePlainText:]
@@ -226,12 +79,18 @@ extern const NSString *kComposeBackEndPreferredSecurityPropertiesKey = @"Preferr
 	if(![sender respondsToSelector:@selector(setValue:forFlag:)])
 		return [self MASender];
 	
-	// Now emulate what -[ComposeBackEnd sender] does internally.
-	// At least part of it.
-	MFMailAccount *account = [MFMailAccount accountContainingEmailAddress:sender];
-	// Not sure what to do in this case, so let's fall back.
-	if(!account)
-		return [self MASender];
+    // On Sierra from 10.12.4b1, Mail calls senderWithValidation in -[ComposeBackEnd sender]
+    if([self respondsToSelector:@selector(senderWithValidation:)]) {
+        sender = [MAIL_SELF senderWithValidation:NO];
+    }
+    else {
+        // Now emulate what -[ComposeBackEnd sender] does internally.
+        // At least part of it.
+        MFMailAccount *account = [MFMailAccount accountContainingEmailAddress:sender];
+        // Not sure what to do in this case, so let's fall back.
+        if(!account)
+            return [self MASender];
+    }
 	// IF we're still in here, return the flagged sender.
 	return sender;
 }
@@ -1036,296 +895,24 @@ extern const NSString *kComposeBackEndPreferredSecurityPropertiesKey = @"Preferr
     return contentSubdata;
 }
 
-- (BOOL)MACanEncryptForRecipients:(NSArray *)recipients sender:(NSString *)sender {
-    // This method is never supposed to be called on the main thread,
-	// so let's check for that.
-    if([NSThread isMainThread])
-		return NO;
-	
-    // To really fix #624 make sure the backEnd is alive till the end of this method.
-	ComposeBackEnd_GPGMail *bself __attribute__((objc_precise_lifetime)) = self;
-	
-	if(![((ComposeBackEnd *)bself) delegate])
-		return NO;
-	
-	DebugLog(@"Recipients: %@", recipients);
-    
-    BOOL canSMIMEEncrypt = [(ComposeBackEnd_GPGMail *)bself MACanEncryptForRecipients:recipients sender:sender];
-    
-	// S/MIME addresses are treated in a case sensitive manner, so the normalizing (uncommenting and lowercasing)
-	// is only supposed to be done, AFTER the S/MIME canEncrypt check (#673)
-	sender = [sender gpgNormalizedEmail];
-    
-    DebugLog(@"Can S/MIME encrypt to recipients: %@? %@", recipients, canSMIMEEncrypt ? @"YES" : @"NO");
-    
-    NSMutableArray *mutableRecipients = [[NSMutableArray alloc] initWithArray:recipients];
-    NSMutableArray *nonEligibleRecipients = [NSMutableArray array];
-    [mutableRecipients addObject:[sender gpgNormalizedEmail]];
-
-    for(NSString *address in mutableRecipients) {
-        if(![[GPGMailBundle sharedInstance] canEncryptMessagesToAddress:[address gpgNormalizedEmail]])
-            [nonEligibleRecipients addObject:address];
-    }
-    BOOL canPGPEncrypt = [nonEligibleRecipients count] == 0 && [recipients count];
-    
-    DebugLog(@"Can PGP encrypt to recipients: %@? %@", mutableRecipients, canPGPEncrypt ? @"YES" : @"NO");
-    
-    NSDictionary *securityProperties = self.securityProperties;
-    BOOL canSMIMESign = [securityProperties[@"CanSMIMESign"] boolValue];
-    BOOL canPGPSign = [securityProperties[@"CanPGPSign"] boolValue];
-    
-    GPGMAIL_SIGN_FLAG signFlags = 0;
-    if(canPGPSign)
-        signFlags |= GPGMAIL_SIGN_FLAG_OPENPGP;
-    if(canSMIMESign)
-        signFlags |= GPGMAIL_SIGN_FLAG_SMIME;
-    
-    GPGMAIL_ENCRYPT_FLAG encryptFlags = 0;
-    if(canPGPEncrypt)
-        encryptFlags |= GPGMAIL_ENCRYPT_FLAG_OPENPGP;
-    if(canSMIMEEncrypt)
-        encryptFlags |= GPGMAIL_ENCRYPT_FLAG_SMIME;
-    
-    // If a message is replied to which is S/MIME or PGP/MIME signed,
-    // automatically set the appropriate security method.
-    BOOL canEncrypt = NO;
-    BOOL canSign = NO;
-    
-    GMSecurityHistory *securityHistory = [[GMSecurityHistory alloc] init];
-    GMSecurityOptions *securityOptions = nil;
-    
-    if(!bself.securityMethod) {
-        if(bself.messageIsBeingReplied) {
-            Message *originalMessage = [((ComposeBackEnd *)bself) originalMessage];
-            securityOptions = [securityHistory bestSecurityOptionsForReplyToMessage:originalMessage signFlags:signFlags encryptFlags:encryptFlags];
-        }
-		else if([bself draftIsContinued]) {
-			Message *originalMessage = [((ComposeBackEnd *)bself) originalMessage];
-			securityOptions = [securityHistory bestSecurityOptionsForMessageDraft:originalMessage signFlags:signFlags encryptFlags:encryptFlags];
-		}
-        else {
-            securityOptions = [securityHistory bestSecurityOptionsForSender:sender recipients:recipients signFlags:signFlags encryptFlags:encryptFlags];
-        }
-        bself.guessedSecurityMethod = securityOptions.securityMethod;
-        
-        if(bself.guessedSecurityMethod == GPGMAIL_SECURITY_METHOD_OPENPGP) {
-            canEncrypt = canPGPEncrypt;
-            canSign = canPGPSign;
-        }
-        else {
-            canEncrypt = canSMIMEEncrypt;
-            canSign = canSMIMESign;
-        }
-        if(bself.guessedSecurityMethod == GPGMAIL_SECURITY_METHOD_OPENPGP) {
-            DebugLog(@"Security Method is OpenPGP");
-            DebugLog(@"Can OpenPGP Encrypt: %@", canPGPEncrypt ? @"YES" : @"NO");
-            DebugLog(@"Can OpenPGP Sign: %@", canPGPSign ? @"YES" : @"NO");
-        }
-        else if(bself.guessedSecurityMethod == GPGMAIL_SECURITY_METHOD_SMIME) {
-            DebugLog(@"Security Method is S/MIME");
-            DebugLog(@"Can S/MIME Encrypt: %@", canSMIMEEncrypt ? @"YES" : @"NO");
-            DebugLog(@"Can S/MIME Sign: %@", canSMIMESign ? @"YES" : @"NO");
-        }
-    }
-    else {
-        canEncrypt = bself.securityMethod == GPGMAIL_SECURITY_METHOD_OPENPGP ? canPGPEncrypt : canSMIMEEncrypt;
-        canSign = bself.securityMethod == GPGMAIL_SECURITY_METHOD_OPENPGP ? canPGPSign : canSMIMESign;
-        if(bself.messageIsBeingReplied) {
-            Message *originalMessage = [((ComposeBackEnd *)bself) originalMessage];
-            securityOptions = [securityHistory bestSecurityOptionsForReplyToMessage:originalMessage signFlags:signFlags encryptFlags:encryptFlags];
-        }
-        else {
-            securityOptions = [securityHistory bestSecurityOptionsForSender:sender recipients:recipients securityMethod:bself.securityMethod canSign:canSign canEncrypt:canEncrypt];
-        }
-    }
-    
-    NSMutableDictionary *updatedSecurityProperties = [@{} mutableCopy];
-    
-    updatedSecurityProperties[@"SecurityOptions"] = securityOptions;
-    // On Yosemite, there's a new method which is responsible for handling the correct
-    // button state -[HeadersEditor setMessageIsToBeEncrypted:].
-    // This method is called, after the check for canEncrypt is run.
-    // Since canEncrypt checks the preferences the user has set, SetEncrypt
-    // is set to Yes, if EncryptNewMessagesByDefault is enabled.
-    // The problem is, in that case messageIsToBeEncrypted is also set
-    // to true, even though the message can't be encrypted yet if no recipients
-    // are set. Due to that wrong state, the buttons are later not properly
-    // updated, when recipients are actually added and the test can be properly run.
-    // So if no recipients are available, we simply don't set SetEncrypt and everything
-    // should be fine. We might consider doing that on other OS X versions as well.
-    if([recipients count] > 0 || (![recipients count] && ![GPGMailBundle isYosemite]))
-        updatedSecurityProperties[@"SetEncrypt"] = @(securityOptions.shouldEncrypt);
-    
-    updatedSecurityProperties[@"SetSign"] = @(securityOptions.shouldSign);
-    updatedSecurityProperties[@"EncryptIsPossible"] = @(canEncrypt);
-    updatedSecurityProperties[@"SignIsPossible"] = @(canSign);
-    
-    if ([[GPGOptions sharedOptions] boolForKey:@"AllowSymmetricEncryption"]) {
-        updatedSecurityProperties[@"SymmetricIsPossible"] = @([GPGMailBundle gpgMailWorks]);
-    }
-
-    [self updateSecurityProperties:updatedSecurityProperties];
-    
-    return canEncrypt;
-}
-
-- (BOOL)MACanSignFromAddress:(NSString *)address {
-    // To really fix #624 make sure the backEnd is alive till the end of this method.
-	ComposeBackEnd_GPGMail *bself __attribute__((objc_precise_lifetime)) = self;
-	
-	if(![((ComposeBackEnd *)bself) delegate])
-		return NO;
-
-	// If the security method is not yet set and the back end was not yet initialized,
-    // check S/MIME and PGP keychains to see if either method has a key
-    // for signing.
-    // For some reason, we're running into zombies if we don't do
-    // this.
-    BOOL canSMIMESign = [bself MACanSignFromAddress:address];
-    NSMutableDictionary *updatedSecurityProperties = [@{} mutableCopy];
-    updatedSecurityProperties[@"CanSMIMESign"] = @(canSMIMESign);
-    
-    DebugLog(@"Can sign S/MIME from address: %@? %@", address, canSMIMESign ? @"YES" : @"NO");
-    
-    NSDictionary *securityProperties = self.securityProperties;
-    BOOL canPGPSign = [[GPGMailBundle sharedInstance] canSignMessagesFromAddress:[address gpgNormalizedEmail]];
-    updatedSecurityProperties[@"CanPGPSign"] = @(canPGPSign);
-    updatedSecurityProperties[@"GMKnowsCanSign"] = @(YES);
-    
-    [self updateSecurityProperties:updatedSecurityProperties];
-    
-    DebugLog(@"Can sign PGP from address: %@? %@", address, canPGPSign ? @"YES" : @"NO");
-    
-    // Now, here's a problem. If canSign returns NO, canEncrypt is no longer
-    // checked, since for some reason S/MIME works like that, or maybe it's
-    // only Apple's implementation.
-    // So to avoid this, always return YES here if the security method is not already set.
-    // The correct status is stored for later lookup in canEncrypt.
-    return YES;
-}
-
 - (id)MARecipientsThatHaveNoKeyForEncryption {
     if(![((ComposeBackEnd *)self) delegate])
 		return [NSArray array];
 	
-	GPGMAIL_SECURITY_METHOD securityMethod = self.guessedSecurityMethod;
-    if(self.securityMethod)
-        securityMethod = self.securityMethod;
+	GPGMAIL_SECURITY_METHOD securityMethod = self.preferredSecurityProperties.securityMethod;
     
     if(securityMethod == GPGMAIL_SECURITY_METHOD_SMIME)
         return [self MARecipientsThatHaveNoKeyForEncryption];
 
     NSMutableArray *nonEligibleRecipients = [NSMutableArray array];
-    for(NSString *recipient in [((ComposeBackEnd *)self) allRecipients]) {
-        if(![[GPGMailBundle sharedInstance] canEncryptMessagesToAddress:[recipient gpgNormalizedEmail]])
-            [nonEligibleRecipients addObject:[recipient gpgNormalizedEmail]];
+    @synchronized ([self valueForKey:@"_smimeLock"]) {
+        for(NSString *recipient in [((ComposeBackEnd *)self) allRecipients]) {
+            if(![[GPGMailBundle sharedInstance] canEncryptMessagesToAddress:[recipient gpgNormalizedEmail]])
+                [nonEligibleRecipients addObject:[recipient gpgNormalizedEmail]];
+        }
     }
 
     return nonEligibleRecipients;
-}
-
-- (NSDictionary *)securityProperties {
-    __block NSDictionary *_securityProperties = nil;
-    dispatch_queue_t securityPropertiesQueue = [self securityPropertiesQueue];
-
-    ComposeBackEnd_GPGMail __weak *weakSelf = self;
-    dispatch_sync(securityPropertiesQueue, ^{
-        ComposeBackEnd_GPGMail __strong *strongSelf = weakSelf;
-        if(![strongSelf ivarExists:@"GMSecurityProperties"])
-            [strongSelf setIvar:@"GMSecurityProperties" value:[NSMutableDictionary new]];
-        
-        _securityProperties = [strongSelf getIvar:@"GMSecurityProperties"];
-    });
-    return _securityProperties;
-}
-
-- (void)updateSecurityProperties:(NSDictionary *)updates {
-	// We create our own copy of the securityProperties,
-	// since it's very much possible that they'll be overwritten with new
-	// ones,
-    NSMutableDictionary *securityProperties = [self.securityProperties mutableCopy];
-	
-    NSMutableDictionary *propertiesToUpdate = [@{} mutableCopy];
-    
-    for(id key in updates) {
-        if([updates[key] isKindOfClass:[NSNull class]])
-            [securityProperties removeObjectForKey:key];
-        else
-            propertiesToUpdate[key] = updates[key];
-    }
-    
-    [securityProperties addEntriesFromDictionary:propertiesToUpdate];
-    self.securityProperties = securityProperties;
-}
-
-- (void)setSecurityProperties:(NSDictionary *)securityProperties {
-    dispatch_queue_t securityPropertiesQueue = [self securityPropertiesQueue];
-
-	ComposeBackEnd_GPGMail __weak *weakSelf = self;
-    dispatch_barrier_async(securityPropertiesQueue, ^{
-        ComposeBackEnd_GPGMail __strong *strongSelf = weakSelf;
-        [strongSelf setIvar:@"GMSecurityProperties" value:securityProperties];
-    });
-}
-
-- (BOOL)wasInitialized {
-    return [[self getIvar:@"WasInitialized"] boolValue];
-}
-
-- (void)setWasInitialized:(BOOL)wasInitialized {
-    [self setIvar:@"WasInitialized" value:@(wasInitialized)];
-}
-
-- (GPGMAIL_SECURITY_METHOD)securityMethod {
-    return [self.securityProperties[@"SecurityMethod"] unsignedIntValue];
-}
-
-//- (void)setSecurityMethod:(GPGMAIL_SECURITY_METHOD)securityMethod {
-//    // Reset SetSign, SetEncrypt, SignIsPossible, EncryptIsPossible, shouldSign, shouldEncrypt.
-//    [self updateSecurityProperties:@{@"SecurityMethod": @((unsigned int)securityMethod),
-//                                     @"SetSign": [NSNull null],
-//                                     @"SetEncrypt": [NSNull null],
-//                                     @"SignIsPossible": [NSNull null],
-//                                     @"EncryptIsPossible": [NSNull null],
-//                                     @"shouldSign": [NSNull null],
-//                                     @"shouldEncrypt": [NSNull null],
-//                                     @"shouldSymmetric": [NSNull null]}];
-//
-//    // Don't reset ForceEncrypt and ForceSign. User preference has to stick. ALWAYS!
-//    
-//    // NEVER! automatically change the security method once the user selected it.
-//    // Only send the notification if security method is not reset to 0.
-//    // otherwise some serious shit happens.
-//    // Also only begin posting if the back end was initialized.
-//    if(securityMethod && self.wasInitialized/* && !self.userDidChooseSecurityMethod*/) {
-//        [(ComposeBackEnd *)self setHasChanges:YES];
-//        [self postSecurityMethodDidChangeNotification:(GPGMAIL_SECURITY_METHOD)securityMethod];
-//    }
-//}
-
-- (void)setGuessedSecurityMethod:(GPGMAIL_SECURITY_METHOD)securityMethod {
-    [self updateSecurityProperties:@{@"GuessedSecurityMethod": @((unsigned int)securityMethod),
-                                     @"SetSign": [NSNull null],
-                                     @"SetEncrypt": [NSNull null],
-                                     @"SignIsPossible": [NSNull null],
-                                     @"EncryptIsPossible": [NSNull null],
-                                     @"shouldSign": [NSNull null],
-                                     @"shouldEncrypt": [NSNull null],
-                                     @"shouldSymmetric": [NSNull null]}];
-	
-	// Don't reset ForceEncrypt and ForceSign. User preference has to stick. ALWAYS!
-}
-
-- (GPGMAIL_SECURITY_METHOD)guessedSecurityMethod {
-    return (GPGMAIL_SECURITY_METHOD)[self.securityProperties[@"GuessedSecurityMethod"] unsignedIntegerValue];
-}
-
-- (BOOL)userDidChooseSecurityMethod {
-    return [[self getIvar:@"UserDidChooseSecurityMethod"] boolValue];
-}
-
-- (void)setUserDidChooseSecurityMethod:(BOOL)userDidChoose {
-    [self setIvar:@"UserDidChooseSecurityMethod" value:@(userDidChoose)];
 }
 
 - (BOOL)messageIsBeingReplied {
@@ -1342,15 +929,6 @@ extern const NSString *kComposeBackEndPreferredSecurityPropertiesKey = @"Preferr
     return draftIsContinued;
 }
 
-- (void)postSecurityMethodDidChangeNotification:(GPGMAIL_SECURITY_METHOD)securityMethod {
-    if(!securityMethod)
-        return;
-    /* Post notification that the security method has changed. */
-    NSNotification *notification = [NSNotification notificationWithName:@"SecurityMethodDidChangeNotification" object:nil userInfo:@{@"SecurityMethod": @((unsigned int)securityMethod)}];
-#warning TODO: Find out what the new notification center used in Sierra is!
-    //[(MailNotificationCenter *)[NSClassFromString(@"MailNotificationCenter") defaultCenter] postNotification:notification];
-}
-
 - (BOOL)MA_saveThreadShouldCancel {
 	if ([[self getIvar:@"cancelSaving"] boolValue]) {
 		[self setIvar:@"cancelSaving" value:(id)kCFBooleanFalse];
@@ -1360,11 +938,17 @@ extern const NSString *kComposeBackEndPreferredSecurityPropertiesKey = @"Preferr
 }
 
 - (GMComposeMessagePreferredSecurityProperties *)preferredSecurityProperties {
-    return [self getIvar:kComposeBackEndPreferredSecurityPropertiesKey];
+    GMComposeMessagePreferredSecurityProperties *securityProperties = nil;
+    @synchronized ([self valueForKey:@"_smimeLock"]) {
+        securityProperties = [self getIvar:kComposeBackEndPreferredSecurityPropertiesKey];
+    }
+    return securityProperties;
 }
 
 - (void)setPreferredSecurityProperties:(GMComposeMessagePreferredSecurityProperties *)preferredSecurityProperties {
-    [self setIvar:kComposeBackEndPreferredSecurityPropertiesKey value:preferredSecurityProperties];
+    @synchronized ([self valueForKey:@"_smimeLock"]) {
+        [self setIvar:kComposeBackEndPreferredSecurityPropertiesKey value:preferredSecurityProperties];
+    }
 }
 
 // TODO: Possibly remove later. only for testing
@@ -1376,8 +960,13 @@ extern const NSString *kComposeBackEndPreferredSecurityPropertiesKey = @"Preferr
         [self MAUpdateSMIMEStatus:onComplete];
         return;
     }
-    
-    NSString *sender = [MAIL_SELF sender];
+    NSString *sender = nil;
+    if([MAIL_SELF respondsToSelector:@selector(senderWithValidation:)]) {
+        sender = [MAIL_SELF senderWithValidation:YES];
+    }
+    else {
+        sender = [MAIL_SELF sender];
+    }
     NSArray *recipients = [MAIL_SELF allRecipients];
     
     if(sender) {
@@ -1496,25 +1085,3 @@ extern const NSString *kComposeBackEndPreferredSecurityPropertiesKey = @"Preferr
 @end
 
 #undef MAIL_SELF
-
-@implementation GMDispatchQueueObject
-
-@synthesize dispatchQueue=_dispatchQueue;
-
-- (id)initWithName:(const char *)name queueAttributes:(dispatch_queue_attr_t)attributes {
-	if(self = [super init]) {
-		_name = [[NSString alloc] initWithCString:name encoding:NSUTF8StringEncoding];
-		_dispatchQueue = dispatch_queue_create(name, attributes);
-	}
-	return self;
-}
-
-- (dispatch_queue_t)dispatchQueue {
-	return _dispatchQueue;
-}
-
-- (void)dealloc {
-	dispatch_release(_dispatchQueue);
-}
-
-@end
