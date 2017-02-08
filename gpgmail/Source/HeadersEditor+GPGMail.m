@@ -109,25 +109,6 @@ const NSString *kHeadersEditorFromControlParentItemKey = @"HeadersEditorFromCont
 	
 }
 
-// TODO: Remove - better implementation later in this file.
-//- (void)MASecurityControlChanged:(id)securityControl {
-//    GMSecurityControl *signControl = [self valueForKey:@"_signButton"];
-//    GMSecurityControl *encryptControl = [self valueForKey:@"_encryptButton"];
-//    NSSegmentedControl *originalSecurityControl = securityControl;
-//	
-//	    
-//    securityControl = signControl.control == securityControl ? signControl : encryptControl;
-//    // The securityControl passed to this method is an NSSegmentControl.
-//	// So the only chance to find out what the new status of the control is,
-//	// is to check its current image. (I really thought I was crazy writing this code,
-//	// now it all makes sense again. WHAT A RELIEF)
-//	// It's possible this is not necessary on
-//    //if(![GPGMailBundle isYosemite])
-//        [securityControl updateStatusFromImage:[originalSecurityControl imageForSegment:0]];
-//    
-//    [self MASecurityControlChanged:securityControl];
-//}
-
 - (void)MA_updateFromControl {
     // _updateFromAndSignatureControls: was renamed to to updateFromControl on Yosemite.
     // Unfortunately updateFromControl doesn't take any arguments, which means,
@@ -200,7 +181,7 @@ const NSString *kHeadersEditorFromControlParentItemKey = @"HeadersEditorFromCont
         NSUInteger i = 0;
         for(id account in accounts) {
             NSDictionary *attributes = normalAttributes;
-            if([AddressAttachmentClass addressIsExternal:account])
+            if([NSClassFromString(@"MUITokenAddress") addressIsExternal:account])
                 attributes = externalAttributes;
             NSAttributedString *title = [[NSAttributedString alloc] initWithString:account attributes:attributes];
             [[fromPopup itemAtIndex:i] setAttributedTitle:title];
@@ -282,45 +263,6 @@ const NSString *kHeadersEditorFromControlParentItemKey = @"HeadersEditorFromCont
 	}
 	
 	[self MAUpdateSecurityControls];
-}
-
-- (void)MA_updateSecurityStateInBackgroundForRecipients:(NSArray *)recipients sender:(id)sender {
-    [self MA_updateSecurityStateInBackgroundForRecipients:recipients sender:sender];
-	
-	// Do the same as _updateSecurityStateInBackgroundForRecipients and update the
-	// symmetric UI part on the main thread.
-	typeof(self) __weak weakSelf = self;
-	
-	[[NSOperationQueue mainQueue] addOperationWithBlock:^{
-		typeof(weakSelf) __strong strongSelf = weakSelf;
-		if(!strongSelf)
-			return;
-        
-        // Update tool tips.
-        [strongSelf updateEncryptAndSignButtonToolTips];
-		[strongSelf updateSymmetricButton];
-	}];
-}
-
-- (void)MASetCanSign:(BOOL)canSign {
-    // On Yosemite the button state of the sign button is bound to
-    // this canSign property. Since canSignFromAddress always returns true in GPGMail,
-    // because otherwise, canEncrypt would not always be evaluated, we have
-    // to set the real value here, which is contained in SignIsPossible.
-    ComposeBackEnd *backEnd = [GPGMailBundle backEndFromObject:self];
-    NSDictionary *securityProperties = ((ComposeBackEnd_GPGMail *)backEnd).securityProperties;
-    if(securityProperties[@"SignIsPossible"])
-        canSign = [securityProperties[@"SignIsPossible"] boolValue];
-    [self MASetCanSign:canSign];
-}
-
-- (void)MASetCanEncrypt:(BOOL)canEncrypt {
-    // Only on Yosemite. See MASetCanSign for explanation.
-    ComposeBackEnd *backEnd = [GPGMailBundle backEndFromObject:self];
-    NSDictionary *securityProperties = ((ComposeBackEnd_GPGMail *)backEnd).securityProperties;
-    if(securityProperties[@"EncryptIsPossible"])
-        canEncrypt = [securityProperties[@"EncryptIsPossible"] boolValue];
-    [self MASetCanEncrypt:canEncrypt];
 }
 
 - (void)MASecurityControlChanged:(NSControl *)securityControl {
@@ -578,74 +520,6 @@ const NSString *kHeadersEditorFromControlParentItemKey = @"HeadersEditorFromCont
 //    return;
 }
 
-
-
-
-
-// TODO: Remove - should no longer be necessary to implement at all
-//- (void)MASetMessageIsToBeEncrypted:(BOOL)isToBeEncrypted {
-//    ComposeBackEnd_GPGMail *backEnd = [GPGMailBundle backEndFromObject:self];
-//    GMComposeMessagePreferredSecurityProperties *preferredSecurityProperties = backEnd.preferredSecurityProperties;
-//    // -[HeadersEditor setMessageIsToBeEncrypted:] is called when the user presses
-//    // the encrypt button. Once the user has formed a decision on whether or not to encrypt
-//    // the message, the preferred security properties have to be updated to reflect that choice.
-//    // From this point on, the computed shouldEncryptMessage method, will always return the
-//    // value set for userShouldEncryptMessage.
-//    preferredSecurityProperties.userShouldEncryptMessage = isToBeEncrypted;
-//    
-////    // On Yosemite, the encrypt and sign button states are no longer directly set
-////    // in _updateSecurityStateInBackgroundForRecipients, but instead in setMessageIsToBeEncrypted.
-////    // So we set our preferred state in here.
-////    ComposeBackEnd *backEnd = [GPGMailBundle backEndFromObject:self];
-////    NSDictionary *securityProperties = ((ComposeBackEnd_GPGMail *)backEnd).securityProperties;
-////    
-////    // It's possible that SetEncrypt is set to true, since that only reflects the defaults
-////    // set by the user.
-////    // If EncryptIsPossible (based on the availability of a public key) is true and
-////    // the user set the default for EncryptNewMessagesByDefault to true (which is reflected by EncryptIsPossible)
-////    // the message is in fact being encrypted and thus isToBeEncrypted is set to true.
-////    // ForceEncrypt however reflects the user choice and is thus not questioned.
-////    if(securityProperties[@"SetEncrypt"] && securityProperties[@"EncryptIsPossible"])
-////        isToBeEncrypted = [securityProperties[@"SetEncrypt"] boolValue] && [securityProperties[@"EncryptIsPossible"] boolValue];
-////    // ForceEncrypt overrides SetEncrypt since it reflects the user's choice.
-////    if(securityProperties[@"ForceEncrypt"])
-////        isToBeEncrypted = [securityProperties[@"ForceEncrypt"] boolValue];
-////    // ForceEncrypt must be ignored if EncryptIsPossible is set to NO.
-////    if(securityProperties[@"EncryptIsPossible"])
-////        isToBeEncrypted = isToBeEncrypted && [securityProperties[@"EncryptIsPossible"] boolValue];
-//    
-//    [self MASetMessageIsToBeEncrypted:isToBeEncrypted];
-//}
-
-// TODO: Remove - should no longer be necessary.
-//- (void)MASetMessageIsToBeSigned:(BOOL)isToBeSigned {
-//    ComposeBackEnd_GPGMail *backEnd = [GPGMailBundle backEndFromObject:self];
-//    GMComposeMessagePreferredSecurityProperties *preferredSecurityProperties = backEnd.preferredSecurityProperties;
-//    // -[HeadersEditor setMessageIsToBeEncrypted:] is called when the user presses
-//    // the encrypt button. Once the user has formed a decision on whether or not to encrypt
-//    // the message, the preferred security properties have to be updated to reflect that choice.
-//    // From this point on, the computed shouldEncryptMessage method, will always return the
-//    // value set for userShouldEncryptMessage.
-//    preferredSecurityProperties.userShouldSignMessage = isToBeSigned;
-//
-////    // On Yosemite, the encrypt and sign button states are no longer directly set
-////    // in _updateSecurityStateInBackgroundForRecipients, but instead in setMessageIsToBeSigned.
-////    // So we set our preferred state in here.
-////    ComposeBackEnd *backEnd = [GPGMailBundle backEndFromObject:self];
-////    NSDictionary *securityProperties = ((ComposeBackEnd_GPGMail *)backEnd).securityProperties;
-////    
-////    if(securityProperties[@"SetSign"])
-////        isToBeSigned = [securityProperties[@"SetSign"] boolValue];
-////    // ForceSign overrides SetSign since it reflects the user's choice.
-////    if(securityProperties[@"ForceSign"])
-////        isToBeSigned = [securityProperties[@"ForceSign"] boolValue];
-////    // ForceSign must be ignored if SignIsPossible is set to NO.
-////    if(securityProperties[@"SignIsPossible"])
-////        isToBeSigned = isToBeSigned && [securityProperties[@"SignIsPossible"] boolValue];
-//    
-//    [self MASetMessageIsToBeSigned:isToBeSigned];
-//}
-
 - (void)updateFromAndAddSecretKeysIfNecessary:(NSNumber *)necessary {
     BOOL display = [necessary boolValue];
     NSPopUpButton *popUp = nil;
@@ -835,73 +709,69 @@ const NSString *kHeadersEditorFromControlParentItemKey = @"HeadersEditorFromCont
 		DebugLog(@"%@: not called on main thread? What the fuck?!", NSStringFromSelector(_cmd));
 		return;
 	}
-	
+
 	ComposeBackEnd *backEnd = [GPGMailBundle backEndFromObject:self];
-	GPGMAIL_SECURITY_METHOD securityMethod = ((ComposeBackEnd_GPGMail *)backEnd).guessedSecurityMethod;
-    if(((ComposeBackEnd_GPGMail *)backEnd).securityMethod)
-        securityMethod = ((ComposeBackEnd_GPGMail *)backEnd).securityMethod;
-	// It seems calling updateSecurityControls at this point is most reliable.
-    if([GPGMailBundle isYosemite]) {
+	GPGMAIL_SECURITY_METHOD securityMethod = ((ComposeBackEnd_GPGMail *)backEnd).preferredSecurityProperties.securityMethod;
+    if(securityMethod == GPGMAIL_SECURITY_METHOD_OPENPGP) {
         [self _updateSecurityControls];
     }
-    else {
-        [self updateSecurityControls];
-    }
 }
 
-- (void)updateEncryptAndSignButtonToolTips {
-    // This method is currently only used on Yosemite, since Apple
-    // switched to a ValueTransformer which is not really adequate for
-    // our more advanced tool tips.
-    ComposeBackEnd_GPGMail *backEnd = [GPGMailBundle backEndFromObject:self];
-    GPGMAIL_SECURITY_METHOD securityMethod = backEnd.securityMethod;
-    if(securityMethod == 0)
-        securityMethod = backEnd.guessedSecurityMethod;
-    
-    if(securityMethod != GPGMAIL_SECURITY_METHOD_OPENPGP)
-        return;
-    
-    NSString *signToolTip = [self signButtonToolTip];
-    GMSecurityControl *signControl = [self valueForKey:@"_signButton"];
-    [((NSSegmentedControl *)signControl) setToolTip:signToolTip];
-    
-    NSString *encryptToolTip = [self encryptButtonToolTip];
-    GMSecurityControl *encryptControl = [self valueForKey:@"_encryptButton"];
-    [((NSSegmentedControl *)encryptControl) setToolTip:encryptToolTip];
-}
+// TODO: Re-Implement for Sierra.
+//- (void)updateEncryptAndSignButtonToolTips {
+//    // This method is currently only used on Yosemite, since Apple
+//    // switched to a ValueTransformer which is not really adequate for
+//    // our more advanced tool tips.
+//    ComposeBackEnd_GPGMail *backEnd = [GPGMailBundle backEndFromObject:self];
+//    GPGMAIL_SECURITY_METHOD securityMethod = backEnd.securityMethod;
+//    if(securityMethod == 0)
+//        securityMethod = backEnd.guessedSecurityMethod;
+//    
+//    if(securityMethod != GPGMAIL_SECURITY_METHOD_OPENPGP)
+//        return;
+//    
+//    NSString *signToolTip = [self signButtonToolTip];
+//    GMSecurityControl *signControl = [self valueForKey:@"_signButton"];
+//    [((NSSegmentedControl *)signControl) setToolTip:signToolTip];
+//    
+//    NSString *encryptToolTip = [self encryptButtonToolTip];
+//    GMSecurityControl *encryptControl = [self valueForKey:@"_encryptButton"];
+//    [((NSSegmentedControl *)encryptControl) setToolTip:encryptToolTip];
+//}
 
-- (void)MA_updateSignButtonTooltip {
-    // This was replaced by a ValueTransformer in Yosemite.
-    // The NSSegmentedControl encryptButton and signButton have a binding for toolTip
-    // which can be queried like this.
-    // [[[self signButton] control] infoForBinding:@"toolTip"];
-    // Basically replacing it with our own value might suffice.
-    // Or we could simply unbind it and call our own methods which will set the
-    // tooltips directly.
-    // Seems to be the easier way.
-    // So basically.
-    // [[[self signButton] control] unbind:@"toolTip"];
-    // [[[self signButton] control] setToolTip:@"Whatever we want to be written here."];
-    // The binding listens to messageIsToBeEncrypted and messageIsToBeSigned, so maybe we should as well.
-    
-    ComposeBackEnd_GPGMail *backEnd = [GPGMailBundle backEndFromObject:self];
-    if(backEnd.securityMethod == GPGMAIL_SECURITY_METHOD_OPENPGP) {
-        NSString *signToolTip = [self signButtonToolTip];
-        GMSecurityControl *signControl = [self valueForKey:@"_signButton"];
-        [((NSSegmentedControl *)signControl) setToolTip:signToolTip];
-    }
-    else {
-        [self MA_updateSignButtonTooltip];
-    }
-}
+// TODO: Re-Implement for Sierra.
+//- (void)MA_updateSignButtonTooltip {
+//    // This was replaced by a ValueTransformer in Yosemite.
+//    // The NSSegmentedControl encryptButton and signButton have a binding for toolTip
+//    // which can be queried like this.
+//    // [[[self signButton] control] infoForBinding:@"toolTip"];
+//    // Basically replacing it with our own value might suffice.
+//    // Or we could simply unbind it and call our own methods which will set the
+//    // tooltips directly.
+//    // Seems to be the easier way.
+//    // So basically.
+//    // [[[self signButton] control] unbind:@"toolTip"];
+//    // [[[self signButton] control] setToolTip:@"Whatever we want to be written here."];
+//    // The binding listens to messageIsToBeEncrypted and messageIsToBeSigned, so maybe we should as well.
+//    
+//    ComposeBackEnd_GPGMail *backEnd = [GPGMailBundle backEndFromObject:self];
+//    if(backEnd.securityMethod == GPGMAIL_SECURITY_METHOD_OPENPGP) {
+//        NSString *signToolTip = [self signButtonToolTip];
+//        GMSecurityControl *signControl = [self valueForKey:@"_signButton"];
+//        [((NSSegmentedControl *)signControl) setToolTip:signToolTip];
+//    }
+//    else {
+//        [self MA_updateSignButtonTooltip];
+//    }
+//}
 
 - (NSString *)encryptButtonToolTip {
     ComposeBackEnd_GPGMail *backEnd = [GPGMailBundle backEndFromObject:self];
-    NSDictionary *securityProperties = ((ComposeBackEnd_GPGMail *)backEnd).securityProperties;
+    GMComposeMessagePreferredSecurityProperties *securityProperties = ((ComposeBackEnd_GPGMail *)backEnd).preferredSecurityProperties;
     
     NSString *toolTip = @"";
     
-    if(![securityProperties[@"EncryptIsPossible"] boolValue]) {
+    if(!securityProperties.canEncrypt) {
         NSArray *nonEligibleRecipients = [(ComposeBackEnd *)backEnd recipientsThatHaveNoKeyForEncryption];
         if(![nonEligibleRecipients count])
             toolTip = GMLocalizedString(@"COMPOSE_WINDOW_TOOLTIP_CAN_NOT_PGP_ENCRYPT_NO_RECIPIENTS");
@@ -916,11 +786,11 @@ const NSString *kHeadersEditorFromControlParentItemKey = @"HeadersEditorFromCont
 
 - (NSString *)signButtonToolTip {
     ComposeBackEnd_GPGMail *backEnd = [GPGMailBundle backEndFromObject:self];
-    NSDictionary *securityProperties = ((ComposeBackEnd_GPGMail *)backEnd).securityProperties;
+    GMComposeMessagePreferredSecurityProperties *securityProperties = ((ComposeBackEnd_GPGMail *)backEnd).preferredSecurityProperties;
     
     NSString *toolTip = @"";
     
-    if(![securityProperties[@"SignIsPossible"] boolValue]) {
+    if(!securityProperties.canSign) {
         NSPopUpButton *button = [self valueForKey:@"_fromPopup"];
         NSString *sender = ![GPGMailBundle isYosemite] ? [button.selectedItem.title gpgNormalizedEmail] : [button.selectedItem.representedObject gpgNormalizedEmail];
         
@@ -933,22 +803,23 @@ const NSString *kHeadersEditorFromControlParentItemKey = @"HeadersEditorFromCont
     return toolTip;
 }
 
-- (void)MA_updateEncryptButtonTooltip {
-    ComposeBackEnd_GPGMail *backEnd = [GPGMailBundle backEndFromObject:self];
-    
-    GPGMAIL_SECURITY_METHOD securityMethod = backEnd.guessedSecurityMethod;
-    if(backEnd.securityMethod)
-        securityMethod = backEnd.securityMethod;
-    
-    if(securityMethod == GPGMAIL_SECURITY_METHOD_OPENPGP) {
-        NSString *encryptToolTip = [self encryptButtonToolTip];
-        GMSecurityControl *encryptControl = [self valueForKey:@"_encryptButton"];
-        [((NSSegmentedControl *)encryptControl) setToolTip:encryptToolTip];
-    }
-    else {
-        [self MA_updateEncryptButtonTooltip];
-    }
-}
+// TODO: Re-Implement for sierra.
+//- (void)MA_updateEncryptButtonTooltip {
+//    ComposeBackEnd_GPGMail *backEnd = [GPGMailBundle backEndFromObject:self];
+//    
+//    GPGMAIL_SECURITY_METHOD securityMethod = backEnd.guessedSecurityMethod;
+//    if(backEnd.securityMethod)
+//        securityMethod = backEnd.securityMethod;
+//    
+//    if(securityMethod == GPGMAIL_SECURITY_METHOD_OPENPGP) {
+//        NSString *encryptToolTip = [self encryptButtonToolTip];
+//        GMSecurityControl *encryptControl = [self valueForKey:@"_encryptButton"];
+//        [((NSSegmentedControl *)encryptControl) setToolTip:encryptToolTip];
+//    }
+//    else {
+//        [self MA_updateEncryptButtonTooltip];
+//    }
+//}
 
 - (void)MADealloc {
     @try {
@@ -958,12 +829,6 @@ const NSString *kHeadersEditorFromControlParentItemKey = @"HeadersEditorFromCont
     @catch (id e) {
     }
 	[self MADealloc];
-}
-
-// TODO: Test-Swizzle. Propably not necessary. Remove
-
-- (void)MA_setVisibilityForEncryptionAndSigning:(BOOL)arg1 {
-    [self MA_setVisibilityForEncryptionAndSigning:arg1];
 }
 
 @end

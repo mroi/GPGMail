@@ -247,7 +247,8 @@
 					 @"selectors": @[
 							 @"_newDataForMimePart:withPartData:",
                              @"_newOutgoingMessageFromTopLevelMimePart:topLevelHeaders:withPartData:",
-                             @"setSigningIdentity:"
+                             @"setSigningIdentity:",
+                             @"_appendHeadersForMimePart:toHeaders:"
 					 ]
 			}
 	};
@@ -448,6 +449,23 @@
                              @"initWithMessage:mimePartNumber:attachment:remoteDataSource:"
                              ]
                      },
+             @"MCMutableMessageHeaders": @{
+                     @"selectors": @[
+                             @"encodedHeadersIncludingFromSpace:"
+                             ]
+                     },
+             @"ComposeWindowController": @{
+                     @"selectors": @{
+                             @"replaced": @[
+                                     @[@"_performSendAnimation",
+                                       @"_performSendAnimationWithCompletion:",
+                                      ]]
+                             }
+                     },
+             @"FullScreenWindowController": @{
+                     @"selectors": @[
+                             @"_closeModalWindow:"]
+                     }
              };
 }
 
@@ -526,9 +544,11 @@
                         hooks[class] = tempHooks;
                     }
 					else if([action isEqualToString:@"replaced"]) {
-						[(NSMutableArray *)hooks[class] removeObject:selector[0]];
-						[(NSMutableArray *)hooks[class] addObject:selector[1]];
-					}
+                        NSMutableArray *tempHooks = [hooks[class] mutableCopy];
+                        [(NSMutableArray *)tempHooks removeObject:selector[0]];
+						[(NSMutableArray *)tempHooks addObject:selector[1]];
+                        hooks[class] = tempHooks;
+                    }
                     else if([action isEqualToString:@"renamed"]) {
                         [(NSMutableArray *)hooks[class] removeObject:selector[0]];
                         [(NSMutableArray *)hooks[class] addObject:selector];

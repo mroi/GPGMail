@@ -6,6 +6,8 @@
 
 //#import "NSObject.h"
 
+#import "TabDraggingInfo-Protocol.h"
+
 @protocol TabDraggingDestination <NSObject>
 
 @optional

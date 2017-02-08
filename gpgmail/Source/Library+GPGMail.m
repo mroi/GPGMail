@@ -44,25 +44,14 @@
 
 #import "MimePart+GPGMail.h"
 
+#import "MCMessageGenerator.h"
+#import "MCMutableMessageHeaders.h"
+#import "MCOutgoingMessage.h"
+
 #define MAIL_SELF(self) ((MFLibrary *)(self))
 
 extern NSString *MCDescriptionForMessageFlags(int arg0);
 extern const NSString *kMimeBodyMessageKey;
-
-//@interface Library_GPGMail (NotImplemented)
-//
-//- (id)dataSource;
-//- (id)fullBodyDataForMessage:(id)arg1 andHeaderDataIfReadilyAvailable:(BOOL)arg2 fetchIfNotAvailable:(BOOL)arg3;
-//- (id)bodyDataFetchIfNotAvailable:(BOOL)arg1 allowPartial:(BOOL)arg2;
-//- (id)headerDataFetchIfNotAvailable:(BOOL)arg1 allowPartial:(BOOL)arg2;
-//- (id)initWithEncodedData:(id)arg1;
-//- (void)setTopLevelPart:(id)arg1;
-//- (void)setMimeBody:(id)arg1;
-//+ (id)_messageDataAtPath:(id)arg1;
-//+ (id)_dataPathForMessage:(id)arg1 type:(long long)arg2;
-//
-//
-//@end
 
 @implementation Library_GPGMail
 
@@ -87,7 +76,7 @@ extern const NSString *kMimeBodyMessageKey;
 
 + (NSData *)GMDataForMessage:(MCMessage *)message mimePart:(MCMimePart *)mimePart {
     MCAttachment *attachment = [[MCAttachment alloc] initWithMimePart:mimePart];
-    MFLibraryAttachmentDataSource* dataSource = [[MFLibraryAttachmentDataSource alloc] initWithMessage:message mimePartNumber:[mimePart partNumber] attachment:attachment remoteDataSource:nil];
+    MFLibraryAttachmentDataSource *dataSource = [[MFLibraryAttachmentDataSource alloc] initWithMessage:message mimePartNumber:[mimePart partNumber] attachment:attachment remoteDataSource:nil];
     
     __block dispatch_semaphore_t waiter = dispatch_semaphore_create(0);
     __block NSData *attachmentData = nil;
@@ -101,79 +90,54 @@ extern const NSString *kMimeBodyMessageKey;
 }
 
 + (NSData *)localMessageDataForMessage:(MCMessage *)message mimeBody:(MCMimeBody *)mimeBody error:(__autoreleasing NSError **)error {
-    NSMutableData *messageData = [NSMutableData new];
+    // MCMessageGenerator is usually used for building Outgoing Messages so it should
+    // be very suitable for this task.
 
-    NSData *NL = [@"\n" dataUsingEncoding:NSUTF8StringEncoding];
-    NSData *boundaryDelimiter = [@"--" dataUsingEncoding:NSUTF8StringEncoding];
+    // The mime tree is already available, so basically the only thing left to do, is
+    // build the NSMapTable with the partData for the mime tree.
+    __block NSMapTable *partData = [[NSMapTable alloc] initWithKeyOptions:NSPointerFunctionsStrongMemory valueOptions:NSPointerFunctionsStrongMemory capacity:0];
+
     MCMimePart *topLevelPart = [mimeBody topLevelPart];
     __block NSError *partError = nil;
     
-    void (^addDataForMimePart)(MCMimePart *mimePart, NSString *boundary) = ^(MCMimePart *mimePart, NSString *boundary) {
-        if(boundary) {
-            [messageData appendData:boundaryDelimiter];
-            [messageData appendData:[boundary dataUsingEncoding:NSUTF8StringEncoding]];
-            [messageData appendData:NL];
-        }
-        [messageData appendData:[mimePart headerData]];
-        NSData *partData = nil;
+    [(MimePart_GPGMail *)topLevelPart enumerateSubpartsWithBlock:^(MCMimePart *mimePart) {
+        NSData *partBodyData = nil;
         if([mimePart isAttachment]) {
-            partData = [[self class] GMDataForMessage:message mimePart:mimePart];
-            if(!partData) {
+            partBodyData = [[self class] GMDataForMessage:message mimePart:mimePart];
+            if(!partBodyData) {
                 // If the data of an attachment is missing, abort. This means that the attachment
                 // or for now the entire message has to be re-fetched.
                 partError = [NSError errorWithDomain:@"GMAttachmentMissingError" code:201000 userInfo:nil];
                 return;
             }
             if([mimePart.contentTransferEncoding isEqualToString:@"base64"]) {
-                partData = [partData base64EncodedDataWithOptions:0];
+                partBodyData = [partBodyData base64EncodedDataWithOptions:NSDataBase64Encoding76CharacterLineLength];
             }
         }
         else {
             // For partial emlx files, the top level part encodedBodyDay returns the entire
             // mime tree. Using decodedData, it's possible to check, if the part really contains data.
             // Only in that case, the encodedBodyData is added to the message data.
-            partData = [mimePart decodedData];
-            if(partData) {
-                partData = [mimePart encodedBodyData];
+            partBodyData = [mimePart decodedData];
+            if(partBodyData) {
+                partBodyData = [mimePart encodedBodyData];
             }
         }
-        if(partData) {
-            [messageData appendData:partData];
+        if(partBodyData) {
+            [partData setObject:partBodyData forKey:mimePart];
         }
-        [messageData appendData:NL];
-        [messageData appendData:NL];
-        [messageData appendData:NL];
-    };
-    __block void (__weak ^_processSubParts)(MCMimePart *mimePart, NSString *boundary);
-    void (^__block processSubParts)(MCMimePart *mimePart, NSString *boundary) = ^(MCMimePart *mimePart, NSString *boundary) {
-        addDataForMimePart(mimePart, boundary);
-        
-        MCMimePart *currentMimePart = nil;
-        for(currentMimePart in [mimePart subparts]) {
-            if([currentMimePart subparts]) {
-                boundary = [mimePart bodyParameterForKey:@"boundary"];
-                _processSubParts(currentMimePart, boundary);
-            }
-            else {
-                boundary = [mimePart bodyParameterForKey:@"boundary"];
-                addDataForMimePart(currentMimePart, boundary);
-            }
-        }
-        [messageData appendData:boundaryDelimiter];
-        [messageData appendData:[[mimePart bodyParameterForKey:@"boundary"] dataUsingEncoding:NSUTF8StringEncoding]];
-        [messageData appendData:boundaryDelimiter];
-        [messageData appendData:NL];
-    };
-    _processSubParts = processSubParts;
-    
-    processSubParts(topLevelPart, nil);
+    }];
     
     if(partError) {
         *error = partError;
         return nil;
     }
     
-    return messageData;
+    MCMessageGenerator *messageGenerator = [[MCMessageGenerator alloc] init];
+    MCMutableMessageHeaders *messageHeaders = [[MCMutableMessageHeaders alloc] initWithHeaderData:[topLevelPart headerData] encodingHint:NSUTF8StringEncoding];
+    MCOutgoingMessage *outgoingMessage = [messageGenerator _newOutgoingMessageFromTopLevelMimePart:topLevelPart topLevelHeaders:messageHeaders withPartData:partData];
+
+    return [outgoingMessage rawData];
 }
 
 + (NSData *)forceFetchMessageDataForMessage:(MCMessage *)message {

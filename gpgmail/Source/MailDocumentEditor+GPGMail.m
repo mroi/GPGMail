@@ -50,6 +50,7 @@
 #import "GMComposeMessagePreferredSecurityProperties.h"
 
 static const NSString *kUnencryptedReplyToEncryptedMessage = @"unencryptedReplyToEncryptedMessage";
+extern const NSString *kComposeWindowControllerAllowWindowTearDown;
 
 #define MAIL_SELF(object) ((ComposeViewController *)(object))
 
@@ -102,14 +103,13 @@ static const NSString *kUnencryptedReplyToEncryptedMessage = @"unencryptedReplyT
 	// Setup security method hint accessory view in top right corner of the window.
 	[self setupSecurityMethodHintAccessoryView];
 
-    GPGMAIL_SECURITY_METHOD securityMethod = ((ComposeBackEnd_GPGMail *)MAIL_SELF(self).backEnd).preferredSecurityProperties.securityMethod;
-//	GPGMAIL_SECURITY_METHOD securityMethod = ((ComposeBackEnd_GPGMail *)(MAIL_SELF(self)).backEnd).guessedSecurityMethod;
-//    if(((ComposeBackEnd_GPGMail *)(MAIL_SELF(self)).backEnd).securityMethod)
-//        securityMethod = ((ComposeBackEnd_GPGMail *)(MAIL_SELF(self)).backEnd).securityMethod;
-    [self updateSecurityMethod:securityMethod];
+    ComposeBackEnd *backEnd = MAIL_SELF(self).backEnd;
+    @synchronized ([backEnd valueForKey:@"_smimeLock"]) {
+        GPGMAIL_SECURITY_METHOD securityMethod = ((ComposeBackEnd_GPGMail *)MAIL_SELF(self).backEnd).preferredSecurityProperties.securityMethod;
+        [self updateSecurityMethod:securityMethod];
+    }
+
     [self MABackEndDidLoadInitialContent:content];
-    // Set backend was initialized, so securityMethod changes will start to send notifications.
-    ((ComposeBackEnd_GPGMail *)(MAIL_SELF(self)).backEnd).wasInitialized = YES;
 }
 
 - (void)setupSecurityMethodHintAccessoryView {
@@ -127,9 +127,12 @@ static const NSString *kUnencryptedReplyToEncryptedMessage = @"unencryptedReplyT
 }
 
 - (void)securityMethodAccessoryView:(GMSecurityMethodAccessoryView *)accessoryView didChangeSecurityMethod:(GPGMAIL_SECURITY_METHOD)securityMethod {
-    ((ComposeBackEnd_GPGMail *)(MAIL_SELF(self)).backEnd).preferredSecurityProperties.securityMethod = securityMethod;
-    [(HeadersEditor_GPGMail *)[MAIL_SELF(self) headersEditor] updateFromAndAddSecretKeysIfNecessary:@(securityMethod == GPGMAIL_SECURITY_METHOD_OPENPGP ? YES : NO)];
-    [[MAIL_SELF(self) headersEditor] _updateSecurityControls];
+    ComposeBackEnd *backEnd = MAIL_SELF(self).backEnd;
+    @synchronized ([backEnd valueForKey:@"_smimeLock"]) {
+        ((ComposeBackEnd_GPGMail *)(MAIL_SELF(self)).backEnd).preferredSecurityProperties.securityMethod = securityMethod;
+        [(HeadersEditor_GPGMail *)[MAIL_SELF(self) headersEditor] updateFromAndAddSecretKeysIfNecessary:@(securityMethod == GPGMAIL_SECURITY_METHOD_OPENPGP ? YES : NO)];
+        [[MAIL_SELF(self) headersEditor] _updateSecurityControls];
+    }
 }
 
 - (void)MADealloc {
@@ -160,11 +163,11 @@ static const NSString *kUnencryptedReplyToEncryptedMessage = @"unencryptedReplyT
 
 
 	ComposeBackEnd *backEnd = (ComposeBackEnd *)[MAIL_SELF(self) backEnd];
-	NSDictionary *securityProperties = [(ComposeBackEnd_GPGMail *)backEnd securityProperties];
+	GMComposeMessagePreferredSecurityProperties *securityProperties = [(ComposeBackEnd_GPGMail *)backEnd preferredSecurityProperties];
 
 	BOOL isReply = [(ComposeBackEnd_GPGMail *)backEnd messageIsBeingReplied];
 	BOOL originalMessageIsEncrypted = [[((Message_GPGMail *)[backEnd originalMessage]) securityFeatures] PGPEncrypted];
-	BOOL replyShouldBeEncrypted = [(ComposeBackEnd_GPGMail *)[MAIL_SELF(self) backEnd] GMEncryptIfPossible] && [securityProperties[@"shouldEncrypt"] boolValue];
+    BOOL replyShouldBeEncrypted = securityProperties.shouldEncryptMessage;
 
 	// If checklist contains the unencryptedReplyToEncryptedMessage item, it means
 	// that the user decided to send the message regardless of our warning.
@@ -247,10 +250,10 @@ static const NSString *kUnencryptedReplyToEncryptedMessage = @"unencryptedReplyT
     // to the user and simply return. The message won't be sent until the checklist is cleared.
 	// Otherwise call sendMessageAfterChecking so that Mail.app can perform its internal checks.
     // TODO: Fix for Sierra.
-    //	if([self isUnencryptedReplyToEncryptedMessageWithChecklist:checklist]) {
-//		[self displayWarningForUnencryptedReplyToEncryptedMessageUpdatingChecklist:checklist];
-//		return;
-//	}
+    if([self isUnencryptedReplyToEncryptedMessageWithChecklist:checklist]) {
+		[self displayWarningForUnencryptedReplyToEncryptedMessageUpdatingChecklist:checklist];
+        return;
+    }
 
 	[self MASendMessageAfterChecking:checklist];
 }
@@ -305,9 +308,9 @@ static const NSString *kUnencryptedReplyToEncryptedMessage = @"unencryptedReplyT
 	// Unfortunately, if let it do that at the point of the send animation, there's no way we could
 	// display an error.
 	if(result == 3) {
-		[self setIvar:@"GMAllowReleaseOfTabBarViewItem" value:@(YES)];
-		[[self delegate] composeViewControllerDidSend:self];
-		[self removeIvar:@"GMAllowReleaseOfTabBarViewItem"];
+		[self setIvar:kComposeWindowControllerAllowWindowTearDown value:@(YES)];
+		[(ComposeWindowController *)[self delegate] composeViewControllerDidSend:self];
+		[self removeIvar:kComposeWindowControllerAllowWindowTearDown];
 	}
 }
 

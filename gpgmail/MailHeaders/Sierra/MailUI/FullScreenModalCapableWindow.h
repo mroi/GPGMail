@@ -4,7 +4,7 @@
 //     class-dump is Copyright (C) 1997-1998, 2000-2001, 2004-2013 by Steve Nygard.
 //
 
-#import "NSWindow.h"
+//#import "NSWindow.h"
 
 @class NSResponder, WindowTransformAnimation;
 
@@ -28,7 +28,7 @@
 @property(retain, nonatomic) NSResponder *nextFirstResponder; // @synthesize nextFirstResponder=_nextFirstResponder;
 @property(nonatomic) BOOL disableFrameConstraint; // @synthesize disableFrameConstraint=_disableFrameConstraint;
 @property(nonatomic) __weak WindowTransformAnimation *windowTransformAnimation; // @synthesize windowTransformAnimation=_windowTransformAnimation;
-- (void).cxx_destruct;	// IMP=0x0000000100185c49
+//- (void).cxx_destruct;	// IMP=0x0000000100185c49
 - (void)setIdentityTransform;	// IMP=0x0000000100185ada
 - (void)setTransformForAnimation:(struct CGAffineTransform)arg1 anchorPoint:(struct CGPoint)arg2;	// IMP=0x000000010007e574
 - (BOOL)isMainWindow;	// IMP=0x00000001000631d8

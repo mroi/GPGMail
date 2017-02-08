@@ -6,11 +6,10 @@
 
 #import "BarBackground.h"
 
-#import "DetachedTabDraggingImageToWindowTransitionControllerDelegate.h"
-#import "MorphingDragImageControllerDragSource.h"
-#import "NSAnimationDelegate.h"
-#import "NSDraggingDestination.h"
-#import "TabDraggingDestination.h"
+#import "DetachedTabDraggingImageToWindowTransitionControllerDelegate-Protocol.h"
+#import "MorphingDragImageControllerDragSource-Protocol.h"
+#import "TabDraggingDestination-Protocol.h"
+#import "TabBarViewDelegate-Protocol.h"
 
 @class CALayer, NSArray, NSMapTable, NSMutableArray, NSScrollView, NSString, NSTrackingArea, NSView, TabBarMaskingContainerView, TabButton;
 
@@ -26,7 +25,7 @@
     BOOL _isScrollingToRevealAddedTab;	// 180 = 0xb4
     BOOL _selectedButtonIsDetached;	// 181 = 0xb5
     BOOL _isStackingButtons;	// 182 = 0xb6
-    id <TabBarViewDelegate> _tabBarDelegate;	// 184 = 0xb8
+//    id <TabBarViewDelegate> _tabBarDelegate;	// 184 = 0xb8
     long long _numberOfGroupUpdates;	// 192 = 0xc0
     NSTrackingArea *_trackingArea;	// 200 = 0xc8
     NSScrollView *_scrollView;	// 208 = 0xd0
@@ -89,7 +88,7 @@
 @property(retain, nonatomic) NSTrackingArea *trackingArea; // @synthesize trackingArea=_trackingArea;
 @property(nonatomic) long long numberOfGroupUpdates; // @synthesize numberOfGroupUpdates=_numberOfGroupUpdates;
 @property(nonatomic) __weak id <TabBarViewDelegate> tabBarDelegate; // @synthesize tabBarDelegate=_tabBarDelegate;
-- (void).cxx_destruct;	// IMP=0x00000001002ea4bb
+//- (void).cxx_destruct;	// IMP=0x00000001002ea4bb
 - (BOOL)shouldRenderTabBarWithTransparency;	// IMP=0x00000001002e9fe1
 - (void)_layOutBackgroundLayersWithSelectedButtonFrame:(struct CGRect)arg1 startSelectedButtonFrame:(struct CGRect)arg2 animated:(BOOL)arg3;	// IMP=0x00000001002e9da5
 - (void)_updateBackgroundLayersWithSelectedButtonFrameAnimated:(BOOL)arg1;	// IMP=0x00000001002e9d0f
@@ -137,7 +136,7 @@
 - (void)_updateKeyLoop;	// IMP=0x00000001002e6c1f
 - (void)_trackMouseEventsForEvent:(id)arg1 onTabAtIndex:(unsigned long long)arg2;	// IMP=0x00000001002e6884
 - (void)_trackMouseEventsForEvent:(id)arg1 inStackingRegion:(unsigned long long)arg2 withTabAtIndex:(unsigned long long)arg3;	// IMP=0x00000001002e67e7
-- (id)_trackMouseEventsUntilMouseUp:(id)arg1 withBlock:(CDUnknownBlockType)arg2;	// IMP=0x00000001002e66fc
+//- (id)_trackMouseEventsUntilMouseUp:(id)arg1 withBlock:(CDUnknownBlockType)arg2;	// IMP=0x00000001002e66fc
 - (void)smartMagnifyWithEvent:(id)arg1;	// IMP=0x00000001002e66b0
 - (void)otherMouseUp:(id)arg1;	// IMP=0x00000001002e656e
 - (void)_animateTabBackgroundOnClickEventIfAppropriate:(id)arg1;	// IMP=0x00000001002e64b5
@@ -180,7 +179,7 @@
 - (void)_updateButtonWidthAndRemainingWidthInTabBarToDivideAmongButtons;	// IMP=0x00000001002e3194
 - (void)_recalculateLayout;	// IMP=0x00000001002e2e51
 - (double)_layoutBoundsWidth;	// IMP=0x00000001002e2de5
-@property(readonly, nonatomic) id <TabBarViewItem> selectedItem;
+//@property(readonly, nonatomic) id <TabBarViewItem> selectedItem;
 @property(readonly, nonatomic) double currentButtonWidth;
 - (BOOL)_shouldLayOutButtonsToAlignWithWindowCenter;	// IMP=0x00000001002e2d08
 - (BOOL)_shouldAlignTabButtonTitleWithWindowCenter;	// IMP=0x00000001002e2cec

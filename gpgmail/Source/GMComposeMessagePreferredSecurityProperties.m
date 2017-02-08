@@ -128,16 +128,21 @@
     NSString *sender = [self.sender copy];
     NSArray *recipients = [self.recipients copy];
     
-    // Only accept cached S/MIME signing identities, otherwise run a new check.
-    id signingIdentity = signingIdentities[sender];
-    if(signingIdentity && ([signingIdentity isKindOfClass:[GPGKey class]] || signingIdentity == [NSNull null])) {
-        signingIdentity = nil;
+    if(sender) {
+        // Only accept cached S/MIME signing identities, otherwise run a new check.
+        id signingIdentity = signingIdentities[sender];
+        if(signingIdentity && ([signingIdentity isKindOfClass:[GPGKey class]] || signingIdentity == [NSNull null])) {
+            signingIdentity = nil;
+        }
+        if(!signingIdentity) {
+            signingIdentity = (__bridge id)[MCKeychainManager copySigningIdentityForAddress:sender];
+            signingIdentities[sender] = signingIdentity ? signingIdentity : [NSNull null];
+        }
+        canSMIMESign = signingIdentities[sender] && signingIdentities[sender] != [NSNull null] ? YES : NO;
     }
-    if(!signingIdentity) {
-        signingIdentity = (__bridge id)[MCKeychainManager copySigningIdentityForAddress:sender];
-        signingIdentities[sender] = signingIdentity ? signingIdentity : [NSNull null];
+    else {
+        canSMIMESign = NO;
     }
-    canSMIMESign = signingIdentities[sender] && signingIdentities[sender] != [NSNull null] ? YES : NO;
     
     //BOOL canEncrypt = [recipients count] ? YES : NO;
     for(id recipient in recipients) {
@@ -164,15 +169,20 @@
     
     // Only accept cached PGP signing keys, otherwise run a new check.
     id signingKey = signingKeys[sender];
-    if(signingKey && (![signingKey isKindOfClass:[GPGKey class]] || signingKey == [NSNull null])) {
-        signingKey = nil;
+    if(sender) {
+        if(signingKey && (![signingKey isKindOfClass:[GPGKey class]] || signingKey == [NSNull null])) {
+            signingKey = nil;
+        }
+        if(!signingKey) {
+            NSArray *signingKeyList = [[[GPGMailBundle sharedInstance] signingKeyListForAddress:senderAddress] allObjects];
+            // TODO: Consider pereferring the default key if one is configured.
+            signingKeys[sender] = [signingKeyList count] > 0 ? signingKeyList[0] : [NSNull null];
+        }
+        canPGPSign = signingKeys[sender] && signingKeys[sender] != [NSNull null] ? YES : NO;
     }
-    if(!signingKey) {
-        NSArray *signingKeyList = [[[GPGMailBundle sharedInstance] signingKeyListForAddress:senderAddress] allObjects];
-        // TODO: Consider pereferring the default key if one is configured.
-        signingKeys[sender] = [signingKeyList count] > 0 ? signingKeyList[0] : [NSNull null];
+    else {
+        canPGPSign = NO;
     }
-    canPGPSign = signingKeys[sender] && signingKeys[sender] != [NSNull null] ? YES : NO;
     
     //BOOL canEncrypt = [recipients count] ? YES : NO;
     for(id recipient in recipients) {

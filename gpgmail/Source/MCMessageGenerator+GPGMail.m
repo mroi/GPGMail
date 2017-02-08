@@ -37,6 +37,7 @@
 //#import "GPGKey.h"
 #import "EAEmailAddressParser.h"
 #import "MCMutableMessageHeaders.h"
+#import "MCMutableMessageHeaders+GPGMail.h"
 #import "MCActivityMonitor.h"
 
 #import "MimePart+GPGMail.h"
@@ -588,5 +589,58 @@ const static NSString *kMCMessageGeneratorSigningKeyKey = @"MCMessageGeneratorSi
 */
 }
 
+- (void)MA_appendHeadersForMimePart:(MCMimePart *)mimePart toHeaders:(MCMutableMessageHeaders *)headers {
+    // Bug: #885 - rdar://XXXX
+    // Mail breaks S/MIME and PGP/MIME signature when creating partial emlx files.
+    //
+    // Mail creates the partial message from the original message in
+    // +[MFLibrary mimeMessageDataSnippingPartsData:mimePartBlock:].
+    // It does so, by looping through all the mime parts, checking if the mime part
+    // is an attachment, and if so, writing the attachment data to disk.
+    // If the mime part is not an attachment, the body data of the mime part
+    // is added to the partData NSMapTable.
+    // After this procedure it creates a new message, using the MCMessageGenerator and
+    // caling -[MCMessageGenerator appendDataForMimePart:toData:withPartData:].
+    // -[MCMessageGenerator appendDataForMimePart:toData:withPartData:] builds a
+    // new message based on the mime tree.
+    // Within -[MCMessageGenerator appendDataForMimePart:toData:withPartData:] Mail calls
+    // -[MCMessageGenerator _appendHeadersForMimePart:toHeaders:] to re-create the header data
+    // for each mime part, instead of taking advantage of the already populated -[MimePart headerData]
+    // property which is availabe in this specific case (when creating a partial message from the original message).
+    // As a result the newly created headers might be in different in order or format
+    // than on the original message, which invalidates the S/MIME or PGP/MIME signature.
+    //
+    // == Example ==
+    //
+    // > Content-Type: application/zip;
+	// >     x-unix-mode=0644;
+	// >     name="Untitled.txt.zip"
+    //
+    // Might be converted into:
+    //
+    // > Content-Type: application/zip;
+    // >     name=Untitle.txt.zip;
+    // >     x-unix-mode=0644
+    //
+    // The difference is subtle but enough to break any signature.
+    //
+    //
+    // == Workaround ==
+    // Upon calling -[MCMessageGenerator _appendHeadersForMimePart:toHeaders:] Mail invokes
+    // -[MCMutableMessageHeaders encodedHeadersIncludingFromSpace:NO] to convert the MCMutableMessageHeaders
+    // object in to the headers data that is appended to the message data for the current mime part.
+    // GPGMail takes advantage of that fact, by storing the header data of the current mime part on
+    // the MCMutableMessageHeaders object, and instead of returning the re-created MCMutableMessageHeaders
+    // in -[MCMutableMessageHeaders encodedHeadersIncludingFromSpace:NO] it returns the headerData of the
+    // current mime part which was previously stored on the MCMutableMessageHeaders object.
+    //
+    // == Improvements ==
+    // The workaround could be further improved by checking the mime tree and only
+    // using the original header data if a PGP/MIME tree is detected.
+    NSData *headerData = [mimePart headerData];
+    [(MCMutableMessageHeaders_GPGMail *)headers setGMHeaderData:headerData];
+
+    return [self MA_appendHeadersForMimePart:mimePart toHeaders:headers];
+}
 
 @end
