@@ -57,6 +57,9 @@ extern NSString *gpgErrorIdentifier; // This identifier is used to set and find 
     BOOL _warnedAboutMissingPrivateKeys;
     
 	GPGErrorCode gpgStatus;
+
+    NSOperationQueue *_messageBodyDataLoadingQueue;
+    NSCache *_messageBodyDataLoadingCache;
 }
 
 /**
@@ -176,6 +179,8 @@ extern NSString *gpgErrorIdentifier; // This identifier is used to set and find 
 @property (readonly, strong) NSSet *allGPGKeys;
 @property (nonatomic, assign) BOOL accountExistsForSigning;
 
+@property (readonly) NSOperationQueue *messageBodyDataLoadingQueue;
+@property (readonly) NSCache *messageBodyDataLoadingCache;
 @end
 
 @interface GPGMailBundle (NoImplementation)

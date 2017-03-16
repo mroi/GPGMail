@@ -48,6 +48,8 @@
 #import "MCMutableMessageHeaders.h"
 #import "MCOutgoingMessage.h"
 
+#import "GPGMailBundle.h"
+
 #define MAIL_SELF(self) ((MFLibrary *)(self))
 
 extern NSString *MCDescriptionForMessageFlags(int arg0);
@@ -74,10 +76,15 @@ extern const NSString *kMimeBodyMessageKey;
     return [self MAPlistDataForMessage:message subject:subject sender:sender to:to dateSent:dateSent remoteID:remoteID originalMailbox:originalMailbox flags:flags mergeWithDictionary:mergeWithDictionary];
 }
 
-+ (NSData *)GMDataForMessage:(MCMessage *)message mimePart:(MCMimePart *)mimePart {
++ (NSData *)GMDataForMessage:(MCMessage *)message mimePart:(MCMimePart *)mimePart fetchIfNotAvailable:(BOOL)fetchIfNotAvailable {
     MCAttachment *attachment = [[MCAttachment alloc] initWithMimePart:mimePart];
     MFLibraryAttachmentDataSource *dataSource = [[MFLibraryAttachmentDataSource alloc] initWithMessage:message mimePartNumber:[mimePart partNumber] attachment:attachment remoteDataSource:nil];
     
+    // Not available and should not be fetched, out of here.
+    if(![dataSource dataIsLocallyAvailable] && !fetchIfNotAvailable) {
+        return nil;
+    }
+
     __block dispatch_semaphore_t waiter = dispatch_semaphore_create(0);
     __block NSData *attachmentData = nil;
     [dataSource dataForAccessLevel:1 completionBlock:^(NSData *data){
@@ -103,7 +110,7 @@ extern const NSString *kMimeBodyMessageKey;
     [(MimePart_GPGMail *)topLevelPart enumerateSubpartsWithBlock:^(MCMimePart *mimePart) {
         NSData *partBodyData = nil;
         if([mimePart isAttachment]) {
-            partBodyData = [[self class] GMDataForMessage:message mimePart:mimePart];
+            partBodyData = [[self class] GMDataForMessage:message mimePart:mimePart fetchIfNotAvailable:NO];
             if(!partBodyData) {
                 // If the data of an attachment is missing, abort. This means that the attachment
                 // or for now the entire message has to be re-fetched.
@@ -146,34 +153,57 @@ extern const NSString *kMimeBodyMessageKey;
 
 + (MCMimeBody *)MAMimeBodyForMessage:(MCMessage *)currentMessage {
     BOOL isMCLibraryMessage = [currentMessage isKindOfClass:[MFLibraryMessage class]];
-    BOOL userDidSelectMessage = [[currentMessage getIvar:@"UserSelectedMessage"] boolValue];
-    BOOL isCompleteMessageDataAvailable = [MFLibrary _messageDataAtPath:[MFLibrary _dataPathForMessage:currentMessage type:0]] != nil;
-    BOOL isFullMessageDataAvailableAfterFetching = [currentMessage ivarExists:@"FullBodyDataAvailable"] && [currentMessage getIvar:@"FullBodyData"] != nil;
-    BOOL isFetchingMessageData = [currentMessage ivarExists:@"BodyFetchingInProgress"];
-    
+    __block BOOL userDidSelectMessage = NO;
+    __block BOOL isCompleteMessageDataAvailable = NO;
+    __block BOOL isFullMessageDataAvailableAfterFetching = NO;
+    __block BOOL isFetchingMessageData = NO;
+    __block NSData *messageData = nil;
+    // If mimeBodyForMessage is called from setData:forMessage: under no circumstances a new fetch of the
+    // body is allowed to be triggered.
+    __block BOOL noFetchBodyData = [[[[NSThread currentThread] threadDictionary] objectForKey:@"MFLibraryNoRecreateBody"] boolValue];
+    [[[NSThread currentThread] threadDictionary] removeObjectForKey:@"MFLibraryNoRecreateBody"];
+    __block dispatch_semaphore_t waiter = dispatch_semaphore_create(0);
+    __weak GPGMailBundle *bundle = [GPGMailBundle sharedInstance];
+
+    NSString *messagePath = [MFLibrary _dataPathForMessage:currentMessage type:0];
+
+    [[[GPGMailBundle sharedInstance] messageBodyDataLoadingQueue] addOperationWithBlock:^{
+        __strong GPGMailBundle *strongBundle = bundle;
+        userDidSelectMessage = [[currentMessage getIvar:@"UserSelectedMessage"] boolValue];
+        isCompleteMessageDataAvailable = [MFLibrary _messageDataAtPath:messagePath] != nil;
+        isFullMessageDataAvailableAfterFetching = [currentMessage ivarExists:@"FullBodyDataAvailable"] && [currentMessage getIvar:@"FullBodyData"] != nil;
+        isFetchingMessageData = [strongBundle.messageBodyDataLoadingCache objectForKey:messagePath] != nil;
+        messageData = [currentMessage getIvar:@"FullBodyData"];
+
+        // Should we start fetching the data?
+        if(userDidSelectMessage && !isFullMessageDataAvailableAfterFetching && !isFetchingMessageData) {
+            [strongBundle.messageBodyDataLoadingCache setObject:[NSNull null] forKey:messagePath];
+        }
+
+        dispatch_semaphore_signal(waiter);
+    }];
+    dispatch_semaphore_wait(waiter, DISPATCH_TIME_FOREVER);
+    dispatch_release(waiter);
+
     // Let Mail generate the mime body from the partial emlx file.
     // Even if only the partial emlx is available, it will be necessary to re-create the message from attachments.
     MCMimeBody *mimeBody = [self MAMimeBodyForMessage:currentMessage];
-    if(!isMCLibraryMessage || !userDidSelectMessage || isCompleteMessageDataAvailable || isFetchingMessageData) {
+    if(!isMCLibraryMessage || !userDidSelectMessage || isCompleteMessageDataAvailable || isFetchingMessageData || noFetchBodyData) {
         if(userDidSelectMessage) {
             [mimeBody setIvar:kMimeBodyMessageKey value:currentMessage];
         }
         return mimeBody;
     }
-    
+
     NSError *error = nil;
-    // 1.) Check if cached data is available.
-    NSData *messageData = [currentMessage getIvar:@"FullBodyData"];
     if(!messageData) {
-        [currentMessage setIvar:@"BodyFetchingInProgress" value:@(YES)];
-        [currentMessage setIvar:@"FakeContentNotAvailable" value:@YES];
         // 2.) Check if message data can be re-created from already downloaded attachments.
         messageData = [self localMessageDataForMessage:currentMessage mimeBody:mimeBody error:&error];
         if(!messageData && error) {
             // 3.) Building message data from downloaded attachments failed, now fetch the data from the server.
             messageData = [self forceFetchMessageDataForMessage:currentMessage];
         }
-        [currentMessage removeIvar:@"BodyFetchingInProgress"];
+        [bundle.messageBodyDataLoadingCache removeObjectForKey:messagePath];
         [currentMessage setIvar:@"FullBodyDataAvailable" value:@YES];
         [currentMessage setIvar:@"FullBodyData" value:messageData];
     }
@@ -225,6 +255,12 @@ extern const NSString *kMimeBodyMessageKey;
         return NO;
     }
     return ret;
+}
+
++ (void)MASetData:(NSData *)data forMessage:(id)message isPartial:(BOOL)isPartial hasCompleteText:(BOOL)hasCompleteText {
+    [[[NSThread currentThread] threadDictionary] setObject:@(YES) forKey:@"MFLibraryNoRecreateBody"];
+    [self MASetData:data forMessage:message isPartial:isPartial hasCompleteText:hasCompleteText];
+    return;
 }
 
 @end

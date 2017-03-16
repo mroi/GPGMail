@@ -459,7 +459,10 @@
                              @"replaced": @[
                                      @[@"_performSendAnimation",
                                        @"_performSendAnimationWithCompletion:",
-                                      ]]
+                                      ]],
+                             @"added": @[
+                                     @"composeViewControllerDidSend:"
+                                     ]
                              }
                      },
              @"FullScreenWindowController": @{
