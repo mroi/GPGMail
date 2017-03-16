@@ -336,6 +336,11 @@ static BOOL gpgMailWorks = NO;
         // Specify that a count exists for signing.
         accountExistsForSigning = YES;
         
+        _messageBodyDataLoadingQueue = [[NSOperationQueue alloc] init];
+        _messageBodyDataLoadingQueue.maxConcurrentOperationCount = 1;
+        _messageBodyDataLoadingQueue.name = @"org.gpgtools.gpgmail.messageBodyLoadingQueue";
+        _messageBodyDataLoadingCache = [[NSCache alloc] init];
+
         // Inject the plugin code.
         [GMCodeInjector injectUsingMethodPrefix:GPGMailSwizzledMethodPrefix];
 	}
