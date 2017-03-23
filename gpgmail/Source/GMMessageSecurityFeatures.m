@@ -194,7 +194,6 @@
     NSMutableArray *pgpAttachments = [NSMutableArray array];
     __block BOOL isDecrypted = NO;
     __block BOOL isVerified = NO;
-    __block NSUInteger numberOfAttachments = 0;
     
     MCMimeBody *mimeBody = [topPart mimeBody];
     id decryptedBody = [topPart decryptedMimeBody];
@@ -214,9 +213,11 @@
         // Otherwise those would display as signed/encrypted as well.
         // application/pgp is a special case since Mail.app identifies it as an attachment, while its
         // truly a text/plain part (legacy pgp format)
-        if([currentPart isAttachment] && ![currentPart isType:@"application" subtype:@"pgp"]) {
-            if([currentPart PGPAttachment])
+        if([currentPart isAttachment] && ![currentPart isType:@"application" subtype:@"pgp"] &&
+           ![currentPart isPGPMimeEncryptedAttachment] && ![currentPart isPGPMimeSignatureAttachment]) {
+            if([currentPart PGPAttachment]) {
                 [pgpAttachments addObject:currentPart];
+            }
         }
         else {
             isEncrypted |= [currentPart PGPEncrypted];
@@ -231,18 +232,6 @@
             // encrypted & signed & no error = verified.
             // not encrypted & signed & no error = verified.
             isVerified |= [currentPart PGPSigned];
-        }
-        
-        // Count the number of attachments, but ignore signature.asc
-        // and encrypted.asc files, since those are only PGP/MIME attachments
-        // and not actual attachments.
-        // We'll only see those attachments if the
-        if([currentPart isAttachment]) {
-            if([currentPart isPGPMimeEncryptedAttachment] || [currentPart isPGPMimeSignatureAttachment])
-                return;
-            else {
-                numberOfAttachments++;
-            }
         }
     }];
     
@@ -259,12 +248,6 @@
     // Happened before in decrypt bla bla bla, now happens before decodig is finished.
     // Should work better.
     GMMessageSecurityFeatures *decryptedMimeBodySecurityFeatures = [(MimeBody_GPGMail *)decryptedBody securityFeatures];
-    
-    Message *decryptedMessage = nil;
-    if(decryptedBody)
-        decryptedMessage = [decryptedBody message];
-    
-#warning Fix up. The decryptedMessage should be replaced by a GMMessageSecurityParseResult for the decrypted message.
     
     self.PGPEncrypted = isEncrypted || [decryptedMimeBodySecurityFeatures PGPEncrypted];
     self.PGPSigned = isSigned || [decryptedMimeBodySecurityFeatures PGPSigned];
@@ -307,20 +290,18 @@
         // On Mavericks the ActivityMonitor trick doesn't seem to work, since the currentMonitor
         // doesn't necessarily have to belong to the current message.
         // So we store the mainError on the message and it's later used by the CertificateBannerController thingy.
-        [self setIvar:@"PGPMainError" value:error];
+        self.PGPMainError = error;
     }
     else {
-        if([self getIvar:@"PGPMainError"]) {
-            [self removeIvar:@"PGPMainError"];
-        }
+        self.PGPMainError = nil;
     }
     
     DebugLog(@"%@ Decrypted Message [%@]:\n\tisEncrypted: %@, isSigned: %@,\n\tisPartlyEncrypted: %@, isPartlySigned: %@\n\tsignatures: %@\n\terrors: %@",
-             [decryptedBody message], [(MCMessage *)[decryptedBody message] subject], [decryptedMimeBodySecurityFeatures PGPEncrypted] ? @"YES" : @"NO", [decryptedMimeBodySecurityFeatures PGPSigned] ? @"YES" : @"NO",
+             [decryptedBody GMMessage], [(MCMessage *)[decryptedBody GMMessage] subject], [decryptedMimeBodySecurityFeatures PGPEncrypted] ? @"YES" : @"NO", [decryptedMimeBodySecurityFeatures PGPSigned] ? @"YES" : @"NO",
              [decryptedMimeBodySecurityFeatures PGPPartlyEncrypted] ? @"YES" : @"NO", [decryptedMimeBodySecurityFeatures PGPPartlySigned] ? @"YES" : @"NO", [decryptedMimeBodySecurityFeatures PGPSignatures], [decryptedMimeBodySecurityFeatures PGPErrors]);
     
     DebugLog(@"%@ Message [%@]:\n\tisEncrypted: %@, isSigned: %@,\n\tisPartlyEncrypted: %@, isPartlySigned: %@\n\tsignatures: %@\n\terrors: %@\n\tattachments: %@",
-             [(MimeBody_GPGMail *)mimeBody message], [[(MimeBody_GPGMail *)mimeBody message] subject], self.PGPEncrypted ? @"YES" : @"NO", self.PGPSigned ? @"YES" : @"NO",
+             [(MimeBody_GPGMail *)mimeBody GMMessage], [[(MimeBody_GPGMail *)mimeBody GMMessage] subject], self.PGPEncrypted ? @"YES" : @"NO", self.PGPSigned ? @"YES" : @"NO",
              self.PGPPartlyEncrypted ? @"YES" : @"NO", self.PGPPartlySigned ? @"YES" : @"NO", self.PGPSignatures, self.PGPErrors, self.PGPAttachments);
     
     // Fix the number of attachments, this time for real!

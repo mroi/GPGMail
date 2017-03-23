@@ -70,11 +70,9 @@
 
 - (void)_showAttachmentsPanel {
     NSArray *pgpAttachments = nil;
-    // TODO: Re-implement with securityFeatures!
-//    if(![GPGMailBundle isMavericks])
-//        pgpAttachments = [(Message_GPGMail *)[(MessageViewingState *)[((MessageHeaderDisplay *)self) viewingState] message] PGPAttachments];
-//    else
-//        pgpAttachments = [(Message_GPGMail *)[(ConversationMember *)[(HeaderViewController *)self representedObject] originalMessage] PGPAttachments];
+    GM_CAST_CLASS(MCMessage *, id) message = (Message_GPGMail *)[(ConversationMember *)[(HeaderViewController *)self representedObject] originalMessage];
+    GMMessageSecurityFeatures *securityFeatures = [message securityFeatures];
+    pgpAttachments = [securityFeatures PGPAttachments];
     
     GPGAttachmentController *attachmentController = [[GPGAttachmentController alloc] initWithAttachmentParts:pgpAttachments];
     attachmentController.keyList = [[GPGMailBundle sharedInstance] allGPGKeys];
@@ -236,10 +234,6 @@
 - (id)MA_displayStringForSecurityKey {
     GM_CAST_CLASS(MCMessage *, id) message = (Message_GPGMail *)[(ConversationMember *)[(HeaderViewController *)self representedObject] originalMessage];
     
-    if(![message shouldBePGPProcessed]) {
-        return [[NSAttributedString alloc] initWithString:@""];
-    }
-    
     GMMessageSecurityFeatures *securityProperties = [message securityFeatures];
     
     BOOL isPGPSigned = securityProperties.PGPSigned;
@@ -353,52 +347,50 @@
 }
 
 - (NSAttributedString *)securityHeaderAttachmentsPartForMessage:(GM_CAST_CLASS(Message *, id))message {
+    GMMessageSecurityFeatures *securityFeatures = [message securityFeatures];
     
-    // TODO: Re-implement with Security Features.
-    return [[NSAttributedString alloc] init];
-//    BOOL hasEncryptedAttachments = NO;
-//    BOOL hasSignedAttachments = NO;
-//    BOOL singular = [message numberOfPGPAttachments] > 1 ? NO : YES;
-//    
-//    NSMutableAttributedString *securityHeaderAttachmentsPart = [[NSMutableAttributedString alloc] init];
-//    NSTextAttachment *textAttachment = [[NSTextAttachment alloc] init];
-//    [textAttachment setIvar:@"ShowAttachmentPanel" value:@YES];
-//    [securityHeaderAttachmentsPart appendAttributedString:[NSAttributedString attributedStringWithAttachment:textAttachment image:[NSImage imageNamed:@"attachment_header"] link:[GPGMailBundle isMavericks] ? nil : @"gpgmail://show-attachments" offset:-3.0]];
-//    
-//    for(MimePart_GPGMail *attachment in [message PGPAttachments]) {
-//        hasEncryptedAttachments |= [attachment PGPEncrypted];
-//        hasSignedAttachments |= [attachment PGPSigned];
-//    }
-//    
-//    NSString *attachmentPart = nil;
-//    
-//    if(hasEncryptedAttachments && hasSignedAttachments) {
-//        attachmentPart = (singular ? 
-//            GMLocalizedString(@"MESSAGE_SECURITY_HEADER_ATTACHMENT_SIGNED_ENCRYPTED_TITLE") :
-//            GMLocalizedString(@"MESSAGE_SECURITY_HEADER_ATTACHMENTS_SIGNED_ENCRYPTED_TITLE"));
-//    }
-//    else if(hasEncryptedAttachments) {
-//        attachmentPart = (singular ? 
-//            GMLocalizedString(@"MESSAGE_SECURITY_HEADER_ATTACHMENT_ENCRYPTED_TITLE") :
-//            GMLocalizedString(@"MESSAGE_SECURITY_HEADER_ATTACHMENTS_ENCRYPTED_TITLE"));
-//    }
-//    else if(hasSignedAttachments) {
-//        attachmentPart = (singular ? 
-//            GMLocalizedString(@"MESSAGE_SECURITY_HEADER_ATTACHMENT_SIGNED_TITLE") :
-//            GMLocalizedString(@"MESSAGE_SECURITY_HEADER_ATTACHMENTS_SIGNED_TITLE"));
-//    }
-//    
-//    NSString *encryptionString = [NSString stringWithFormat:@"%li %@", (long)[message numberOfPGPAttachments], attachmentPart];
-//    if([GPGMailBundle isMavericks])
-//        [securityHeaderAttachmentsPart appendAttributedString:[NSAttributedString attributedStringWithString:encryptionString]];
-//    else
-//        [securityHeaderAttachmentsPart appendAttributedString:[[NSAttributedString alloc] initWithString:encryptionString attributes:[NSAttributedString headerAttributes]]];
-//    
-//    return securityHeaderAttachmentsPart;
+    BOOL hasEncryptedAttachments = NO;
+    BOOL hasSignedAttachments = NO;
+    BOOL singular = [securityFeatures numberOfPGPAttachments] > 1 ? NO : YES;
+
+    NSMutableAttributedString *securityHeaderAttachmentsPart = [[NSMutableAttributedString alloc] init];
+    NSTextAttachment *textAttachment = [[NSTextAttachment alloc] init];
+    [textAttachment setIvar:@"ShowAttachmentPanel" value:@YES];
+    [securityHeaderAttachmentsPart appendAttributedString:[NSAttributedString attributedStringWithAttachment:textAttachment image:[NSImage imageNamed:@"attachment_header"] link:[GPGMailBundle isMavericks] ? nil : @"gpgmail://show-attachments" offset:-3.0]];
+
+    for(MimePart_GPGMail *attachment in [securityFeatures PGPAttachments]) {
+        hasEncryptedAttachments |= [attachment PGPEncrypted];
+        hasSignedAttachments |= [attachment PGPSigned];
+    }
+
+    NSString *attachmentPart = nil;
+
+    if(hasEncryptedAttachments && hasSignedAttachments) {
+        attachmentPart = (singular ?
+            GMLocalizedString(@"MESSAGE_SECURITY_HEADER_ATTACHMENT_SIGNED_ENCRYPTED_TITLE") :
+            GMLocalizedString(@"MESSAGE_SECURITY_HEADER_ATTACHMENTS_SIGNED_ENCRYPTED_TITLE"));
+    }
+    else if(hasEncryptedAttachments) {
+        attachmentPart = (singular ?
+            GMLocalizedString(@"MESSAGE_SECURITY_HEADER_ATTACHMENT_ENCRYPTED_TITLE") :
+            GMLocalizedString(@"MESSAGE_SECURITY_HEADER_ATTACHMENTS_ENCRYPTED_TITLE"));
+    }
+    else if(hasSignedAttachments) {
+        attachmentPart = (singular ?
+            GMLocalizedString(@"MESSAGE_SECURITY_HEADER_ATTACHMENT_SIGNED_TITLE") :
+            GMLocalizedString(@"MESSAGE_SECURITY_HEADER_ATTACHMENTS_SIGNED_TITLE"));
+    }
+
+    NSString *encryptionString = [NSString stringWithFormat:@"%li %@", (long)[securityFeatures numberOfPGPAttachments], attachmentPart];
+    if([GPGMailBundle isMavericks])
+        [securityHeaderAttachmentsPart appendAttributedString:[NSAttributedString attributedStringWithString:encryptionString]];
+    else
+        [securityHeaderAttachmentsPart appendAttributedString:[[NSAttributedString alloc] initWithString:encryptionString attributes:[NSAttributedString headerAttributes]]];
+
+    return securityHeaderAttachmentsPart;
 }
 
 - (NSAttributedString *)securityHeaderSignaturePartForMessage:(Message_GPGMail *)message {
-    // TODO: Re-implement using security features.
     GMMessageSecurityFeatures *securityFeatures = [message securityFeatures];
     
     GPGErrorCode errorCode = GPGErrorNoError;

@@ -8,11 +8,13 @@
 
 /* Begin PBXBuildFile section */
 		1B00D9071B544C0300DBDCD7 /* WebKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 1B00D9061B544C0300DBDCD7 /* WebKit.framework */; };
+		1B01FB911E7F5A9000B7B014 /* MFLibraryMessage+GPGMail.m in Sources */ = {isa = PBXBuildFile; fileRef = 1B01FB901E7F5A9000B7B014 /* MFLibraryMessage+GPGMail.m */; };
 		1B02D70813F1E9D80032CFD1 /* GPGFlaggedString.m in Sources */ = {isa = PBXBuildFile; fileRef = 1B02D70713F1E9D80032CFD1 /* GPGFlaggedString.m */; };
 		1B02D70A13F1E9F00032CFD1 /* NSArray+Functional.m in Sources */ = {isa = PBXBuildFile; fileRef = 1B02D70913F1E9F00032CFD1 /* NSArray+Functional.m */; };
 		1B03125F18116CB4006D451A /* ConversationMember+GPGMail.m in Sources */ = {isa = PBXBuildFile; fileRef = 1B03125E18116CB4006D451A /* ConversationMember+GPGMail.m */; };
 		1B1D2EA71DE469610096EA21 /* GMComposeMessagePreferredSecurityProperties.m in Sources */ = {isa = PBXBuildFile; fileRef = 1B1D2EA61DE469610096EA21 /* GMComposeMessagePreferredSecurityProperties.m */; };
 		1B207B5F1E2DA9F5001707C6 /* MCMutableMessageHeaders+GPGMail.m in Sources */ = {isa = PBXBuildFile; fileRef = 1B207B5E1E2DA9F5001707C6 /* MCMutableMessageHeaders+GPGMail.m */; };
+		1B2276301E7F16C100E09464 /* RedundantContentIdentificationManager+GPGMail.m in Sources */ = {isa = PBXBuildFile; fileRef = 1B22762F1E7F16C100E09464 /* RedundantContentIdentificationManager+GPGMail.m */; };
 		1B22C45D17B138390073DF81 /* cd-bundle.bundle in Resources */ = {isa = PBXBuildFile; fileRef = 1B22C45C17B138390073DF81 /* cd-bundle.bundle */; };
 		1B22C46417B138890073DF81 /* IntegrationHooks.m in Sources */ = {isa = PBXBuildFile; fileRef = 1B22C46317B138890073DF81 /* IntegrationHooks.m */; };
 		1B22C46717B13A250073DF81 /* TestHelpers.m in Sources */ = {isa = PBXBuildFile; fileRef = 1B22C46617B13A250073DF81 /* TestHelpers.m */; };
@@ -187,6 +189,8 @@
 /* Begin PBXFileReference section */
 		1058C7ADFEA557BF11CA2CBB /* Cocoa.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Cocoa.framework; path = /System/Library/Frameworks/Cocoa.framework; sourceTree = "<absolute>"; };
 		1B00D9061B544C0300DBDCD7 /* WebKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = WebKit.framework; path = System/Library/Frameworks/WebKit.framework; sourceTree = SDKROOT; };
+		1B01FB8F1E7F5A9000B7B014 /* MFLibraryMessage+GPGMail.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "MFLibraryMessage+GPGMail.h"; sourceTree = "<group>"; };
+		1B01FB901E7F5A9000B7B014 /* MFLibraryMessage+GPGMail.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "MFLibraryMessage+GPGMail.m"; sourceTree = "<group>"; };
 		1B02D70713F1E9D80032CFD1 /* GPGFlaggedString.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = GPGFlaggedString.m; sourceTree = "<group>"; };
 		1B02D70913F1E9F00032CFD1 /* NSArray+Functional.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "NSArray+Functional.m"; sourceTree = "<group>"; };
 		1B02D70B13F1EA1D0032CFD1 /* GPGFlaggedString.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = GPGFlaggedString.h; sourceTree = "<group>"; };
@@ -204,6 +208,8 @@
 		1B1D2EA61DE469610096EA21 /* GMComposeMessagePreferredSecurityProperties.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = GMComposeMessagePreferredSecurityProperties.m; sourceTree = "<group>"; };
 		1B207B5D1E2DA9F5001707C6 /* MCMutableMessageHeaders+GPGMail.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "MCMutableMessageHeaders+GPGMail.h"; sourceTree = "<group>"; };
 		1B207B5E1E2DA9F5001707C6 /* MCMutableMessageHeaders+GPGMail.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "MCMutableMessageHeaders+GPGMail.m"; sourceTree = "<group>"; };
+		1B22762E1E7F16C100E09464 /* RedundantContentIdentificationManager+GPGMail.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "RedundantContentIdentificationManager+GPGMail.h"; sourceTree = "<group>"; };
+		1B22762F1E7F16C100E09464 /* RedundantContentIdentificationManager+GPGMail.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "RedundantContentIdentificationManager+GPGMail.m"; sourceTree = "<group>"; };
 		1B22C45C17B138390073DF81 /* cd-bundle.bundle */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.plug-in"; path = "cd-bundle.bundle"; sourceTree = "<group>"; };
 		1B22C46317B138890073DF81 /* IntegrationHooks.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = IntegrationHooks.m; sourceTree = "<group>"; };
 		1B22C46517B13A250073DF81 /* TestHelpers.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TestHelpers.h; sourceTree = "<group>"; };
@@ -743,6 +749,7 @@
 				559A80900838EA1C0052F47C /* NSPreferences+GPGMail.m */,
 				1B89E21514FC40F00012D4AD /* NSWindow+GPGMail.m */,
 				306E8A36178B0BCB004C5B89 /* OptionalView+GPGMail.m */,
+				1B22762F1E7F16C100E09464 /* RedundantContentIdentificationManager+GPGMail.m */,
 			);
 			name = UI;
 			sourceTree = "<group>";
@@ -754,6 +761,7 @@
 				1B1D2EA61DE469610096EA21 /* GMComposeMessagePreferredSecurityProperties.m */,
 				1B03125E18116CB4006D451A /* ConversationMember+GPGMail.m */,
 				559A806E0838E9B10052F47C /* GPGMailBundle.m */,
+				1B01FB901E7F5A9000B7B014 /* MFLibraryMessage+GPGMail.m */,
 				1BADCE7D176B694C009D3785 /* GMCodeInjector.m */,
 				1B22E50B176A101800BBB351 /* GMKeyManager.m */,
 				1BADCE75176B6501009D3785 /* GMMessageRulesApplier.m */,
@@ -785,6 +793,7 @@
 				1BADCE74176B6501009D3785 /* GMMessageRulesApplier.h */,
 				4555EA49150922DF00723E1F /* GPGException+GPGMail.h */,
 				1B938AC517693F48007A0854 /* Library+GPGMail.h */,
+				1B01FB8F1E7F5A9000B7B014 /* MFLibraryMessage+GPGMail.h */,
 				1BAEF64213E9F57700A59CED /* MailAccount+GPGMail.h */,
 				1B9287C719F9E99700D540DF /* MCMessageGenerator+GPGMail.h */,
 				1B8289F913FD62880007E6A2 /* Message+GPGMail.h */,
@@ -823,6 +832,7 @@
 				559A80680838E8890052F47C /* NSPreferences+GPGMail.h */,
 				1B89E21414FC40F00012D4AD /* NSWindow+GPGMail.h */,
 				306E8A35178B0BCB004C5B89 /* OptionalView+GPGMail.h */,
+				1B22762E1E7F16C100E09464 /* RedundantContentIdentificationManager+GPGMail.h */,
 			);
 			name = UI;
 			sourceTree = "<group>";
@@ -1286,6 +1296,7 @@
 				1BADCE76176B6501009D3785 /* GMMessageRulesApplier.m in Sources */,
 				1BED89701DA0195700178513 /* GMMessageSecurityFeatures.m in Sources */,
 				1B34341B107AC4A400F590EF /* MimePart+GPGMail.m in Sources */,
+				1B2276301E7F16C100E09464 /* RedundantContentIdentificationManager+GPGMail.m in Sources */,
 				30744AB512B9733800CC3EC5 /* MessageContentController+GPGMail.m in Sources */,
 				1B938AC717693F48007A0854 /* Library+GPGMail.m in Sources */,
 				1BBEF49C13A9115E0037E53D /* NSSet+Functional.m in Sources */,
@@ -1303,6 +1314,7 @@
 				1B432CE51E44D9F3002C8C46 /* FullScreenWindowController+GPGMail.m in Sources */,
 				1B8289FB13FD62880007E6A2 /* Message+GPGMail.m in Sources */,
 				1B8437661404AB9C00968293 /* NSData+GPGMail.m in Sources */,
+				1B01FB911E7F5A9000B7B014 /* MFLibraryMessage+GPGMail.m in Sources */,
 				1BF69D7F1405C04E008B07F5 /* HeadersEditor+GPGMail.m in Sources */,
 				1B22E50C176A101800BBB351 /* GMKeyManager.m in Sources */,
 				1B207B5F1E2DA9F5001707C6 /* MCMutableMessageHeaders+GPGMail.m in Sources */,

@@ -45,7 +45,7 @@
 					 @"_makeMessageWithContents:isDraft:shouldSign:shouldEncrypt:shouldSkipSignature:shouldBePlainText:",
 //					 @"canEncryptForRecipients:sender:",
 //					 @"canSignFromAddress:",
-//					 @"recipientsThatHaveNoKeyForEncryption",
+					 @"recipientsThatHaveNoKeyForEncryption",
 //					 @"setEncryptIfPossible:",
 //					 @"setSignIfPossible:",
 //					 @"_saveThreadShouldCancel",
@@ -59,7 +59,7 @@
 //					 @"_updateFromAndSignatureControls:",
 					 @"changeFromHeader:",
 //					 @"dealloc",
-//					 @"awakeFromNib",
+					 @"awakeFromNib",
 //					 @"_updateSignButtonTooltip",
 //					 @"_updateEncryptButtonTooltip",
 					 @"updateSecurityControls",
@@ -413,7 +413,8 @@
              @"ComposeBackEnd": @{
                      @"selectors": @{
                              @"added": @[
-                                     @"updateSMIMEStatus:"]
+                                     @"updateSMIMEStatus:",
+                                     @"_generateParsedMessageFromOriginalMessages"]
                              }
                      },
              @"IMAPMessageDownload": @{
@@ -468,6 +469,14 @@
              @"FullScreenWindowController": @{
                      @"selectors": @[
                              @"_closeModalWindow:"]
+                     },
+             @"RedundantContentIdentificationManager": @{
+                     @"selectors": @[
+                             @"redundantContentMarkupForMessage:inConversation:"]
+                     },
+             @"MFLibraryMessage": @{
+                     @"selectors": @[
+                             @"shouldSnipAttachmentData"]
                      }
              };
 }

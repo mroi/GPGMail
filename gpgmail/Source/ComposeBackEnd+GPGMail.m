@@ -53,7 +53,8 @@
 
 #define MAIL_SELF ((ComposeBackEnd *)self)
 
-extern const NSString *kComposeBackEndPreferredSecurityPropertiesKey = @"PreferredSecurityPropertiesKey";
+const NSString *kComposeBackEndPreferredSecurityPropertiesKey = @"PreferredSecurityPropertiesKey";
+NSString * const kLibraryMimeBodyReturnCompleteBodyDataForComposeBackendKey = @"ReturnCompleteBodyDataForComposeBackEnd";
 
 @implementation ComposeBackEnd_GPGMail
 
@@ -152,7 +153,7 @@ extern const NSString *kComposeBackEndPreferredSecurityPropertiesKey = @"Preferr
     [contents setIvar:@"ShouldSign" value:@(securityProperties.shouldSignMessage)];
     
     // TODO: Find out how to properly handle encryption of drafts in regards to available keys and stuff.
-    BOOL encryptDraft = YES;
+    BOOL encryptDraft = userWantsDraftsEncrypted;
     
     // On to creating the actual message.
     // Drafts and "normal" outgoing messages are handled a bit differently.
@@ -573,6 +574,27 @@ extern const NSString *kComposeBackEndPreferredSecurityPropertiesKey = @"Preferr
 		// In order for the MCMessageGenerator instance to know if a draft is being created,
 		// we add a flag to it.
 		[writer setIvar:@"IsDraft" value:@(YES)];
+
+        // If a draft is being created which should be encrypted, but not encryptionCertificates are setup
+        // on the writer, a fitting certificate is added at this point.
+        BOOL userWantsDraftsEncrypted = [[GPGOptions sharedOptions] boolForKey:@"OptionallyEncryptDrafts"];
+        id smimeLock = [self valueForKey:@"_smimeLock"];
+        GPGKey *encryptionKeyForDraft = nil;
+        @synchronized (smimeLock) {
+            // In case the user doesn't want drafts encrypted, -[MCMessageGenerator encryptionCertificates] has
+            // to be nil instead of an empty array.
+            NSMutableArray *keys = nil;
+            if(userWantsDraftsEncrypted) {
+                keys = [NSMutableArray array];
+                encryptionKeyForDraft = [securityProperties encryptionKeyForDraft];
+                if(encryptionKeyForDraft) {
+                    [keys addObject:encryptionKeyForDraft];
+                }
+            }
+            // TODO: If userWantsDraftsEncrypted is enabled, but no appropriate key could be found
+            // warn the user that draft is not going to be encrypted.
+            [writer setEncryptionCertificates:[keys copy]];
+        }
 	}
 	else {
 		[headers removeHeaderForKey:@"x-should-pgp-encrypt"];
@@ -899,16 +921,20 @@ extern const NSString *kComposeBackEndPreferredSecurityPropertiesKey = @"Preferr
     if(![((ComposeBackEnd *)self) delegate])
 		return [NSArray array];
 	
+    NSMutableArray *nonEligibleRecipients = [NSMutableArray array];
+
 	GPGMAIL_SECURITY_METHOD securityMethod = self.preferredSecurityProperties.securityMethod;
-    
+
     if(securityMethod == GPGMAIL_SECURITY_METHOD_SMIME)
         return [self MARecipientsThatHaveNoKeyForEncryption];
 
-    NSMutableArray *nonEligibleRecipients = [NSMutableArray array];
     @synchronized ([self valueForKey:@"_smimeLock"]) {
         for(NSString *recipient in [((ComposeBackEnd *)self) allRecipients]) {
-            if(![[GPGMailBundle sharedInstance] canEncryptMessagesToAddress:[recipient gpgNormalizedEmail]])
-                [nonEligibleRecipients addObject:[recipient gpgNormalizedEmail]];
+            NSString *recipientAddress = [recipient gpgNormalizedEmail];
+            NSDictionary *encryptionCertificates = [self valueForKey:@"_encryptionCertificates"];
+            if(!encryptionCertificates[recipientAddress] || encryptionCertificates[recipientAddress] == [NSNull null]) {
+                [nonEligibleRecipients addObject:recipient];
+            }
         }
     }
 
@@ -918,10 +944,17 @@ extern const NSString *kComposeBackEndPreferredSecurityPropertiesKey = @"Preferr
 - (BOOL)messageIsBeingReplied {
     // 1 = Reply
     // 2 = Reply to all.
+    // 3 = Forward.
     // 4 = Restored Reply window.
     NSInteger type = [(ComposeBackEnd *)self type];
     return (type == 1 || type == 2 || type == 4) && ![self draftIsContinued];
 }
+
+- (BOOL)messageIsBeingForwarded {
+    NSInteger type = [MAIL_SELF type];
+    return type == 3 && ![self draftIsContinued];
+}
+
 
 - (BOOL)draftIsContinued {
     MCMessageHeaders *headers = [MAIL_SELF originalMessageHeaders];
@@ -968,7 +1001,6 @@ extern const NSString *kComposeBackEndPreferredSecurityPropertiesKey = @"Preferr
         sender = [MAIL_SELF sender];
     }
     NSArray *recipients = [MAIL_SELF allRecipients];
-    
     if(sender) {
         recipients = [recipients arrayByAddingObject:sender];
     }
@@ -1080,6 +1112,14 @@ extern const NSString *kComposeBackEndPreferredSecurityPropertiesKey = @"Preferr
     // lldb$ register read $rflags & 0x40.
     // It can be manipulated by running:
     // lldb$ register write rflags `$rflags|0x40`
+}
+
+- (void)MA_generateParsedMessageFromOriginalMessages {
+    // It's necessary to tell GPGMal that the whole body is required in preparation
+    // for a reply and that its allowed to decrypt the content, if necessary.
+    [[[NSThread currentThread] threadDictionary] setObject:@(YES) forKey:kLibraryMimeBodyReturnCompleteBodyDataForComposeBackendKey];
+    [self MA_generateParsedMessageFromOriginalMessages];
+    [[[NSThread currentThread] threadDictionary] removeObjectForKey:kLibraryMimeBodyReturnCompleteBodyDataForComposeBackendKey];
 }
 
 @end

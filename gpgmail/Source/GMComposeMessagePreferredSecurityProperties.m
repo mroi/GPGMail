@@ -47,6 +47,7 @@
         _cachedEncryptionCertificates = [[NSMutableDictionary alloc] init];
         _messageIsDraft = NO;
         _messageIsReply = NO;
+        _messageIsFowarded = NO;
         _userDidChooseSecurityMethod = NO;
         
         _userShouldSignMessage = ThreeStateBooleanUndetermined;
@@ -108,8 +109,20 @@
 - (void)addHintsFromBackEnd:(ComposeBackEnd *)backEnd {
     _messageIsReply = [(ComposeBackEnd_GPGMail *)backEnd messageIsBeingReplied];
     _messageIsDraft = [(ComposeBackEnd_GPGMail *)backEnd draftIsContinued];
+    _messageIsFowarded = [(ComposeBackEnd_GPGMail *)backEnd messageIsBeingForwarded];
     
     self.message = [backEnd originalMessage];
+}
+
+- (GPGKey *)encryptionKeyForDraft {
+    // Check if a key for encrypting the draft is available matching the sender.
+    // Otherwise, return any key pair with encryption capabilities.
+    NSString *senderAddress = [self.sender gpgNormalizedEmail];
+    id key = [self.PGPSigningKeys valueForKey:senderAddress];
+    if([key isKindOfClass:[GPGKey class]] && ((GPGKey *)key).canAnyEncrypt) {
+        return key;
+    }
+    return [[GPGMailBundle sharedInstance] anyPersonalPublicKeyWithPreferenceAddress:senderAddress];
 }
 
 - (void)computePreferredSecurityPropertiesForSecurityMethod:(GPGMAIL_SECURITY_METHOD)securityMethod {
@@ -168,7 +181,7 @@
     NSString *senderAddress = [sender gpgNormalizedEmail];
     
     // Only accept cached PGP signing keys, otherwise run a new check.
-    id signingKey = signingKeys[sender];
+    id signingKey = signingKeys[senderAddress];
     if(sender) {
         if(signingKey && (![signingKey isKindOfClass:[GPGKey class]] || signingKey == [NSNull null])) {
             signingKey = nil;
@@ -176,9 +189,14 @@
         if(!signingKey) {
             NSArray *signingKeyList = [[[GPGMailBundle sharedInstance] signingKeyListForAddress:senderAddress] allObjects];
             // TODO: Consider pereferring the default key if one is configured.
-            signingKeys[sender] = [signingKeyList count] > 0 ? signingKeyList[0] : [NSNull null];
+            signingKeys[senderAddress] = [signingKeyList count] > 0 ? signingKeyList[0] : [NSNull null];
+            // In order to trick mail into accepting the key, it has to be added under the sender
+            // with email and full name as well. Otherwise, the last check before calling
+            // -[ComposeBackEnd _makeMessageWithContents:isDraft:shouldSign:shouldEncrypt:shouldSkipSignature:shouldBePlainText:]
+            // will disable signing, since no key for the full address can be found in the _signingIdentities dictionary.
+            signingKeys[sender] = signingKeys[senderAddress];
         }
-        canPGPSign = signingKeys[sender] && signingKeys[sender] != [NSNull null] ? YES : NO;
+        canPGPSign = signingKeys[senderAddress] && signingKeys[senderAddress] != [NSNull null] ? YES : NO;
     }
     else {
         canPGPSign = NO;
@@ -186,16 +204,17 @@
     
     //BOOL canEncrypt = [recipients count] ? YES : NO;
     for(id recipient in recipients) {
+        NSString *normalizedRecipient = [recipient gpgNormalizedEmail];
         // Only accept cached PGP encryption certificates, otherwise for a new check.
-        id key = encryptionKeys[recipient];
+        id key = encryptionKeys[normalizedRecipient];
         if(key && (![key isKindOfClass:[GPGKey class]] || key == [NSNull null])) {
             key = nil;
         }
         if(!key) {
-            NSArray *keyList = [[[GPGMailBundle sharedInstance] publicKeyListForAddresses:@[recipient]] allObjects];
-            encryptionKeys[recipient] = [keyList count] > 0 ? keyList[0] : [NSNull null];
+            NSArray *keyList = [[[GPGMailBundle sharedInstance] publicKeyListForAddresses:@[normalizedRecipient]] allObjects];
+            encryptionKeys[normalizedRecipient] = [keyList count] > 0 ? keyList[0] : [NSNull null];
         }
-        if(encryptionKeys[recipient] == [NSNull null]) {
+        if(encryptionKeys[normalizedRecipient] == [NSNull null]) {
             canPGPEncrypt = NO;
         }
     }
@@ -220,7 +239,7 @@
     BOOL canSign = NO;
     
     if(securityMethod == GPGMAIL_SECURITY_METHOD_UNDETERMINDED) {
-        if(_messageIsReply) {
+        if(_messageIsReply || _messageIsFowarded) {
             MCMessage *originalMessage = self.message;
             securityOptions = [securityHistory bestSecurityOptionsForReplyToMessage:originalMessage signFlags:signFlags encryptFlags:encryptFlags];
         }
@@ -255,7 +274,7 @@
     else {
         canEncrypt = securityMethod == GPGMAIL_SECURITY_METHOD_OPENPGP ? canPGPEncrypt : canSMIMEEncrypt;
         canSign = securityMethod == GPGMAIL_SECURITY_METHOD_OPENPGP ? canPGPSign : canSMIMESign;
-        if(_messageIsReply) {
+        if(_messageIsReply || _messageIsFowarded) {
             MCMessage *originalMessage = self.message;
             securityOptions = [securityHistory bestSecurityOptionsForReplyToMessage:originalMessage signFlags:signFlags encryptFlags:encryptFlags];
         }

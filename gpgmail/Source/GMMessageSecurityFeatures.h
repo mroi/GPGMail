@@ -27,5 +27,6 @@
 @property (retain) NSArray *PGPErrors;
 @property (assign) NSUInteger numberOfPGPAttachments;
 @property (retain) NSArray *PGPAttachments;
+@property (retain) NSError *PGPMainError;
 
 @end

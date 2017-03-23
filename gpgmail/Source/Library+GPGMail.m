@@ -48,12 +48,32 @@
 #import "MCMutableMessageHeaders.h"
 #import "MCOutgoingMessage.h"
 
+#import "MimeBody+GPGMail.h"
+
+#import "MFEWSStore.h"
+#import "IMAPMessageDataSource-Protocol.h"
+#import "MCParsedMessage.h"
+#import "MFRemoteURLAttachmentDataSource.h"
+#import "MFLibraryAttachmentDataSource.h"
+#import "MFRemoteAttachmentDataSource.h"
+#import "MCDataAttachmentDataSource.h"
+#import "MCFileWrapperAttachmentDataSource.h"
+#import "MCFileURLAttachmentDataSource.h"
+#import "MCStationeryCompositeImage.h"
+
 #import "GPGMailBundle.h"
 
 #define MAIL_SELF(self) ((MFLibrary *)(self))
 
 extern NSString *MCDescriptionForMessageFlags(int arg0);
 extern const NSString *kMimeBodyMessageKey;
+extern NSString * const kMimePartAllowPGPProcessingKey;
+
+NSString * const kLibraryMimeBodyReturnCompleteBodyDataKey = @"LibraryMimeBodyReturnCompleteBodyDataKey";
+NSString * const kLibraryMimeBodyReturnCompleteBodyDataForMessageKey = @"LibraryMimeBodyReturnCompleteBodyDataForMessageKey";
+extern NSString * const kLibraryMimeBodyReturnCompleteBodyDataForComposeBackendKey;
+
+NSString * const kLibraryMessagePreventSnippingAttachmentDataKey = @"LibraryMessagePreventSnippingAttachmentDataKey";
 
 @implementation Library_GPGMail
 
@@ -117,7 +137,7 @@ extern const NSString *kMimeBodyMessageKey;
                 partError = [NSError errorWithDomain:@"GMAttachmentMissingError" code:201000 userInfo:nil];
                 return;
             }
-            if([mimePart.contentTransferEncoding isEqualToString:@"base64"]) {
+            if([[mimePart.contentTransferEncoding lowercaseString] isEqualToString:@"base64"]) {
                 partBodyData = [partBodyData base64EncodedDataWithOptions:NSDataBase64Encoding76CharacterLineLength];
             }
         }
@@ -152,32 +172,45 @@ extern const NSString *kMimeBodyMessageKey;
 }
 
 + (MCMimeBody *)MAMimeBodyForMessage:(MCMessage *)currentMessage {
-    BOOL isMCLibraryMessage = [currentMessage isKindOfClass:[MFLibraryMessage class]];
-    __block BOOL userDidSelectMessage = NO;
-    __block BOOL isCompleteMessageDataAvailable = NO;
-    __block BOOL isFullMessageDataAvailableAfterFetching = NO;
-    __block BOOL isFetchingMessageData = NO;
-    __block NSData *messageData = nil;
-    // If mimeBodyForMessage is called from setData:forMessage: under no circumstances a new fetch of the
-    // body is allowed to be triggered.
-    __block BOOL noFetchBodyData = [[[[NSThread currentThread] threadDictionary] objectForKey:@"MFLibraryNoRecreateBody"] boolValue];
-    [[[NSThread currentThread] threadDictionary] removeObjectForKey:@"MFLibraryNoRecreateBody"];
-    __block dispatch_semaphore_t waiter = dispatch_semaphore_create(0);
-    __weak GPGMailBundle *bundle = [GPGMailBundle sharedInstance];
+    // This method is responsible for fetching the complete message data
+    // in case it's not yet available, or re-construct it from the locally cached data.
+    // It's only allowed to do so however, if a user actively selected a message, in which
+    // case it's invoked from -[RedundantContentIdentificationManager redundantContentMarkupForMessage:inConversation:]
+    // and the current thread dictionary has the ReturnCompleteBodyData and the ReturnCompleteBodyDataForMessage message reference set.
+    BOOL wantsCompleteBodyData = ([[[[NSThread currentThread] threadDictionary] valueForKey:kLibraryMimeBodyReturnCompleteBodyDataKey] boolValue] &&
+                                 [[[NSThread currentThread] threadDictionary] valueForKey:kLibraryMimeBodyReturnCompleteBodyDataForMessageKey] == currentMessage) || [[[[NSThread currentThread] threadDictionary] valueForKey:kLibraryMimeBodyReturnCompleteBodyDataForComposeBackendKey] boolValue];
+    MCMimeBody *mimeBody = [self MAMimeBodyForMessage:currentMessage];
+    if(!wantsCompleteBodyData) {
+        return mimeBody;
+    }
 
+    // It appears that if [MFLibraryMesage shouldSnipAttachmentData] returns NO,
+    // Mail in 10.12.4 does fetch the entire emlx again (in case the message is multipart/signed. So if the entire message is available,
+    // there's no need to rebuild it.
     NSString *messagePath = [MFLibrary _dataPathForMessage:currentMessage type:0];
+    BOOL shouldRebuildMessage = [(MimeBody_GPGMail *)mimeBody mightContainPGPData] && ![MFLibrary _messageDataAtPath:messagePath];
+    // Only if the message might contain PGP data, it's necessary for GPGMail to rebuild it
+    // so the entire message is available for parsing.
+    // The only case that should fall through for the moment is, if single parts of the message
+    // are encrypted (as one mail service did).
+    // Since at this point it's clear however, that the user did actively select a message,
+    // GPGMail is allowed to act on PGP encrypted data, if it finds some (for example inline PGP in
+    // text parts).
+    if(!shouldRebuildMessage) {
+        [[mimeBody topLevelPart] setIvar:kMimePartAllowPGPProcessingKey value:@(YES)];
+        [mimeBody setIvar:kMimeBodyMessageKey value:currentMessage];
+        return mimeBody;
+    }
 
-    [[[GPGMailBundle sharedInstance] messageBodyDataLoadingQueue] addOperationWithBlock:^{
-        __strong GPGMailBundle *strongBundle = bundle;
-        userDidSelectMessage = [[currentMessage getIvar:@"UserSelectedMessage"] boolValue];
-        isCompleteMessageDataAvailable = [MFLibrary _messageDataAtPath:messagePath] != nil;
-        isFullMessageDataAvailableAfterFetching = [currentMessage ivarExists:@"FullBodyDataAvailable"] && [currentMessage getIvar:@"FullBodyData"] != nil;
-        isFetchingMessageData = [strongBundle.messageBodyDataLoadingCache objectForKey:messagePath] != nil;
-        messageData = [currentMessage getIvar:@"FullBodyData"];
+    __block dispatch_semaphore_t waiter = dispatch_semaphore_create(0);
+    GPGMailBundle *bundle = [GPGMailBundle sharedInstance];
 
-        // Should we start fetching the data?
-        if(userDidSelectMessage && !isFullMessageDataAvailableAfterFetching && !isFetchingMessageData) {
-            [strongBundle.messageBodyDataLoadingCache setObject:[NSNull null] forKey:messagePath];
+    __block NSLock *messageLock = nil;
+    [[bundle messageBodyDataLoadingQueue] addOperationWithBlock:^{
+        messageLock = [bundle.messageBodyDataLoadingCache objectForKey:messagePath];
+        if(!messageLock) {
+            messageLock = [[NSLock alloc] init];
+            [bundle.messageBodyDataLoadingCache setObject:messageLock forKey:messagePath];
         }
 
         dispatch_semaphore_signal(waiter);
@@ -185,40 +218,45 @@ extern const NSString *kMimeBodyMessageKey;
     dispatch_semaphore_wait(waiter, DISPATCH_TIME_FOREVER);
     dispatch_release(waiter);
 
-    // Let Mail generate the mime body from the partial emlx file.
-    // Even if only the partial emlx is available, it will be necessary to re-create the message from attachments.
-    MCMimeBody *mimeBody = [self MAMimeBodyForMessage:currentMessage];
-    if(!isMCLibraryMessage || !userDidSelectMessage || isCompleteMessageDataAvailable || isFetchingMessageData || noFetchBodyData) {
-        if(userDidSelectMessage) {
-            [mimeBody setIvar:kMimeBodyMessageKey value:currentMessage];
-        }
-        return mimeBody;
-    }
-
-    NSError *error = nil;
-    if(!messageData) {
-        // 2.) Check if message data can be re-created from already downloaded attachments.
-        messageData = [self localMessageDataForMessage:currentMessage mimeBody:mimeBody error:&error];
-        if(!messageData && error) {
-            // 3.) Building message data from downloaded attachments failed, now fetch the data from the server.
+    NSData *messageData = nil;
+    @try {
+        [messageLock lock];
+        // Unfortunately the assumption that Mail always fetches the entire message in case
+        // of multipart/signed messages seems to be wrong. Not sure whether it was luck but
+        // in previous tests it worked reliably, now it does sometimes, sometimes not.
+        // So the next attempt is to force fetch the entire message, if the message might
+        // contain multipart/signed data.
+        // Since the workaround to not snip the attachment data should work, the fetch should only happen
+        // once, after that the entire .emlx file should be available.
+        BOOL mightContainPGPData = [(MimeBody_GPGMail *)mimeBody mightContainPGPMIMESignedData];
+        if(mightContainPGPData) {
             messageData = [self forceFetchMessageDataForMessage:currentMessage];
         }
-        [bundle.messageBodyDataLoadingCache removeObjectForKey:messagePath];
-        [currentMessage setIvar:@"FullBodyDataAvailable" value:@YES];
-        [currentMessage setIvar:@"FullBodyData" value:messageData];
+        else {
+            NSError *error = nil;
+            messageData = [self localMessageDataForMessage:currentMessage mimeBody:mimeBody error:&error];
+            if(!messageData && error) {
+                messageData = [self forceFetchMessageDataForMessage:currentMessage];
+            }
+        }
     }
-    else {
-        DebugLog(@"Full body data already available: %lu", (unsigned long)[messageData length]);
+    @catch(NSException *e) {}
+    @finally {
+        [messageLock unlock];
+        [[bundle messageBodyDataLoadingQueue] addOperationWithBlock:^{
+            [bundle.messageBodyDataLoadingCache removeObjectForKey:messagePath];
+        }];
     }
-    
+
     if(!messageData) {
         [mimeBody setIvar:kMimeBodyMessageKey value:currentMessage];
         return mimeBody;
     }
-    
-    NSLog(@"Fetched data: %lu", (unsigned long)[messageData length]);
+
+    //NSLog(@"Fetched data: %lu", (unsigned long)[messageData length]);
     MCMimePart *mimePart = [[MCMimePart alloc] initWithEncodedData:messageData];
     mimeBody = [MCMimeBody new];
+    [mimePart setIvar:kMimePartAllowPGPProcessingKey value:@(YES)];
     [mimeBody setTopLevelPart:mimePart];
     [mimePart setMimeBody:mimeBody];
     [mimePart parse];
@@ -226,41 +264,77 @@ extern const NSString *kMimeBodyMessageKey;
     return mimeBody;
 }
 
-+ (id)MAParsedMessageForMessage:(id)message {
++ (id)MAParsedMessageForMessage:(MFLibraryMessage *)message {
     MCMimeBody *mimeBody = [[MAIL_SELF(self) class] mimeBodyForMessage:message];
-    if(!mimeBody) {
+    BOOL wantsCompleteBodyData = ([[[[NSThread currentThread] threadDictionary] valueForKey:(NSString *)kLibraryMimeBodyReturnCompleteBodyDataKey] boolValue] &&
+                                 [[[NSThread currentThread] threadDictionary] valueForKey:(NSString *)kLibraryMimeBodyReturnCompleteBodyDataForMessageKey] == message) || [[[[NSThread currentThread] threadDictionary] valueForKey:(NSString *)kLibraryMimeBodyReturnCompleteBodyDataForComposeBackendKey] boolValue];
+    if(!mimeBody || !wantsCompleteBodyData) {
         return [self MAParsedMessageForMessage:message];
     }
-    
+    MCParsedMessage *parsedMessage = [mimeBody parsedMessage];
     // Check if there's a decrypted mimeBody on the mimeBody.
-    MCMimeBody *decryptedMimeBody = [[mimeBody topLevelPart] decryptedMimeBodyIsEncrypted:NULL isSigned:NULL error:nil];
-    if(!decryptedMimeBody) {
-        // Make sure the message is decoded.
-        id parsedMessage = [mimeBody parsedMessage];
-        // TODO: Might need some error checking so we don't repeatedly try to get a decrypted mime body, even though decryption fails.
-        decryptedMimeBody = [[mimeBody topLevelPart] decryptedMimeBodyIsEncrypted:NULL isSigned:NULL error:nil];
-    }
-    
-    if(decryptedMimeBody) {
+    NSError *error = nil;
+    MCMimeBody *decryptedMimeBody = [[mimeBody topLevelPart] decryptedMimeBodyIsEncrypted:NULL isSigned:NULL error:&error];
+    if(decryptedMimeBody && !error) {
         return [decryptedMimeBody parsedMessage];
     }
-    
-    return [self MAParsedMessageForMessage:message];
-}
 
-+ (BOOL)MAIsMessageContentLocallyAvailable:(id)arg1 {
-    BOOL ret = [self MAIsMessageContentLocallyAvailable:arg1];
-    if([[arg1 getIvar:@"FakeContentNotAvailable"] boolValue]) {
-        [arg1 removeIvar:@"FakeContentNotAvailable"];
-        return NO;
+    // Setup the data source for attachments as Mail does.
+    id <IMAPMessageDataSource> messageDataSource = [message dataSource];
+    BOOL needRemoteDataSource = YES;
+    if(![messageDataSource conformsToProtocol:@protocol(IMAPMessageDataSource)]) {
+        needRemoteDataSource = [messageDataSource isKindOfClass:[MFEWSStore class]] ? YES : NO;
     }
-    return ret;
+
+    for(id key in [parsedMessage attachmentsByURL]) {
+        MCAttachment *attachment = [[parsedMessage attachmentsByURL] objectForKey:key];
+        // In some cases the data source for the attachment is already setup, for example
+        // if a pgp encrypted attachment was decrypted.
+        // In that case the data source *must no* be setup again.
+        // Passing 0 to -[MCAttachment dataForAccessLevel:] guarantees that data is only returned,
+        // if it's available locally.
+        if([attachment dataForAccessLevel:0]) {
+            continue;
+        }
+        id <MCRemoteAttachmentDataSource> remoteDataSource = nil;
+        MFLibraryAttachmentDataSource *dataSource = nil;
+        NSString *partNumber = [attachment mimePartNumber];
+        if([attachment isRemotelyAccessed]) {
+            NSString *attachmentsDirectory = [MFLibrary attachmentsDirectoryForMessage:message partNumber:partNumber];
+            remoteDataSource = [[MFRemoteURLAttachmentDataSource alloc] initWithAttachment:attachment attachmentsDirectory:attachmentsDirectory];
+        }
+        else {
+            if(needRemoteDataSource) {
+                remoteDataSource = [MFRemoteAttachmentDataSource remoteAttachmentDataSourceForMessage:message];
+            }
+        }
+        dataSource = [[MFLibraryAttachmentDataSource alloc] initWithMessage:message mimePartNumber:partNumber attachment:attachment remoteDataSource:remoteDataSource];
+        [attachment setDataSource:dataSource];
+        if(![attachment isRemotelyAccessed]) {
+            [attachment setDownloadProgress:[(MFRemoteAttachmentDataSource *)remoteDataSource downloadProgress]];
+        }
+    }
+
+    return parsedMessage;
 }
 
-+ (void)MASetData:(NSData *)data forMessage:(id)message isPartial:(BOOL)isPartial hasCompleteText:(BOOL)hasCompleteText {
-    [[[NSThread currentThread] threadDictionary] setObject:@(YES) forKey:@"MFLibraryNoRecreateBody"];
++ (void)MASetData:(id)data forMessage:(id)message isPartial:(BOOL)isPartial hasCompleteText:(BOOL)hasCompleteText {
+    // Since 10.12.4 it seems possible to force Mail to fetch the entire message body again for multipart/signed messages,
+    // by returning NO from -[MFLibraryMessage shouldSnipAttachmentData].
+    // In -[MFLibraryMessage shouldSnipAttachmentData] the data is however not available, which is the reason
+    // why it's necessary to instruct -[MFLibraryMessage shouldSnipAttachmentData] to return NO, if a multipart/signed message
+    // was found by setting an ivar on the message itself.
+    MCMimePart *mimePart = [[MCMimePart alloc] initWithEncodedData:data];
+    MCMimeBody *mimeBody = [MCMimeBody new];
+    [mimeBody setTopLevelPart:mimePart];
+    [mimePart setMimeBody:mimeBody];
+    [mimePart parse];
+    // Check if the message contains a PGP/MIME signature.
+    BOOL mightContainPGPData = [(MimeBody_GPGMail *)mimeBody mightContainPGPMIMESignedData];
+    if(mightContainPGPData) {
+        [message setIvar:kLibraryMessagePreventSnippingAttachmentDataKey value:@(YES)];
+    }
     [self MASetData:data forMessage:message isPartial:isPartial hasCompleteText:hasCompleteText];
-    return;
 }
 
 @end

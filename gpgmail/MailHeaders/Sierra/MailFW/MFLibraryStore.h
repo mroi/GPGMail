@@ -4,7 +4,7 @@
 //     class-dump is Copyright (C) 1997-1998, 2000-2001, 2004-2013 by Steve Nygard.
 //
 
-#import <Mail/MFMessageStore.h>
+#import "MFMessageStore.h"
 
 @class MFLibraryStoreMessageConsumer, MFMessageCriterion, NSArray, NSMutableArray, NSMutableSet, NSString;
 
@@ -29,7 +29,7 @@
 + (void)initialize;	// IMP=0x000000000015f0a3
 @property(retain) MFMessageCriterion *criterion; // @synthesize criterion=_criterion;
 @property(copy) NSString *url; // @synthesize url=_url;
-- (void).cxx_destruct;	// IMP=0x0000000000168d5b
+//- (void).cxx_destruct;	// IMP=0x0000000000168d5b
 - (BOOL)hasCacheFileForMessage:(id)arg1;	// IMP=0x0000000000168bd5
 - (BOOL)messageHasBeenDeleted:(id)arg1;	// IMP=0x0000000000168a9f
 - (id)attachmentsDirectoryForMessage:(id)arg1 partNumber:(id)arg2;	// IMP=0x0000000000168a04

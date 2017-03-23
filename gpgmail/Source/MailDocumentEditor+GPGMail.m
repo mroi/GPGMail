@@ -166,12 +166,13 @@ extern const NSString *kComposeWindowControllerAllowWindowTearDown;
 	GMComposeMessagePreferredSecurityProperties *securityProperties = [(ComposeBackEnd_GPGMail *)backEnd preferredSecurityProperties];
 
 	BOOL isReply = [(ComposeBackEnd_GPGMail *)backEnd messageIsBeingReplied];
-	BOOL originalMessageIsEncrypted = [[((Message_GPGMail *)[backEnd originalMessage]) securityFeatures] PGPEncrypted];
+	BOOL isForward = [(ComposeBackEnd_GPGMail *)backEnd messageIsBeingForwarded];
+    BOOL originalMessageIsEncrypted = [[((Message_GPGMail *)[backEnd originalMessage]) securityFeatures] PGPEncrypted];
     BOOL replyShouldBeEncrypted = securityProperties.shouldEncryptMessage;
 
 	// If checklist contains the unencryptedReplyToEncryptedMessage item, it means
 	// that the user decided to send the message regardless of our warning.
-	if(isReply && originalMessageIsEncrypted && !replyShouldBeEncrypted && ![checklist containsObject:kUnencryptedReplyToEncryptedMessage]) {
+	if((isReply || isForward) && originalMessageIsEncrypted && !replyShouldBeEncrypted && ![checklist containsObject:kUnencryptedReplyToEncryptedMessage]) {
 		// Warn the user.
 		return YES;
 	}
@@ -184,39 +185,46 @@ extern const NSString *kComposeWindowControllerAllowWindowTearDown;
 - (void)displayWarningForUnencryptedReplyToEncryptedMessageUpdatingChecklist:(NSMutableArray *)checklist {
 	NSArray *recipientsMissingCertificates = [(ComposeBackEnd *)[MAIL_SELF(self) backEnd] recipientsThatHaveNoKeyForEncryption];
 
+    ComposeBackEnd *backEnd = (ComposeBackEnd *)[MAIL_SELF(self) backEnd];
+
+    BOOL isForward = [(ComposeBackEnd_GPGMail *)backEnd messageIsBeingForwarded];
+
+    NSString *typePrefix = isForward ? @"UNENCRYPTED_FORWARD_OF_" : @"UNENCRYPTED_REPLY_TO_";
+
 	NSMutableString *recipientWarning = [NSMutableString new];
 	for(NSString *recipient in recipientsMissingCertificates) {
 		[recipientWarning appendFormat:@"- %@\n", recipient];
 	}
 
-	NSMutableString *explanation = [NSMutableString new];
+    NSMutableString *explanation = [NSMutableString new];
 	if([recipientsMissingCertificates count]) {
-		NSString *missingKeysString = [GPGMailBundle localizedStringForKey:@"UNENCRYPTED_REPLY_TO_ENCRYPTED_MESSAGE_MISSING_KEYS"];
+		NSString *missingKeysString = [GPGMailBundle localizedStringForKey:[NSString stringWithFormat:@"%@ENCRYPTED_MESSAGE_MISSING_KEYS", typePrefix]];
 		if([recipientsMissingCertificates count] == 1)
-			missingKeysString = [GPGMailBundle localizedStringForKey:@"UNENCRYPTED_REPLY_TO_ENCRYPTED_MESSAGE_MISSING_KEYS_SINGULAR"];
+			missingKeysString = [GPGMailBundle localizedStringForKey:[NSString stringWithFormat:@"%@ENCRYPTED_MESSAGE_MISSING_KEYS_SINGULAR", typePrefix]];
 		[explanation appendFormat:@"%@\n", [NSString stringWithFormat:missingKeysString, recipientWarning]];
 	}
 
-	[explanation appendString:[GPGMailBundle localizedStringForKey:@"UNENCRYPTED_REPLY_TO_ENCRYPTED_MESSAGE_EXPLANATION"]];
+	[explanation appendString:[GPGMailBundle localizedStringForKey:[NSString stringWithFormat:@"%@ENCRYPTED_MESSAGE_EXPLANATION", typePrefix]]];
 
 	NSMutableString *solutionProposals = [NSMutableString new];
-	[solutionProposals appendString:[GPGMailBundle localizedStringForKey:@"UNENCRYPTED_REPLY_TO_ENCRYPTED_MESSAGE_SOLUTION_REMOVE_PREVIOUS_CORRESPONDENCE"]];
-
+    if(!isForward) {
+        [solutionProposals appendString:[GPGMailBundle localizedStringForKey:[NSString stringWithFormat:@"%@ENCRYPTED_MESSAGE_SOLUTION_REMOVE_PREVIOUS_CORRESPONDENCE", typePrefix]]];
+    }
 	if([recipientsMissingCertificates count]) {
 		[solutionProposals appendString:@"\n"];
 		if([recipientsMissingCertificates count] == 1)
-			[solutionProposals appendString:[GPGMailBundle localizedStringForKey:@"UNENCRYPTED_REPLY_TO_ENCRYPTED_MESSAGE_SOLUTION_IMPORT_KEYS_SINGULAR"]];
+			[solutionProposals appendString:[GPGMailBundle localizedStringForKey:[NSString stringWithFormat:@"%@ENCRYPTED_MESSAGE_SOLUTION_IMPORT_KEYS_SINGULAR", typePrefix]]];
 		else
-			[solutionProposals appendString:[GPGMailBundle localizedStringForKey:@"UNENCRYPTED_REPLY_TO_ENCRYPTED_MESSAGE_SOLUTION_IMPORT_KEYS"]];
+			[solutionProposals appendString:[GPGMailBundle localizedStringForKey:[NSString stringWithFormat:@"%@ENCRYPTED_MESSAGE_SOLUTION_IMPORT_KEYS", typePrefix]]];
 	}
 	[explanation appendString:solutionProposals];
 	[explanation appendString:@"\n"];
 
 	NSAlert *unencryptedReplyAlert = [NSAlert new];
-	[unencryptedReplyAlert setMessageText:[GPGMailBundle localizedStringForKey:@"UNENCRYPTED_REPLY_TO_ENCRYPTED_MESSAGE_TITLE"]];
+	[unencryptedReplyAlert setMessageText:[GPGMailBundle localizedStringForKey:[NSString stringWithFormat:@"%@ENCRYPTED_MESSAGE_TITLE", typePrefix]]];
 	[unencryptedReplyAlert setInformativeText:explanation];
-	[unencryptedReplyAlert addButtonWithTitle:[GPGMailBundle localizedStringForKey:@"UNENCRYPTED_REPLY_TO_ENCRYPTED_MESSAGE_BUTTON_CANCEL"]];
-	[unencryptedReplyAlert addButtonWithTitle:[GPGMailBundle localizedStringForKey:@"UNENCRYPTED_REPLY_TO_ENCRYPTED_MESSAGE_BUTTON_SEND_ANYWAY"]];
+	[unencryptedReplyAlert addButtonWithTitle:[GPGMailBundle localizedStringForKey:[NSString stringWithFormat:@"%@ENCRYPTED_MESSAGE_BUTTON_CANCEL", typePrefix]]];
+	[unencryptedReplyAlert addButtonWithTitle:[GPGMailBundle localizedStringForKey:[NSString stringWithFormat:@"%@ENCRYPTED_MESSAGE_BUTTON_SEND_ANYWAY", typePrefix]]];
 	[unencryptedReplyAlert setIcon:[NSImage imageNamed:@"GPGMail"]];
 
 	// On Mavericks and later we can use, beginSheetModalForWindow:.
