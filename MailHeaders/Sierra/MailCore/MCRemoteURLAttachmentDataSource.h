@@ -6,8 +6,8 @@
 
 //#import "NSObject.h"
 
-#import "MCAttachmentDataSource.h"
-#import "NSURLSessionDownloadDelegate.h"
+#import "MCAttachmentDataSource-Protocol.h"
+//#import "NSURLSessionDownloadDelegate.h"
 
 @class NSDate, NSError, NSNumber, NSPort, NSProgress, NSString, NSURL;
 
@@ -41,7 +41,7 @@
 @property(retain, nonatomic) NSProgress *downloadProgress; // @synthesize downloadProgress=_downloadProgress;
 @property(readonly, nonatomic) NSPort *downloadPort; // @synthesize downloadPort=_downloadPort;
 @property(retain, nonatomic) NSURL *remoteURL; // @synthesize remoteURL=_remoteURL;
-- (void).cxx_destruct;	// IMP=0x00000000000919ff
+//- (void).cxx_destruct;	// IMP=0x00000000000919ff
 - (void)URLSession:(id)arg1 task:(id)arg2 didCompleteWithError:(id)arg3;	// IMP=0x000000000009171e
 - (void)URLSession:(id)arg1 downloadTask:(id)arg2 didWriteData:(long long)arg3 totalBytesWritten:(long long)arg4 totalBytesExpectedToWrite:(long long)arg5;	// IMP=0x00000000000916bf
 - (void)_persistDownloadedFileWrapper:(id)arg1 originalContentsURL:(id)arg2;	// IMP=0x00000000000913d7

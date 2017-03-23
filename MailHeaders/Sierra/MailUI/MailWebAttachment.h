@@ -25,7 +25,7 @@
 @property(retain) NSURL *mailDownloadsFileURL; // @synthesize mailDownloadsFileURL=_mailDownloadsFileURL;
 @property(nonatomic) __weak MCMessage *parentMessage; // @synthesize parentMessage=_parentMessage;
 @property(readonly, nonatomic) MCAttachment *backingAttachment; // @synthesize backingAttachment=_backingAttachment;
-- (void).cxx_destruct;	// IMP=0x00000001001f4b62
+//- (void).cxx_destruct;	// IMP=0x00000001001f4b62
 - (void)takeNewDataFromURL:(id)arg1;	// IMP=0x00000001001f49fb
 @property(readonly, nonatomic) BOOL isStationeryAttachment;
 - (BOOL)isAutoArchiveAttachment;	// IMP=0x00000001001f49b6

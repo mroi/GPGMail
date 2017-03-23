@@ -57,6 +57,7 @@
 #import "GMComposeMessagePreferredSecurityProperties.h"
 
 #define mailself ((HeadersEditor *)self)
+#define tomailself(obj) ((HeadersEditor *)obj)
 
 @interface HeadersEditor_GPGMail (NoImplementation)
 - (void)changeFromHeader:(NSPopUpButton *)sender;
@@ -69,44 +70,45 @@ const NSString *kHeadersEditorFromControlParentItemKey = @"HeadersEditorFromCont
 
 - (void)MAAwakeFromNib {
     [self MAAwakeFromNib];
-	
+
+    // Setup additional HeadersEditor components, like accessibility for sign and lock items,
+    // keyboard shortcuts for sign and lock items and listening to keychain changes.
+    [self GMSetup];
+}
+
+- (void)GMSetup {
+    if([self getIvar:@"HeadersEditorIsSetup"]) {
+        return;
+    }
+    [self setIvar:@"HeadersEditorIsSetup" value:@(YES)];
+
     [(NSNotificationCenter *)[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(keyringUpdated:) name:GPGMailKeyringUpdatedNotification object:nil];
-		
-	// VoiceOver uses the accessibilityDescription of NSImage for the encrypt and sign buttons, if there is no other text for accessibility.
-	// The lock-images have a default of "lock" and "unlocked lock". (NSLockLockedTemplate and NSLockUnlockedTemplate)
-	NSImage *signOnImage = [NSImage imageNamed:@"SignatureOnTemplate"];
-	if (signOnImage) {
-		[signOnImage setAccessibilityDescription:[GPGMailBundle localizedStringForKey:@"ACCESSIBILITY_SIGN_ON_IMAGE"]];
-	}
-	NSImage *signOffImage = [NSImage imageNamed:@"SignatureOffTemplate"];
-	if (signOffImage) {
-		[signOffImage setAccessibilityDescription:[GPGMailBundle localizedStringForKey:@"ACCESSIBILITY_SIGN_OFF_IMAGE"]];
-	}
-	
-//	GMSecurityControl *signControl = [[GMSecurityControl alloc] initWithControl:[self valueForKey:@"_signButton"] tag:SECURITY_BUTTON_SIGN_TAG];
-//    [self setValue:signControl forKey:@"_signButton"];
-//    
-//    GMSecurityControl *encryptControl = [[GMSecurityControl alloc] initWithControl:[self valueForKey:@"_encryptButton"] tag:SECURITY_BUTTON_ENCRYPT_TAG];
-//    [self setValue:encryptControl forKey:@"_encryptButton"];
-//	
-//    // Configure setting the tool tip by unbinding the controls toolTip.
-//    // We will update it, after _updateSecurityStateInBackground is run.
-//    if([GPGMailBundle isYosemite]) {
-//        [signControl unbind:@"toolTip"];
-//        [encryptControl unbind:@"toolTip"];
-//    }
-//
+    
+    // VoiceOver uses the accessibilityDescription of NSImage for the encrypt and sign buttons, if there is no other text for accessibility.
+    // The lock-images have a default of "lock" and "unlocked lock". (NSLockLockedTemplate and NSLockUnlockedTemplate)
+    NSImage *signOnImage = [NSImage imageNamed:@"SignatureOnTemplate"];
+    if (signOnImage) {
+        [signOnImage setAccessibilityDescription:[GPGMailBundle localizedStringForKey:@"ACCESSIBILITY_SIGN_ON_IMAGE"]];
+    }
+    NSImage *signOffImage = [NSImage imageNamed:@"SignatureOffTemplate"];
+    if (signOffImage) {
+        [signOffImage setAccessibilityDescription:[GPGMailBundle localizedStringForKey:@"ACCESSIBILITY_SIGN_OFF_IMAGE"]];
+    }
+    
+    // Configure setting the tool tip by unbinding the controls toolTip.
+    // We will update it, after _updateSecurityStateInBackground is run.
+    [[mailself signButton] unbind:@"toolTip"];
+    [[mailself encryptButton] unbind:@"toolTip"];
+
     NSView *optionalView = (NSView *)[[self valueForKey:@"_signButton"] superview];
-	GMComposeKeyEventHandler *handler = [[GMComposeKeyEventHandler alloc] initWithView:optionalView];
+    GMComposeKeyEventHandler *handler = [[GMComposeKeyEventHandler alloc] initWithView:optionalView];
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wselector"
-	handler.eventsAndSelectors = [NSArray arrayWithObjects:
-		@{@"keyEquivalent": @"y", @"keyEquivalentModifierMask": @(NSCommandKeyMask | NSAlternateKeyMask), @"target": [mailself signButton], @"selector": [NSValue valueWithPointer:@selector(performClick:)]},
-		@{@"keyEquivalent": @"x", @"keyEquivalentModifierMask": @(NSCommandKeyMask | NSAlternateKeyMask), @"target": [mailself encryptButton], @"selector": [NSValue valueWithPointer:@selector(performClick:)]},
-	nil];
+    handler.eventsAndSelectors = [NSArray arrayWithObjects:
+                                  @{@"keyEquivalent": @"y", @"keyEquivalentModifierMask": @(NSCommandKeyMask | NSAlternateKeyMask), @"target": [mailself signButton], @"selector": [NSValue valueWithPointer:@selector(performClick:)]},
+                                  @{@"keyEquivalent": @"x", @"keyEquivalentModifierMask": @(NSCommandKeyMask | NSAlternateKeyMask), @"target": [mailself encryptButton], @"selector": [NSValue valueWithPointer:@selector(performClick:)]},
+                                  nil];
 #pragma clang diagnostic pop
-
-	
 }
 
 - (void)MA_updateFromControl {
@@ -203,8 +205,11 @@ const NSString *kHeadersEditorFromControlParentItemKey = @"HeadersEditorFromCont
     // Implementation of the block <arg1> passed to updateSMIMEStatus:
     // TODO: As Apple does, we should move this code to -[HeadersEditor _updateSecurityControls]
     // and pass it into updateSMIMEStatus. Choose the version that is more readable/easier to update.
+    __weak HeadersEditor_GPGMail *weakSelf = self;
+    
     [backEnd updateSMIMEStatus:^{
         [[NSOperationQueue mainQueue] addOperationWithBlock:^{
+            __strong HeadersEditor_GPGMail *strongSelf = weakSelf;
             BOOL canSign = [backEnd canSign];
             // Apple only sets canEncrypt if canSign is YES, since S/MIME requires a valid signature certificate
             // in order to perform encryptions. In OpenPGP we allow encryption, even if no key to sign a message
@@ -214,9 +219,9 @@ const NSString *kHeadersEditorFromControlParentItemKey = @"HeadersEditorFromCont
             // Apple only shows the buttons to toggle sign and encrypt if signing is possible.
             // OpenPGP does work if only sign or encrypt is available, so we'll also show the buttons
             // if sign is not is possible, but only encrypt.
-            [mailself _setVisibilityForEncryptionAndSigning:canSign || canEncrypt];
-            [mailself setCanSign:canSign];
-            [mailself setCanEncrypt:canEncrypt];
+            [tomailself(strongSelf) _setVisibilityForEncryptionAndSigning:canSign || canEncrypt];
+            [tomailself(strongSelf) setCanSign:canSign];
+            [tomailself(strongSelf) setCanEncrypt:canEncrypt];
             
             // For reference, the original Apple code follows below.
             // Apple uses standard defaults to remember the last set status of sign and encrypt.
@@ -232,14 +237,15 @@ const NSString *kHeadersEditorFromControlParentItemKey = @"HeadersEditorFromCont
             BOOL signIfPossible = preferredSecurityProperties.shouldSignMessage;
             BOOL encryptIfPossible = preferredSecurityProperties.shouldEncryptMessage;
             
-            [mailself setMessageIsToBeSigned:signIfPossible];
+            [tomailself(strongSelf) setMessageIsToBeSigned:signIfPossible];
             [backEnd setSignIfPossible:signIfPossible];
-            [mailself setMessageIsToBeEncrypted:encryptIfPossible];
+            [tomailself(strongSelf) setMessageIsToBeEncrypted:encryptIfPossible];
             [backEnd setEncryptIfPossible:encryptIfPossible];
             // Currently a no-op in Mail, for whatever reason.
-            [[mailself composeViewController] encryptionStatusDidChange];
+            [[tomailself(strongSelf) composeViewController] encryptionStatusDidChange];
+            [strongSelf updateSecurityControlToolTips];
             // Last but not least, update the security accessory view.
-            [(MailDocumentEditor_GPGMail *)[mailself composeViewController] updateSecurityMethodAccessoryView];
+            [(MailDocumentEditor_GPGMail *)[tomailself(strongSelf) composeViewController] updateSecurityMethodAccessoryView];
         }];
     }];
     
@@ -281,6 +287,7 @@ const NSString *kHeadersEditorFromControlParentItemKey = @"HeadersEditorFromCont
         GMComposeMessagePreferredSecurityProperties *preferredSecurityProperties = [(ComposeBackEnd_GPGMail *)backEnd preferredSecurityProperties];
         preferredSecurityProperties.userShouldSignMessage = messageIsToBeSigned;
         [mailself setMessageIsToBeSigned:messageIsToBeSigned];
+        [self updateSecurityControlToolTips];
         [(MailDocumentEditor_GPGMail *)composeViewController updateSecurityMethodAccessoryView];
         [composeViewController updateAttachmentStatus];
     }
@@ -309,7 +316,7 @@ const NSString *kHeadersEditorFromControlParentItemKey = @"HeadersEditorFromCont
     BOOL messageIsToBeEncrypted = ![mailself messageIsToBeEncrypted];
     NSArray *recipientsWithNoKey = nil;
     
-    if([mailself messageIsToBeEncrypted]) {
+    if(messageIsToBeEncrypted) {
         recipientsWithNoKey = [backEnd recipientsThatHaveNoKeyForEncryption];
     }
     
@@ -352,6 +359,7 @@ const NSString *kHeadersEditorFromControlParentItemKey = @"HeadersEditorFromCont
             [mailself setMessageIsToBeEncrypted:messageIsToBeEncrypted];
         }
         [(MailDocumentEditor_GPGMail *)composeViewController updateSecurityMethodAccessoryView];
+        [self updateToolTipForSecurityControl:[mailself encryptButton]];
         [composeViewController updateAttachmentStatus];
         
 //        r14 = arg0;
@@ -717,27 +725,30 @@ const NSString *kHeadersEditorFromControlParentItemKey = @"HeadersEditorFromCont
     }
 }
 
-// TODO: Re-Implement for Sierra.
-//- (void)updateEncryptAndSignButtonToolTips {
-//    // This method is currently only used on Yosemite, since Apple
-//    // switched to a ValueTransformer which is not really adequate for
-//    // our more advanced tool tips.
-//    ComposeBackEnd_GPGMail *backEnd = [GPGMailBundle backEndFromObject:self];
-//    GPGMAIL_SECURITY_METHOD securityMethod = backEnd.securityMethod;
-//    if(securityMethod == 0)
-//        securityMethod = backEnd.guessedSecurityMethod;
-//    
-//    if(securityMethod != GPGMAIL_SECURITY_METHOD_OPENPGP)
-//        return;
-//    
-//    NSString *signToolTip = [self signButtonToolTip];
-//    GMSecurityControl *signControl = [self valueForKey:@"_signButton"];
-//    [((NSSegmentedControl *)signControl) setToolTip:signToolTip];
-//    
-//    NSString *encryptToolTip = [self encryptButtonToolTip];
-//    GMSecurityControl *encryptControl = [self valueForKey:@"_encryptButton"];
-//    [((NSSegmentedControl *)encryptControl) setToolTip:encryptToolTip];
-//}
+- (void)updateSecurityControlToolTips {
+    [self updateToolTipForSecurityControl:[mailself signButton]];
+    [self updateToolTipForSecurityControl:[mailself encryptButton]];
+}
+
+- (void)updateToolTipForSecurityControl:(NSSegmentedControl *)control {
+    ComposeBackEnd_GPGMail *backEnd = (ComposeBackEnd_GPGMail *)[[mailself composeViewController] backEnd];
+    GMComposeMessagePreferredSecurityProperties *preferredSecurityProperties = [(ComposeBackEnd_GPGMail *)backEnd preferredSecurityProperties];
+    GPGMAIL_SECURITY_METHOD securityMethod = preferredSecurityProperties.securityMethod;
+
+    if(securityMethod != GPGMAIL_SECURITY_METHOD_OPENPGP)
+        return;
+
+    NSString *toolTip = @"";
+
+    if(control == [mailself signButton]) {
+        toolTip = [self signButtonToolTip];
+    }
+    else if(control == [mailself encryptButton]) {
+        toolTip = [self encryptButtonToolTip];
+    }
+
+    [control setToolTip:toolTip];
+}
 
 // TODO: Re-Implement for Sierra.
 //- (void)MA_updateSignButtonTooltip {
@@ -766,8 +777,8 @@ const NSString *kHeadersEditorFromControlParentItemKey = @"HeadersEditorFromCont
 //}
 
 - (NSString *)encryptButtonToolTip {
-    ComposeBackEnd_GPGMail *backEnd = [GPGMailBundle backEndFromObject:self];
-    GMComposeMessagePreferredSecurityProperties *securityProperties = ((ComposeBackEnd_GPGMail *)backEnd).preferredSecurityProperties;
+    ComposeBackEnd_GPGMail *backEnd = (ComposeBackEnd_GPGMail *)[[mailself composeViewController] backEnd];
+    GMComposeMessagePreferredSecurityProperties *securityProperties = [(ComposeBackEnd_GPGMail *)backEnd preferredSecurityProperties];
     
     NSString *toolTip = @"";
     
@@ -780,24 +791,37 @@ const NSString *kHeadersEditorFromControlParentItemKey = @"HeadersEditorFromCont
             toolTip = [NSString stringWithFormat:GMLocalizedString(@"COMPOSE_WINDOW_TOOLTIP_CAN_NOT_PGP_ENCRYPT"), recipients];
         }
     }
-    
+    else {
+        NSString *toolTipKey = @"TurnOffEncryptionToolTip";
+        if(![mailself messageIsToBeEncrypted]) {
+            toolTipKey = @"TurnOnEncryptionToolTip";
+        }
+        toolTip = [[NSBundle mainBundle] localizedStringForKey:toolTipKey value:@"" table:@"Encryption"];
+    }
     return toolTip;
 }
 
 - (NSString *)signButtonToolTip {
-    ComposeBackEnd_GPGMail *backEnd = [GPGMailBundle backEndFromObject:self];
-    GMComposeMessagePreferredSecurityProperties *securityProperties = ((ComposeBackEnd_GPGMail *)backEnd).preferredSecurityProperties;
+    ComposeBackEnd_GPGMail *backEnd = (ComposeBackEnd_GPGMail *)[[mailself composeViewController] backEnd];
+    GMComposeMessagePreferredSecurityProperties *securityProperties = [(ComposeBackEnd_GPGMail *)backEnd preferredSecurityProperties];
     
     NSString *toolTip = @"";
     
     if(!securityProperties.canSign) {
-        NSPopUpButton *button = [self valueForKey:@"_fromPopup"];
-        NSString *sender = ![GPGMailBundle isYosemite] ? [button.selectedItem.title gpgNormalizedEmail] : [button.selectedItem.representedObject gpgNormalizedEmail];
+        NSPopUpButton *button = [mailself fromPopup];
+        NSString *sender = [button.selectedItem.representedObject gpgNormalizedEmail];
         
         if([sender length] == 0 && [button.itemArray count])
-            sender = ![GPGMailBundle isYosemite] ? [[(button.itemArray)[0] title] gpgNormalizedEmail] : [[(button.itemArray)[0] representedObject] gpgNormalizedEmail];
+            sender = [[(button.itemArray)[0] representedObject] gpgNormalizedEmail];
         
         toolTip = [NSString stringWithFormat:GMLocalizedString(@"COMPOSE_WINDOW_TOOLTIP_CAN_NOT_PGP_SIGN"), sender];
+    }
+    else {
+        NSString *toolTipKey = @"TurnOffSigningToolTip";
+        if(![mailself messageIsToBeSigned]) {
+           toolTipKey = @"TurnOnSigningToolTip";
+        }
+        toolTip = [[NSBundle mainBundle] localizedStringForKey:toolTipKey value:@"" table:@"Encryption"];
     }
     
     return toolTip;

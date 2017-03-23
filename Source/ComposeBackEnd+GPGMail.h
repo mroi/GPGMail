@@ -156,6 +156,8 @@ typedef struct {
  */
 - (BOOL)draftIsContinued;
 
+- (BOOL)messageIsBeingForwarded;
+
 /**
  This hook is necessary to determine whether or not a user continues editing a draft.
  Unfortunately the -[ComposeBackEnd type] doesn't reflect that.

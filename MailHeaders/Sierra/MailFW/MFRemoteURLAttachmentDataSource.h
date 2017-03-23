@@ -6,7 +6,7 @@
 
 #import "MCRemoteURLAttachmentDataSource.h"
 
-#import "MCRemoteAttachmentDataSource.h"
+#import "MCRemoteAttachmentDataSource-Protocol.h"
 
 @class NSString;
 

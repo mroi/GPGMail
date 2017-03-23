@@ -6,7 +6,7 @@
 
 //#import "NSObject.h"
 
-#import "MCRemoteAttachmentDataSource.h"
+#import "MCRemoteAttachmentDataSource-Protocol.h"
 
 @class MFLibraryMessage, NSConditionLock, NSMutableDictionary, NSOperationQueue, NSProgress, NSString;
 
@@ -24,7 +24,7 @@
 @property(readonly, nonatomic) NSProgress *downloadProgress; // @synthesize downloadProgress=_downloadProgress;
 @property(readonly, nonatomic) NSOperationQueue *attachmentFetchCompletionQueue; // @synthesize attachmentFetchCompletionQueue=_attachmentFetchCompletionQueue;
 @property(readonly, nonatomic) MFLibraryMessage *message; // @synthesize message=_message;
-- (void).cxx_destruct;	// IMP=0x000000000023a6a6
+//- (void).cxx_destruct;	// IMP=0x000000000023a6a6
 - (void)fetchAttachmentForAccessLevel:(long long)arg1 mimePartNumber:(id)arg2 withCompletionBlock:(CDUnknownBlockType)arg3;	// IMP=0x000000000023a29d
 - (void)_attachmentBecameAvailable:(id)arg1;	// IMP=0x0000000000239f01
 @property(readonly, copy) NSString *description;

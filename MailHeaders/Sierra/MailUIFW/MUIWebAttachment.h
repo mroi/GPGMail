@@ -6,9 +6,9 @@
 
 //#import "NSObject.h"
 
-#import "NSCoding.h"
-#import "NSPasteboardReading.h"
-#import "NSPasteboardWriting.h"
+//#import "NSCoding.h"
+//#import "NSPasteboardReading.h"
+//#import "NSPasteboardWriting.h"
 
 @class MCFileWrapper, NSImage, NSString, NSURL;
 
@@ -29,7 +29,7 @@
 @property(copy, nonatomic) NSString *contentID; // @synthesize contentID=_contentID;
 @property(retain, nonatomic) NSURL *cidURL; // @synthesize cidURL=_cidURL;
 @property(readonly, nonatomic) MCFileWrapper *fileWrapper; // @synthesize fileWrapper=_fileWrapper;
-- (void).cxx_destruct;	// IMP=0x000000000002200a
+//- (void).cxx_destruct;	// IMP=0x000000000002200a
 - (id)initWithPasteboardPropertyList:(id)arg1 ofType:(id)arg2;	// IMP=0x0000000000021e69
 - (id)pasteboardPropertyListForType:(id)arg1;	// IMP=0x0000000000021d88
 - (id)writableTypesForPasteboard:(id)arg1;	// IMP=0x0000000000021d34

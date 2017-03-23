@@ -6,7 +6,7 @@
 
 //#import "NSObject.h"
 
-#import "MCAttachmentDataSource.h"
+#import "MCAttachmentDataSource-Protocol.h"
 
 @class MCFileWrapper, NSString;
 
@@ -16,7 +16,7 @@
 }
 
 @property(retain, nonatomic) MCFileWrapper *fileWrapper; // @synthesize fileWrapper=_fileWrapper;
-- (void).cxx_destruct;	// IMP=0x000000000002f3e3
+//- (void).cxx_destruct;	// IMP=0x000000000002f3e3
 @property(readonly, nonatomic) BOOL isDirectory;
 @property(readonly, nonatomic) BOOL canResultsBeCached;
 @property(readonly, nonatomic) BOOL dataIsLocallyAvailable;

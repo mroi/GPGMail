@@ -6,7 +6,7 @@
 
 //#import "NSObject.h"
 
-#import "MCMessageDataSource.h"
+#import "MCMessageDataSource-Protocol.h"
 
 @class MCActivityMonitor, MCInvocationQueue, MFMailAccount, MFMailbox, NSArray, NSCache, NSMutableArray, NSMutableDictionary, NSMutableSet, NSOperationQueue, NSString, NSTimer;
 
@@ -56,7 +56,7 @@
 @property BOOL hasUnsavedChangesToMessageData; // @synthesize hasUnsavedChangesToMessageData=_hasUnsavedChangesToMessageData;
 @property(retain) MCActivityMonitor *openMonitor; // @synthesize openMonitor=_openMonitor;
 @property BOOL isReadOnly; // @synthesize isReadOnly=_isReadOnly;
-- (void).cxx_destruct;	// IMP=0x00000000001eefc1
+//- (void).cxx_destruct;	// IMP=0x00000000001eefc1
 - (void)setNumberOfAttachments:(unsigned int)arg1 isSigned:(BOOL)arg2 isEncrypted:(BOOL)arg3 forMessage:(id)arg4;	// IMP=0x00000000001eee3f
 - (id)attachmentsDirectoryForMessage:(id)arg1 partNumber:(id)arg2;	// IMP=0x00000000001eee37
 - (id)attachmentsDirectoryForMessage:(id)arg1;	// IMP=0x00000000001eee2f

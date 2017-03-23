@@ -6,7 +6,7 @@
 
 //#import "NSObject.h"
 
-#import "MCAttachmentDataSource.h"
+#import "MCAttachmentDataSource-Protocol.h"
 
 @class NSMutableSet, NSString, NSURL;
 
@@ -17,7 +17,7 @@
 }
 
 @property(retain, nonatomic) NSURL *fileURL; // @synthesize fileURL=_fileURL;
-- (void).cxx_destruct;	// IMP=0x000000000002a995
+//- (void).cxx_destruct;	// IMP=0x000000000002a995
 @property(readonly, nonatomic) BOOL isDirectory;
 @property(readonly, nonatomic) BOOL canResultsBeCached;
 @property(readonly, nonatomic) BOOL dataIsLocallyAvailable;

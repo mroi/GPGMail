@@ -382,6 +382,8 @@ enum {
  */
 - (void)failedToEncryptForRecipients:(NSArray *)recipients gpgErrorCode:(GPGErrorCode)errorCode error:(NSException *)error;
 
+- (BOOL)shouldBePGPProcessed;
+
 @end
 
 @interface MimePart_GPGMail (MailMethods)

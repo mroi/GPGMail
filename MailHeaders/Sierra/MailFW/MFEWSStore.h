@@ -4,9 +4,9 @@
 //     class-dump is Copyright (C) 1997-1998, 2000-2001, 2004-2013 by Steve Nygard.
 //
 
-#import <Mail/MFRemoteStore.h>
+#import "MFRemoteStore.h"
 
-#import "MFEWSErrorHandler.h"
+#import "MFEWSErrorHandler-Protocol.h"
 
 @class MFEWSAccount, NSLock, NSMutableSet, NSString;
 
@@ -19,7 +19,7 @@
 }
 
 @property(copy) NSString *folderIdString; // @synthesize folderIdString=_folderIdString;
-- (void).cxx_destruct;	// IMP=0x00000000000bd2db
+//- (void).cxx_destruct;	// IMP=0x00000000000bd2db
 - (void)handleEWSError:(id)arg1;	// IMP=0x00000000000bd0f1
 - (BOOL)_loadFolderId;	// IMP=0x00000000000bcf23
 - (void)_setSyncState:(id)arg1 persistToLibrary:(BOOL)arg2;	// IMP=0x00000000000bcdb8

@@ -179,15 +179,21 @@ const static NSString *kMCMessageGeneratorSigningKeyKey = @"MCMessageGeneratorSi
     // In order to make sure of that, the `signingIdentity` and `encryptionCertificates` are niled out.
     
     // Since _signingIdentity is a struct, it's not possible to use setValue:forKey:
-    Ivar signingIdentityIvar = class_getInstanceVariable([self class], "_signingIdentity");
-    CFTypeRef cfSelf = CFBridgingRetain(self);
-    *(struct OpaqueSecIdentityRef **)((uint8_t *)cfSelf + ivar_getOffset(signingIdentityIvar)) = NULL;
-    CFBridgingRelease(cfSelf);
-    
+    [mailself setSigningIdentity:nil];
     mailself.encryptionCertificates = nil;
     
     // Last but not least, let Mail create the message.
-    return [self MA_newOutgoingMessageFromTopLevelMimePart:parentMimePart topLevelHeaders:topLevelHeaders withPartData:partData];
+    id outgoingMessage = [self MA_newOutgoingMessageFromTopLevelMimePart:parentMimePart topLevelHeaders:topLevelHeaders withPartData:partData];
+    
+    // In case of Mail-Act-On, this method is called a few times in order to create
+    // temporary outgoing messages.
+    // Since the encryption certificates were reset, in order to prevent Mail from encrypting
+    // the message itself, they have to be re-added now, that the message has been created,
+    // so it's possible for future calls of this method, to have the contents encrypted as well.
+    [mailself setSigningIdentity:(__bridge struct OpaqueSecIdentityRef *)(signingIdentity)];
+    mailself.encryptionCertificates = encryptionCertificates;
+    
+    return outgoingMessage;
     /*
     
     if(!topLevelHeaders) {

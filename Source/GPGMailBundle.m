@@ -95,38 +95,6 @@
 
 @end
 
-@interface MCAttachment_GPGMail : NSObject
-
-- (NSImage *)iconImage;
-
-@end
-
-@implementation MCAttachment_GPGMail
-
-- (NSImage *)MAIconImage {
-    id ret = [self MAIconImage];
-    return ret;
-}
-
-@end
-
-@interface MailWebAttachment_GPGMail : NSObject
-@end
-
-@implementation MailWebAttachment_GPGMail
-
-- (id)MAFilename {
-    id ret = [self MAFilename];
-    return ret;
-}
-
-- (NSImage *)MAIconImage {
-    id ret = [self MAIconImage];
-    return ret;
-}
-
-@end
-
 @interface MFLibraryAttachmentDataSource_GPGMail : NSObject
 
 @end
@@ -175,7 +143,6 @@
 }
 
 @end
-
 
 @interface GPGMailBundle ()
 
