@@ -15,7 +15,7 @@
 "MESSAGE_ERROR_ALERT_PGP_VERIFY_NOT_IN_KEYCHAIN_MESSAGE" = "Es ist leider nicht möglich, erweiterte Informationen zu diesem PGP-Schlüssel anzuzeigen, da er sich nicht in ihrem GPG Keychain befindet.";
 
 "MESSAGE_BANNER_PGP_DECRYPT_SECKEY_ERROR_TITLE" = "Der private Schlüssel zum Entschlüsseln der Nachricht fehlt.";
-"MESSAGE_BANNER_PGP_DECRYPT_SECKEY_ERROR_MESSAGE" = "Keiner der folgenden privaten Schlüssel konnte in Ihrem Schlüsselbund gefunden werden (%@). Der private Schlüssel wird zu entschlüsseln dieser Nachricht benötigt. Überprüfen Sie ob der Absender der Nachricht Ihren richtigen öffentlichen Schlüssel verwendet hat. Versuchen Sie den privaten Schlüssel in einem Backup zu finden und importieren Sie ihn mit GPG Keychain.";
+"MESSAGE_BANNER_PGP_DECRYPT_SECKEY_ERROR_MESSAGE" = "Keiner der folgenden privaten Schlüssel, zum entschlüsseln dieser Nachricht, wurde in GPG Keychain gefunden (%@). Überprüfe, ob der Absender der Nachricht den korrekten öffentlichen Schlüssel von dir verwendet hat. Überprüfe, ob du den privaten Schlüssel in einem Backup finden und in GPG Keychain importieren kannst.";
 
 "MESSAGE_BANNER_PGP_DECRYPT_SYSTEM_ERROR_TITLE" = "Unbekannter Fehler beim Entschlüsseln.";
 "MESSAGE_BANNER_PGP_DECRYPT_SYSTEM_ERROR_MESSAGE" = "Beim Entschlüsseln der Nachricht ist ein unbekannter Fehler aufgetreten.\n\nBitte kontaktieren Sie uns unter https://gpgtools.tenderapp.com/";
@@ -75,7 +75,7 @@
 
 /* Message Error Banner Attachment messages. */
 "MESSAGE_BANNER_PGP_ATTACHMENT_DECRYPT_SECKEY_ERROR_TITLE" = "Der private Schlüssel zum Entschlüsseln des Anhangs fehlt.";
-"MESSAGE_BANNER_PGP_ATTACHMENT_DECRYPT_SECKEY_ERROR_MESSAGE" = "Keiner der folgenden privaten Schlüssel konnte in Ihrem Schlüsselbund gefunden werden (%@). Der private Schlüssel wird zu entschlüsseln dieses Anhangs benötigt. Überprüfen Sie ob der Absender der Nachricht Ihren richtigen öffentlichen Schlüssel verwendet hat. Versuchen Sie den privaten Schlüssel in einem Backup zu finden und importieren Sie ihn mit GPG Keychain.";
+"MESSAGE_BANNER_PGP_ATTACHMENT_DECRYPT_SECKEY_ERROR_MESSAGE" = "Keiner der folgenden privaten Schlüssel, zum entschlüsseln dieses Anhangs, wurde in GPG Keychain gefunden (%@). Überprüfe, ob der Absender der Nachricht den korrekten öffentlichen Schlüssel von dir verwendet hat. Überprüfe, ob du den privaten Schlüssel in einem Backup finden und in GPG Keychain importieren kannst.";
 
 "MESSAGE_BANNER_PGP_ATTACHMENT_DECRYPT_SYSTEM_ERROR_TITLE" = "Unbekannter Fehler beim Entschlüsseln.";
 "MESSAGE_BANNER_PGP_ATTACHMENT_DECRYPT_SYSTEM_ERROR_MESSAGE" = "Beim Entschlüsseln des Anhangs ist ein unbekannter Fehler aufgetreten.\n\nBitte kontaktieren Sie uns unter https://gpgtools.tenderapp.com/";
@@ -136,8 +136,8 @@
 
 /* Compose Window encrypt/sign button tooltips. */
 "COMPOSE_WINDOW_TOOLTIP_CAN_NOT_PGP_SIGN" = "Diese Nachricht kann nicht signiert werden, da kein geheimer Schlüssel für %@ vorhanden ist.\n\nBitte stelle sicher, dass in GPG Keychain ein geheimer Schlüssel für diese E-Mail Adresse existiert. Fügen Sie falls notwendig eine Benutzer-ID mit dieser E-Mail Adresse zu einem bestehenden Schlüssel hinzu oder erstellen Sie einen neuen Schlüssel für diese E-Mail Adresse.\n\nIst ein Schlüssel vorhanden, kontrolliere in Mail.app > Einstellungen > Accounts, ob die E-Mail Adresse korrekt ist und genau der im Schlüssel verwendeten E-Mail Adresse entspricht.";
-"COMPOSE_WINDOW_TOOLTIP_CAN_NOT_PGP_ENCRYPT" = "Diese E-Mail kann nicht verschlüsselt werden, da für die folgenden Adressen kein öffentlicher Schlüssel vorhanden ist: %@.\n\nBitte suchen und importieren Sie die Schlüssel für diese Adressen mit GPG Keychain.";
-"COMPOSE_WINDOW_TOOLTIP_CAN_NOT_PGP_ENCRYPT_NO_RECIPIENTS" = "Diese E-Mail kann erst verschlüsselt werden, wenn Sie mindestens einen Empfänger angegeben haben.";
+"COMPOSE_WINDOW_TOOLTIP_CAN_NOT_PGP_ENCRYPT" = "Diese E-Mail kann nicht verschlüsselt werden, da für die folgenden Adressen kein öffentlicher Schlüssel vorhanden ist: %@.\n\nBitte suche und importiere die Schlüssel für diese Adressen mit GPG Keychain.";
+"COMPOSE_WINDOW_TOOLTIP_CAN_NOT_PGP_ENCRYPT_NO_RECIPIENTS" = "Diese E-Mail kann erst verschlüsselt werden, wenn mindestens ein Empfänger angegeben wurde.";
 
 /* Message view pgp part. */
 "MESSAGE_VIEW_PGP_PART_ENCRYPTED" = "Verschlüsselter";
@@ -229,20 +229,11 @@ NO_DEFAULTS_MESSAGE = "GPGMail funktioniert nicht wie erwartet.\n\nUm dieses Pro
 "UNENCRYPTED_REPLY_TO_ENCRYPTED_MESSAGE_MISSING_KEYS_SINGULAR" = "Es ist nicht möglich ihre Antwort zu verschlüsseln, weil der öffentliche Schlüssel für den folgenden Empfänger fehlt:\n\n%@";
 "UNENCRYPTED_REPLY_TO_ENCRYPTED_MESSAGE_MISSING_KEYS" = "Es ist nicht möglich ihre Antwort zu verschlüsseln, weil die öffentlichen Schlüssel für die folgenden Empfänger fehlen:\n\n%@";
 "UNENCRYPTED_REPLY_TO_ENCRYPTED_MESSAGE_EXPLANATION" = "Wenn sie sich entscheiden fortzufahren, wird ihre Antwort unverschlüsselt gesendet. Dadurch könnten vertrauchliche Informationen preisgegeben und sie und ihre Empfänger einem Risiko ausgesetzt werden.";
-"UNENCRYPTED_REPLY_TO_ENCRYPTED_MESSAGE_SOLUTION_REMOVE_PREVIOUS_CORRESPONDENCE" = "\n\nWenn sie diese Antwort wirklich unverschlüsselt senden möchten, entfernen sie bitte vor dem Senden jegliche vorherige Korrespondenz die in ihrer Antwort enthalten ist.";
+"UNENCRYPTED_REPLY_TO_ENCRYPTED_MESSAGE_SOLUTION_REMOVE_PREVIOUS_CORRESPONDENCE" = "\n\nWenn sie diese Antwort wirklich unverschlüsselt senden möchte, entfernen sie bitte vor dem Senden jegliche vorherige Korrespondenz die in ihrer Antwort enthalten ist.";
 "UNENCRYPTED_REPLY_TO_ENCRYPTED_MESSAGE_SOLUTION_IMPORT_KEYS" = "Andernfalls, suchen und importieren sie den benötigten öffentlichen Schlüssel mit GPG Keychain um diese Antwort verschlüsselt zu senden.";
 "UNENCRYPTED_REPLY_TO_ENCRYPTED_MESSAGE_SOLUTION_IMPORT_KEYS_SINGULAR" = "Andernfalls, suchen und importieren sie den benötigten öffentlichen Schlüssel mit GPG Keychain, um diese Antwort verschlüsselt senden zu können.";
 "UNENCRYPTED_REPLY_TO_ENCRYPTED_MESSAGE_BUTTON_SEND_ANYWAY" = "Trotzdem senden";
 "UNENCRYPTED_REPLY_TO_ENCRYPTED_MESSAGE_BUTTON_CANCEL" = "Abbrechen";
-
-"UNENCRYPTED_FORWARD_OF_ENCRYPTED_MESSAGE_TITLE" = "Achtung: Du bist im Begriff eine unverschlüsselte Version einer verschlüsselten Nachricht weiterzuleiten";
-"UNENCRYPTED_FORWARD_OF_ENCRYPTED_MESSAGE_MISSING_KEYS_SINGULAR" = "Es ist nicht möglich die Nachricht die du weiterzuleiten versuchst zu verschlüsseln, weil der öffentliche Schlüssel für den folgenden Empfänger fehlt:\n\n%@";
-"UNENCRYPTED_FORWARD_OF_ENCRYPTED_MESSAGE_MISSING_KEYS" = "Es ist nicht möglich die Nachricht die du weiterzuleiten versuchst zu verschlüsseln, weil die öffentlichen Schlüssel für die folgenden Empfänger fehlen:\n\n%@";
-"UNENCRYPTED_FORWARD_OF_ENCRYPTED_MESSAGE_EXPLANATION" = "Wenn du dich entscheidest fortzufahren, wird die Nachricht die du weiterzuleiten versuchst unverschlüsselt gesendet. Dadurch könnten vertrauchliche Informationen preisgegeben und du und deine Empfänger einem Risiko ausgesetzt werden.";
-"UNENCRYPTED_FORWARD_OF_ENCRYPTED_MESSAGE_SOLUTION_IMPORT_KEYS" = "Andernfalls, suche und importiere den benötigten öffentlichen Schlüssel mit GPG Keychain, um diese Nachricht verschlüsselt weiterleiten zu können.";
-"UNENCRYPTED_FORWARD_OF_ENCRYPTED_MESSAGE_SOLUTION_IMPORT_KEYS_SINGULAR" = "Andernfalls, suche und importiere den benötigten öffentlichen Schlüssel mit GPG Keychain, um diese Nachricht verschlüsselt weiterleiten zu können.";
-"UNENCRYPTED_FORWARD_OF_ENCRYPTED_MESSAGE_BUTTON_SEND_ANYWAY" = "Trotzdem weiterleiten";
-"UNENCRYPTED_FORWARD_OF_ENCRYPTED_MESSAGE_BUTTON_CANCEL" = "Abbrechen";
 
 
 /* Accessibility */

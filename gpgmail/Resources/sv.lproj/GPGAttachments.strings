@@ -18,7 +18,7 @@
 "291.title" = "Signaturen kunde inte verifieras.";
 "293.title" = "Signaturen kunde inte verifieras eftersom den publika nyckeln inte finns i din nyckelring. \nHämta nyckeln med GPG Keychain.";
 "325.ibShadowedIsNilPlaceholder" = "Denna signatur har inget utgångsdatum";
-"353.ibShadowedIsNilPlaceholder" = "Denna signatur har inget utgångsdatum";
+"353.ibShadowedIsNilPlaceholder" = "Den här signaturen har inget utgångsdatum";
 "366.ibShadowedIsNilPlaceholder" = "Denna signatur har inget utgångsdatum";
 "382.title" = "Signaturen kunde inte verifieras.";
 "383.title" = "Signaturen kunde inte verifieras eftersom den publika nyckeln inte finns i din nyckelring. \nHämta nyckeln med GPG Keychain.";

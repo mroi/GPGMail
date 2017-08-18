@@ -1925,11 +1925,62 @@ NSString * const kMimePartAllowPGPProcessingKey = @"MimePartAllowPGPProcessingKe
     return applicationPGPEncrypted != nil && ![self _isExchangeServerModifiedPGPMimeEncrypted] && !hasMultipartEncryptedPart;
 }
 
+- (BOOL)_isDraftThatHasBeenReEncryptedWithoutBeingDecrypted {
+	// Problem:
+	//
+	//   When a user continues composing a draft, the draft should always be automatically
+	//   decrypted, so that the detail that the draft is encrypted is invisible to the user.
+	//   Under some circumstances, the automated decryption of the draft fails.
+	//   If at the same time Mail's autosave of drafts kicks in, the still encrypted draft,
+	//   is saved again as a multipart/related message with a text/html part for the actual contents
+	//   and two attachments: the PGP/MIME application/pgp-encrypted version part and the encrypted.asc
+	//   data part.
+	//   Now if the user tries to continue working on the draft, GPGMail no longer recognizes
+	//   the draft as PGP/MIME encrypted, and fails to properly decrypt it.
+	//
+	// Solution:
+	//
+	//   The solution is to teach GPGMail the structure of those falsely encrypted not automatically decrypted
+	//   drafts, in order to recognize that it should still treat them as normal PGP/MIME encrypted messages.
+	//   In order to do that, the following facts have to be true:
+	//
+	//   - Must have a multipart/related part
+	//   - Must have an application/pgp-encrypted attachment
+	//   - Must have an application/octet-stream attachment with filename set to encrypted.asc
+	//
+	if(![[self topPart] isType:@"multipart" subtype:@"related"]) {
+		return NO;
+	}
+
+	__block MCMimePart *versionPart = nil;
+	__block MCMimePart *dataPart = nil;
+	__block MCMimePart *htmlPart = nil;
+	[(MimePart_GPGMail *)[self topPart] enumerateSubpartsWithBlock:^(MCMimePart *mimePart) {
+		if([mimePart isType:@"application" subtype:@"pgp-encrypted"]) {
+			versionPart = mimePart;
+			return;
+		}
+		if([mimePart isType:@"application" subtype:@"octet-stream"] && [[[mimePart dispositionParameterForKey:@"filename"] lowercaseString] isEqualToString:@"encrypted.asc"]) {
+			dataPart = mimePart;
+			return;
+		}
+		if([mimePart isType:@"text" subtype:@"html"]) {
+			htmlPart = mimePart;
+			return;
+		}
+	}];
+
+	return versionPart && dataPart && htmlPart;
+}
+
 - (BOOL)isPGPMimeEncrypted {
     // Special case for PGP/MIME encrypted emails, which were sent through an
     // exchange server, which unfortunately modifies the header.
     if([self _isExchangeServerModifiedPGPMimeEncrypted])
         return YES;
+	if([self _isDraftThatHasBeenReEncryptedWithoutBeingDecrypted])
+		return YES;
+
 	// Check for multipart/encrypted, protocol application/pgp-encrypted, otherwise exit!
     if(![MAIL_SELF(self) isType:@"multipart" subtype:@"encrypted"])
         return NO;
@@ -1954,9 +2005,17 @@ NSString * const kMimePartAllowPGPProcessingKey = @"MimePartAllowPGPProcessingKe
 	
 	__block MCMimePart *versionPart = nil;
 	__block MCMimePart *dataPart = nil;
-	[self enumerateSubpartsWithBlock:^(MCMimePart *part) {
+    // It appears that Avast antivirus doesn't like the pre-amble of PGP/MIME message, which is
+    // often placed before the application/pgp-encrypted part, and creates a second application/pgp-encrypted
+    // part, using that pre-amble.
+    // Unfortunately this moves the PGP/MIME version marker from the first version part, to the second and causes
+    // the old check to fail, which only assumed one version part. Now each version part is checked
+    // for the PGP/MIME version marker.
+    __block NSMutableArray *versionParts = [[NSMutableArray alloc] init];
+    [self enumerateSubpartsWithBlock:^(MCMimePart *part) {
 		if([part isType:@"application" subtype:@"pgp-encrypted"]) {
-			if(!versionPart)
+            [versionParts addObject:part];
+            if(!versionPart)
 				versionPart = part;
 		}
 		else if([part isType:@"application" subtype:@"octet-stream"] || [part isType:@"application" subtype:@"pgp-signature"]) {
@@ -1964,8 +2023,16 @@ NSString * const kMimePartAllowPGPProcessingKey = @"MimePartAllowPGPProcessingKe
 				dataPart = part;
 		}
 	}];
+
+    BOOL hasVersion = NO;
+    for(MCMimePart *part in versionParts) {
+        if([[part decodedData] containsPGPVersionMarker:1]) {
+            hasVersion = YES;
+            break;
+        }
+    }
 	// Should we check the version...?
-	if(versionPart && [[versionPart decodedData] containsPGPVersionMarker:1] && dataPart)
+	if(versionPart && hasVersion && dataPart)
 		return YES;
 	
 	return NO;
