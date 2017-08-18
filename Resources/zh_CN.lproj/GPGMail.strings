@@ -114,46 +114,46 @@
 "MESSAGE_BANNER_PGP_ATTACHMENT_VERIFY_SIGNATURE_EXPIRED_ERROR_MESSAGE" = "The attachment signature is expired and could not be verified.\n\nAsk the sender why the signature is expired.";
 
 "MESSAGE_IS_PGP_PARTLY_ENCRYPTED" = "Partly Encrypted";
-"MESSAGE_IS_PGP_PARTLY_SIGNED" = "Partly Signed";
-"MESSAGE_IS_PGP_ENCRYPTED" = "Encrypted";
-"MESSAGE_IS_PGP_SIGNED" = "Signed";
-"MESSAGE_IS_PGP_SIGNED_INVALID" = "Invalid Signature";
+"MESSAGE_IS_PGP_PARTLY_SIGNED" = "部分签名的";
+"MESSAGE_IS_PGP_ENCRYPTED" = "已加密";
+"MESSAGE_IS_PGP_SIGNED" = "已签名";
+"MESSAGE_IS_PGP_SIGNED_INVALID" = "错误签名";
 
 /* Security Header signature related. */
-"MESSAGE_SECURITY_HEADER_SIGNATURE_NO_PUBLIC_KEY_TITLE" = "Signed with unknown key";
-"MESSAGE_SECURITY_HEADER_SIGNATURE_REVOKED_TITLE" = "Signed with revoked key";
-"MESSAGE_SECURITY_HEADER_SIGNATURE_BAD_TITLE" = "Invalid signature";
-"MESSAGE_SECURITY_HEADER_SIGNATURE_TITLE" = "Signed";
+"MESSAGE_SECURITY_HEADER_SIGNATURE_NO_PUBLIC_KEY_TITLE" = "使用未知 Key 签名的";
+"MESSAGE_SECURITY_HEADER_SIGNATURE_REVOKED_TITLE" = "使用已吊销的 Key 签名的";
+"MESSAGE_SECURITY_HEADER_SIGNATURE_BAD_TITLE" = "错误签名";
+"MESSAGE_SECURITY_HEADER_SIGNATURE_TITLE" = "已签名";
 "MESSAGE_SECURITY_HEADER_NO_SIGNATURE_TITLE" = "无签名";
 
 /* Security header attachments related. */
-"MESSAGE_SECURITY_HEADER_ATTACHMENT_SIGNED_ENCRYPTED_TITLE" = "encrypted/signed attachment";
-"MESSAGE_SECURITY_HEADER_ATTACHMENTS_SIGNED_ENCRYPTED_TITLE" = "encrypted/signed attachments";
-"MESSAGE_SECURITY_HEADER_ATTACHMENT_ENCRYPTED_TITLE" = "encrypted attachment";
-"MESSAGE_SECURITY_HEADER_ATTACHMENTS_ENCRYPTED_TITLE" = "encrypted attachments";
-"MESSAGE_SECURITY_HEADER_ATTACHMENT_SIGNED_TITLE" = "signed attachment";
-"MESSAGE_SECURITY_HEADER_ATTACHMENTS_SIGNED_TITLE" = "signed attachments";
+"MESSAGE_SECURITY_HEADER_ATTACHMENT_SIGNED_ENCRYPTED_TITLE" = "已加密或签名的附件";
+"MESSAGE_SECURITY_HEADER_ATTACHMENTS_SIGNED_ENCRYPTED_TITLE" = "已加密或签名的附件";
+"MESSAGE_SECURITY_HEADER_ATTACHMENT_ENCRYPTED_TITLE" = "已加密的附件";
+"MESSAGE_SECURITY_HEADER_ATTACHMENTS_ENCRYPTED_TITLE" = "已加密的附件";
+"MESSAGE_SECURITY_HEADER_ATTACHMENT_SIGNED_TITLE" = "已签名的附件";
+"MESSAGE_SECURITY_HEADER_ATTACHMENTS_SIGNED_TITLE" = "已签名的附件";
 
 /* Compose Window encrypt/sign button tooltips. */
 "COMPOSE_WINDOW_TOOLTIP_CAN_NOT_PGP_SIGN" = "This message can't be signed, since there's no secret key for %@.\n\nPlease make sure that a secret key for this address exists in GPG Keychain. Add a new User ID to an existing key for this address if necessary, or create a new key for this address.\n\nIf a key for the address exists, make sure that the address in Mail.app > Preferences > Accounts is correct and exactly matches the address of your key.";
-"COMPOSE_WINDOW_TOOLTIP_CAN_NOT_PGP_ENCRYPT" = "This message can't be encrypted, since there are no public keys available for the following addresses: %@.\n\nPlease use GPG Keychain to search and import the keys for those addresses.";
+"COMPOSE_WINDOW_TOOLTIP_CAN_NOT_PGP_ENCRYPT" = "此信息无法被加密，原因是没有与 %@ 对应的公钥。\n\n请使用GPG Keychain 搜索并导入对应的公钥。";
 "COMPOSE_WINDOW_TOOLTIP_CAN_NOT_PGP_ENCRYPT_NO_RECIPIENTS" = "This message can't be encrypted. You have to enter at least one recipient first.";
 
 /* Message view pgp part. */
-"MESSAGE_VIEW_PGP_PART_ENCRYPTED" = "Encrypted";
-"MESSAGE_VIEW_PGP_PART_SIGNED" = "Signed";
+"MESSAGE_VIEW_PGP_PART_ENCRYPTED" = "已加密";
+"MESSAGE_VIEW_PGP_PART_SIGNED" = "已签名";
 "MESSAGE_VIEW_PGP_PART" = "PGP part";
 
 /* GPGMail Preferences strings. */
 "GPG_STATUS_NO_ERROR_TITLE" = "GPGMail is ready.";
 "GPG_STATUS_NO_ERROR_TOOLTIP" = "Your MacGPG installation is working with no errors.";
 "GPG_STATUS_NOT_FOUND_TITLE" = "MacGPG2 is not installed. Check your installation.";
-"GPG_STATUS_NOT_FOUND_TOOLTIP" = "请从 https://www.gpgtools.org 重新下载安装 GPG 全家桶以确保已经安装了所有必要组件。";
-"GPG_STATUS_OTHER_ERROR_TITLE" = "Please check your installation and configuration.";
-"GPG_STATUS_NOT_FOUND_TOOLTIP" = "请从 https://www.gpgtools.org 重新下载安装 GPG 全家桶以确保已经安装了所有必要组件。";
+"GPG_STATUS_NOT_FOUND_TOOLTIP" = "请从 https://www.gpgtools.org 重新下载安装 GPG Suite 以确保已经安装了所有必要组件。";
+"GPG_STATUS_OTHER_ERROR_TITLE" = "请检查您的安装配置。";
+"GPG_STATUS_NOT_FOUND_TOOLTIP" = "请从 https://www.gpgtools.org 重新下载安装 GPG Suite 以确保已经安装了所有必要组件。";
 "DISABLE_ENCRYPT_DRAFTS_TITLE" = "Warning: Disabling this option might lead to the leak of sensitive information while composing a message";
 "DISABLE_ENCRYPT_DRAFTS_MESSAGE" = "If the option \"Store drafts on server\" is enabled for your accounts, OS X Mail automatically stores your drafts on your mail server while you're composing a message.\nBy disabling\"Encrypt drafts\", your drafts will be stored in plain text (not encrypted) so that anyone with access to the mail server can read them.\n\nIf you keep \"Encrypt drafts\" enabled, your drafts will be encrypted before they are stored on a mail server and only you will be able to read them.\n\nDo you still want want to disable \"Encrypt drafts\"?";
-"DISABLE_ENCRYPT_DRAFTS_CONFIRM" = "Disable Encryption";
+"DISABLE_ENCRYPT_DRAFTS_CONFIRM" = "禁止加密";
 "DISABLE_ENCRYPT_DRAFTS_CANCEL" = "Cancel";
 
 
@@ -179,7 +179,7 @@ NO_DEFAULTS_MESSAGE = "GPGMail 出现异常。\n\n请从 https://gpgtools.org �
 "MESSAGE_SIGNING_ERROR_NO_PINENTRY_DESCRIPTION" = "pinentry, the tool responsible for asking for your password, seems to be broken.\n\nTo fix this problem, re-install GPG Suite from https://gpgtools.org.";
 
 "MESSAGE_SIGNING_ERROR_NO_AGENT_TITLE" = "Signing your message failed due to defect GPG agent!";
-"MESSAGE_SIGNING_ERROR_NO_AGENT_DESCRIPTION" = "The GPG agent which is a crucial part of GPG seems to be broken.\n\nTo fix this problem, re-install GPG Suite from https://gpgtools.org.";
+"MESSAGE_SIGNING_ERROR_NO_AGENT_DESCRIPTION" = "作为 GPG 关键部分的 GPG 代理看起来出了点问题。\n\n自 https://gpgtools.org 重新安装 GPG 套件来修复该问题。";
 
 "MESSAGE_SIGNING_ERROR_AGENT_ERROR_TITLE" = "Signing your message failed due to GPG agent communication error!";
 "MESSAGE_SIGNING_ERROR_AGENT_ERROR_DESCRIPTION" = "It was not possible to talk to the GPG agent in order to request your password.\n\nTo fix this problem, re-install GPG Suite from https://gpgtools.org.";
@@ -190,16 +190,16 @@ NO_DEFAULTS_MESSAGE = "GPGMail 出现异常。\n\n请从 https://gpgtools.org �
 "MESSAGE_ENCRYPTION_ERROR_UNKNOWN_ERROR_TITLE" = "Encrypting your message failed because an unknown error has occured";
 "MESSAGE_ENCRYPTION_ERROR_UNKNOWN_ERROR_DESCRIPTION" = "Unfortunately GPGMail can't handle the error at this point.";
 
-"MESSAGE_SIGNING_ERROR_WRONG_PASSPHRASE_TITLE" = "You entered the wrong password too many times.";
-"MESSAGE_SIGNING_ERROR_WRONG_PASSPHRASE_DESCRIPTION" = "Signing your message was aborted because you entered the wrong password 3 times.";
+"MESSAGE_SIGNING_ERROR_WRONG_PASSPHRASE_TITLE" = "你输入错误的密码次数过多。";
+"MESSAGE_SIGNING_ERROR_WRONG_PASSPHRASE_DESCRIPTION" = "因为你三次输入了错误的密码，已终止签名信息。";
 
 "CONTACT_GPGTOOLS_WITH_INFO_MESSAGE" = "\n\nShould your problem persist, please contact us at https://gpgtools.tenderapp.com/ with the following error description:\n\n%@";
 
 "MESSAGE_BANNER_PGP_DECRYPT_ERROR_PASSPHRASE_REQUEST_CANCELLED_TITLE" = "You aborted the decryption of the message";
-"MESSAGE_BANNER_PGP_DECRYPT_ERROR_PASSPHRASE_REQUEST_CANCELLED_MESSAGE" = "The message couldn't be decrypted because you cancelled the password request.";
+"MESSAGE_BANNER_PGP_DECRYPT_ERROR_PASSPHRASE_REQUEST_CANCELLED_MESSAGE" = "因你取消了密码请求，信息无法被解密。";
 
 "MESSAGE_BANNER_PGP_ATTACHMENT_DECRYPT_ERROR_PASSPHRASE_REQUEST_CANCELLED_TITLE" = "You aborted the decryption of the attachment";
-"MESSAGE_BANNER_PGP_ATTACHMENT_DECRYPT_ERROR_PASSPHRASE_REQUEST_CANCELLED_MESSAGE" = "The attachment couldn't be decrypted because you cancelled the password request.";
+"MESSAGE_BANNER_PGP_ATTACHMENT_DECRYPT_ERROR_PASSPHRASE_REQUEST_CANCELLED_MESSAGE" = "因你取消了密码请求，附件无法被解密。";
 
 "MESSAGE_BANNER_PGP_DECRYPT_ERROR_XPC_DAMAGED_TITLE" = "GPG Suite is not working as expected";
 "MESSAGE_BANNER_PGP_DECRYPT_ERROR_XPC_DAMAGED_MESSAGE" = "Decrypting the message failed.\n\nPlease re-install GPG Suite from https://gpgtools.org.\n\nShould this problem persist, contact us at https://gpgtools.tenderapp.com/ and include the information that the xpc service is not working properly.";
@@ -238,6 +238,6 @@ NO_DEFAULTS_MESSAGE = "GPGMail 出现异常。\n\n请从 https://gpgtools.org �
 
 /* Accessibility */
 ACCESSIBILITY_SECURITY_METHOD_POPUP_LABEL = "Security method: %@";
-ACCESSIBILITY_SIGN_ON_IMAGE = "Sign";
-ACCESSIBILITY_SIGN_OFF_IMAGE = "Don't sign";
+ACCESSIBILITY_SIGN_ON_IMAGE = "签名";
+ACCESSIBILITY_SIGN_OFF_IMAGE = "不签名";
 
