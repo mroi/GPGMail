@@ -1,5 +1,5 @@
 /*
- Copyright © Roman Zechmeister, 2014
+ Copyright © Roman Zechmeister, 2017
  
  Diese Datei ist Teil von Libmacgpg.
  
@@ -282,7 +282,11 @@ static NSString * const kGpgAgentConfKVKey = @"gpgAgentConf";
 
 
 - (id)valueInCommonDefaultsForKey:(NSString *)key {
-	return [self.commonDefaults objectForKey:key];
+	id value = [self.commonDefaults objectForKey:key];
+	if (!value) {
+		value = [@{@"UseKeychain": @YES} valueForKey:key];
+	}
+	return value;
 }
 - (void)setValueInCommonDefaults:(id)value forKey:(NSString *)key {
     NSObject *oldValue = [self.commonDefaults objectForKey:key];
@@ -391,45 +395,80 @@ static NSString * const kGpgAgentConfKVKey = @"gpgAgentConf";
 }
 
 
-
+/*
+ * Checks the gpg config, disables invalid options and removes invalid keyserver-options.
+ */
 - (void)repairGPGConf {
-	NSString *config = [self.gpgConf getContents];
+	[self pinentryPath];
 	
-	GPGTask *gpgTask = [GPGTask gpgTaskWithArguments:@[@"--gpgconf-test", @"--options"]];
+	GPGTask *gpgTask = [GPGTask gpgTaskWithArguments:@[@"--gpgconf-test"]];
 	gpgTask.timeout = GPGTASKHELPER_DISPATCH_TIMEOUT_QUICKLY;
 	[gpgTask setEnvironmentVariables:@{@"LANG": @"C"}];
-	[gpgTask addInText:config];
-	if ([gpgTask start] == 0) {
+	[gpgTask start];
+	
+	NSString *errText = gpgTask.errText;
+	if (errText.length == 0) {
 		return;
 	}
 	
-	NSString *errText = gpgTask.errText;
-	NSMutableIndexSet *indexes = [NSMutableIndexSet indexSet];
-	NSRegularExpression *regex = [NSRegularExpression regularExpressionWithPattern:@".*:(\\d+): .*" options:0 error:nil];
+	BOOL modified = NO;
+	NSString *config = [self.gpgConf getContents];
 	
+	
+	// Parse errText and store the indexes of invalid options in indexesToDisable.
+	NSMutableIndexSet *indexesToDisable = [NSMutableIndexSet indexSet];
+	NSRegularExpression *regex = [NSRegularExpression regularExpressionWithPattern:@"^.*:(\\d+): .*$" options:NSRegularExpressionAnchorsMatchLines error:nil];
 	[regex enumerateMatchesInString:errText options:0 range:NSMakeRange(0, errText.length) usingBlock:^(NSTextCheckingResult *result, NSMatchingFlags flags, BOOL *stop) {
 		NSRange range = [result rangeAtIndex:1];
-		if (range.length == 0) {
-			return;
-		}
-		
 		NSInteger line = [[errText substringWithRange:range] integerValue];
 		if (line > 0) {
-			[indexes addIndex:line - 1];
+			[indexesToDisable addIndex:line - 1];
 		}
 	}];
-
-	NSMutableArray *lines = [NSMutableArray arrayWithArray:[config componentsSeparatedByString:@"\n"]];
+	if (indexesToDisable.count > 0) {
+		modified = YES;
+		
+		// Prepand all invalid lines with "# Disabled: ".
+		NSMutableArray *lines = [NSMutableArray arrayWithArray:[config componentsSeparatedByString:@"\n"]];
+		[indexesToDisable enumerateIndexesUsingBlock:^(NSUInteger idx, BOOL *stop) {
+			NSString *line = [lines objectAtIndex:idx];
+			line = [NSString stringWithFormat:@"# Disabled: %@", line];
+			[lines replaceObjectAtIndex:idx withObject:line];
+		}];
+		
+		// Save the config.
+		config = [lines componentsJoinedByString:@"\n"];
+		if (config) {
+			[self.gpgConf loadContents:config];
+		}
+	}
 	
-	[indexes enumerateIndexesUsingBlock:^(NSUInteger idx, BOOL *stop) {
-		NSString *line = [lines objectAtIndex:idx];
-		line = [NSString stringWithFormat:@"# Disabled: %@", line];
-		[lines replaceObjectAtIndex:idx withObject:line];
+	
+	// Remove invalid or obsolete keyserver options.
+	NSMutableArray *optionsToRemove = [[NSMutableArray new] autorelease];
+	regex = [NSRegularExpression regularExpressionWithPattern:@"^.*keyserver option '(.+)' is.*$" options:NSRegularExpressionAnchorsMatchLines error:nil];
+	[regex enumerateMatchesInString:errText options:0 range:NSMakeRange(0, errText.length) usingBlock:^(NSTextCheckingResult *result, NSMatchingFlags flags, BOOL *stop) {
+		NSRange range = [result rangeAtIndex:1];
+		[optionsToRemove addObject:[errText substringWithRange:range]];
 	}];
+	if (optionsToRemove.count > 0) {
+		modified = YES;
+		
+		NSArray *keyserverOptions = [self.gpgConf valueForKey:@"keyserver-options"];
+		if ([keyserverOptions isKindOfClass:[NSArray class]]) {
+			NSMutableArray *temp = [[keyserverOptions mutableCopy] autorelease];
+			[temp removeObjectsInArray:optionsToRemove];
+			keyserverOptions = temp;
+		} else {
+			keyserverOptions = nil;
+		}
+		
+		[self.gpgConf setValue:keyserverOptions forKey:@"keyserver-options"];
+	}
+
 	
-	config = [lines componentsJoinedByString:@"\n"];
-	if (config) {
-		[self.gpgConf loadContents:config];
+	
+	if (modified) {
 		[self.gpgConf saveConfig];
 	}
 }
@@ -534,6 +573,10 @@ static NSString * const kGpgAgentConfKVKey = @"gpgAgentConf";
 }
 - (void)setKeyserver:(NSString *)keyserver {
 	[self setValueInGPGConf:keyserver forKey:@"keyserver"];
+
+	// Force dirmngr to reload the config.
+	system("killall -HUP dirmngr");
+
 	[self addKeyserver:keyserver];
 }
 - (void)addKeyserver:(NSString *)keyserver {
@@ -592,6 +635,43 @@ static NSString * const kGpgAgentConfKVKey = @"gpgAgentConf";
 	return debugLog & 127;
 }
 
+- (NSString *)pinentryPath {
+	if (!_pinentryPath) {
+		static NSString * const kPinentry_program = @"pinentry-program";
+		
+		// MacGPG2 has the default path to pinentry-mac hardcoded
+		// so we don't need to force set a path in gpg-agent.conf.
+		
+		
+		// Read pinentry path from gpg-agent.conf.
+		
+		NSString *pinentryPath = [self valueInGPGAgentConfForKey:kPinentry_program];
+		pinentryPath = [pinentryPath stringByStandardizingPath];
+		
+		if (pinentryPath) {
+			NSFileManager *fileManager = [NSFileManager defaultManager];
+
+			// Remove an invalid path from gpg-agent.conf.
+			// A pinentry in Libmacgpg is an old version, don't use it anymore.
+			if ([pinentryPath rangeOfString:@"/Libmacgpg.framework/"].length > 0 || ![fileManager isExecutableFileAtPath:pinentryPath]) {
+				pinentryPath = nil;
+				[self setValueInGPGAgentConf:nil forKey:kPinentry_program];
+				[self gpgAgentFlush];
+			}
+		}
+		
+		if (!pinentryPath) {
+			pinentryPath = @"/usr/local/MacGPG2/libexec/pinentry-mac.app/Contents/MacOS/pinentry-mac";
+		}
+
+		NSString *temp = _pinentryPath;
+		_pinentryPath = [pinentryPath retain];
+		[temp release];
+	}
+	return [[_pinentryPath retain] autorelease];
+}
+
+
 // Helper methods.
 - (GPGOptionsDomain)domainForKey:(NSString *)key {
     return [GPGOptions domainForKey:key];
@@ -606,9 +686,9 @@ static NSString * const kGpgAgentConfKVKey = @"gpgAgentConf";
 	return GPGDomain_standard;
 }
 
-- (BOOL)isKnownKey:(NSString *)key domainForKey:(GPGOptionsDomain)domain {
-    NSSet *keys = [domainKeys objectForKey:[NSNumber numberWithInt:domain]];
-    return ([keys containsObject:key]);
++ (BOOL)isKnownKey:(NSString *)key inDomain:(GPGOptionsDomain)domain {
+    NSSet *keys = [domainKeys objectForKey:@(domain)];
+    return [keys containsObject:key];
 }
 
 + (NSString *)standardizedKey:(NSString *)key {
@@ -739,6 +819,12 @@ void SystemConfigurationDidChange(SCPreferencesRef prefs, SCPreferencesNotificat
 
 // Alloc, init etc.
 + (void)initialize {
+	static BOOL initialized = NO;
+	if (initialized) {
+		// Prevent double initialization.
+		return;
+	}
+	initialized = YES;
 	environmentPlistDir = [[NSHomeDirectory() stringByAppendingPathComponent:@".MacOSX"] retain];
 	environmentPlistPath = [[environmentPlistDir stringByAppendingPathComponent:@"environment.plist"] retain];
 
@@ -860,6 +946,9 @@ void SystemConfigurationDidChange(SCPreferencesRef prefs, SCPreferencesNotificat
     
     dispatch_once(&onceToken, ^{
         _sharedInstance = [[GPGOptions alloc] init];
+		if (![GPGTask sandboxed]) {
+			[_sharedInstance repairGPGConf];
+		}
     });
     
     return _sharedInstance;
@@ -874,7 +963,8 @@ void SystemConfigurationDidChange(SCPreferencesRef prefs, SCPreferencesNotificat
         [notifsCenter addObserver:self selector:@selector(valueChangedNotification:) name:GPGOptionsChangedNotification object:nil];
         [notifsCenter addObserver:self selector:@selector(dotConfChangedNotification:) name:GPGConfigurationModifiedNotification object:nil];
         [self initSystemConfigurationWatch];
-    }
+		debugLog = [self boolForKey:@"DebugLog"] | 128;
+	}
 	return self;
 }
 
@@ -893,6 +983,7 @@ void SystemConfigurationDidChange(SCPreferencesRef prefs, SCPreferencesNotificat
 	[gpgConf release];
 	[gpgAgentConf release];
     [syncRoot release];
+	[_pinentryPath release];
     [super dealloc];
 }
 

@@ -1,5 +1,5 @@
 /*
- Copyright © Roman Zechmeister, 2014
+ Copyright © Roman Zechmeister, 2017
  
  Diese Datei ist Teil von Libmacgpg.
  
@@ -23,6 +23,7 @@
 #import "GPGKeyserver.h"
 #import "GPGTaskHelper.h"
 #import "GPGWatcher.h"
+#import <sys/stat.h>
 #if defined(__MAC_OS_X_VERSION_MAX_ALLOWED) && __MAC_OS_X_VERSION_MAX_ALLOWED >= 1080
 #import "GPGTaskHelperXPC.h"
 #import "NSBundle+Sandbox.h"
@@ -30,6 +31,8 @@
 
 #define cancelCheck if (canceled) {@throw [GPGException exceptionWithReason:localizedLibmacgpgString(@"Operation cancelled") errorCode:GPGErrorCancelled];}
 
+
+static NSString * const keysOnServerCacheKey = @"KeysOnServerCache";
 
 @interface GPGController () <GPGTaskDelegate>
 @property (nonatomic, retain) GPGSignature *lastSignature;
@@ -369,9 +372,10 @@ BOOL gpgConfigReaded = NO;
 		}
 		
 		gpgTask.outStream = output;
-		[gpgTask addInput:input];
+		[gpgTask setInput:input];
 
-		if ([gpgTask start] != 0 && gpgTask.outData.length == 0) { // Check outData because gpg sometime returns an exitcode != 0, but the data is correct encrypted/signed. 
+		// Check outData because gpg sometime returns an exitcode != 0, but the data is correct encrypted/signed.
+		if (([gpgTask start] != 0 && gpgTask.outData.length == 0) || gpgTask.errorCode) {
 			@throw [GPGException exceptionWithReason:localizedLibmacgpgString(@"Encrypt/sign failed!") gpgTask:gpgTask];
 		}
 	} @catch (NSException *e) {
@@ -404,7 +408,7 @@ BOOL gpgConfigReaded = NO;
 		self.gpgTask = [GPGTask gpgTask];
 		[self addArgumentsForOptions];
 		[self addArgumentsForKeyserver];
-		[gpgTask addInput:input];
+		[gpgTask setInput:input];
 		gpgTask.outStream = output;
 		
 		[gpgTask addArgument:@"--decrypt"];
@@ -447,17 +451,66 @@ BOOL gpgConfigReaded = NO;
 		self.gpgTask = [GPGTask gpgTask];
 		[self addArgumentsForOptions];
 		[self addArgumentsForKeyserver];
-		[gpgTask addInput:signatureInput];
-		if (originalInput) {
-			[gpgTask addInput:originalInput];
-		}
-		
+		[gpgTask setInput:signatureInput];
 		[gpgTask addArgument:@"--verify"];
 		
-		if ([gpgTask start] != 0) {
-			@throw [GPGException exceptionWithReason:localizedLibmacgpgString(@"Verify failed!") gpgTask:gpgTask];
-		}
+		[gpgTask addArgument:@"-"];
 		
+		NSString *fifoPath = nil;
+		if (originalInput) {
+			
+			NSString *guid = [NSProcessInfo processInfo].globallyUniqueString ;
+			NSString *fifoName = [NSString stringWithFormat:@"gpgtmp_%@.fifo", guid];
+			fifoPath = [NSTemporaryDirectory() stringByAppendingPathComponent:fifoName];
+			
+			if (mkfifo(fifoPath.UTF8String, 0600) != 0) {
+				[NSException raise:NSGenericException format:@"mkfifo failed: %s", strerror(errno)];
+			}
+			
+
+			dispatch_queue_t queue = dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0);
+			dispatch_async(queue, ^{
+				@autoreleasepool {
+					@try {
+						NSFileHandle *fileHandle = [NSFileHandle fileHandleForWritingAtPath:fifoPath];
+						NSData *dataToWrite;
+						if ([originalInput isKindOfClass:[GPGMemoryStream class]]) {
+							// A GPGMemoryStream already holds the whole data in the RAM.
+							dataToWrite = originalInput.readAllData;
+							[fileHandle writeData:dataToWrite];
+						} else {
+							// A GPGFileStream doesn't already hold the whole data in the RAM.
+							// Do a chunked read/write to save RAM.
+							BOOL hasData = YES;
+							const NSUInteger chunkSize = 1024 * 1024 * 20;
+							do {
+								@autoreleasepool {
+									dataToWrite = [originalInput readDataOfLength:chunkSize];
+									if (dataToWrite.length < chunkSize) {
+										hasData = NO;
+									}
+									if (dataToWrite.length > 0) {
+										[fileHandle writeData:dataToWrite];
+									}
+								}
+							} while (hasData);
+						}
+						[fileHandle closeFile];
+					} @catch (NSException *exception) {
+						// An exception is possible, when the file handle has closed too soon.
+						// Simply ignore it.
+					}
+				}
+			});
+
+			[gpgTask addArgument:fifoPath];
+		}
+
+		[gpgTask start];
+		
+		if (fifoPath) {
+			[[NSFileManager defaultManager] removeItemAtPath:fifoPath error:nil];
+		}
 	} @catch (NSException *e) {
 		[self handleException:e];
 	} @finally {
@@ -482,16 +535,6 @@ BOOL gpgConfigReaded = NO;
 							 keyType:(GPGPublicKeyAlgorithm)keyType keyLength:(int)keyLength
 						  subkeyType:(GPGPublicKeyAlgorithm)subkeyType subkeyLength:(int)subkeyLength
 						daysToExpire:(int)daysToExpire preferences:(NSString *)preferences {
-	return [self generateNewKeyWithName:name email:email comment:comment
-								keyType:keyType keyLength:keyLength
-							 subkeyType:subkeyType subkeyLength:subkeyLength
-						   daysToExpire:daysToExpire preferences:preferences revCert:NO];
-}
-
-- (NSString *)generateNewKeyWithName:(NSString *)name email:(NSString *)email comment:(NSString *)comment
-							 keyType:(GPGPublicKeyAlgorithm)keyType keyLength:(int)keyLength
-						  subkeyType:(GPGPublicKeyAlgorithm)subkeyType subkeyLength:(int)subkeyLength
-						daysToExpire:(int)daysToExpire preferences:(NSString *)preferences revCert:(BOOL)revCert {
 	if (async && !asyncStarted) {
 		asyncStarted = YES;
 		[asyncProxy generateNewKeyWithName:name email:email comment:comment 
@@ -521,11 +564,13 @@ BOOL gpgConfigReaded = NO;
 			}
 		}
 		
-		[cmdText appendFormat:@"Name-Real: %@\n", name];
-		if ([email length] > 0) {
+		if (name.length > 0) {
+			[cmdText appendFormat:@"Name-Real: %@\n", name];
+		}
+		if (email.length > 0) {
 			[cmdText appendFormat:@"Name-Email: %@\n", email];
 		}
-		if ([comment length] > 0) {
+		if (comment.length > 0) {
 			[cmdText appendFormat:@"Name-Comment: %@\n", comment];
 		}
 		
@@ -539,9 +584,10 @@ BOOL gpgConfigReaded = NO;
 		[cmdText appendString:@"%commit\n"];
 		
 		self.gpgTask = [GPGTask gpgTaskWithArgument:@"--gen-key"];
+		[gpgTask addArgument:@"--allow-freeform-uid"];
 		[self addArgumentsForOptions];
 		gpgTask.batchMode = YES;
-		[gpgTask addInText:cmdText];
+		[gpgTask setInText:cmdText];
 		
 		
 		[gpgTask start];
@@ -562,11 +608,11 @@ BOOL gpgConfigReaded = NO;
 			[[GPGKeyManager sharedInstance] loadKeys:[NSSet setWithObject:fingerprint] fetchSignatures:NO fetchUserAttributes:NO];
 			[self keyChanged:fingerprint];
 		
-			if (revCert) {
-				// Create and save revocation certificate.
-				NSString *path = [[GPGOptions sharedOptions] gpgHome];
-				path = [path stringByAppendingPathComponent:[NSString stringWithFormat:@"RevCerts/%@_rev.asc", fingerprint.keyID]];
-				
+			// Create and save revocation certificate.
+			NSString *path = [[GPGOptions sharedOptions] gpgHome];
+			path = [path stringByAppendingPathComponent:[NSString stringWithFormat:@"openpgp-revocs.d/%@.rev", fingerprint]];
+			
+			if (![[NSFileManager defaultManager] fileExistsAtPath:path]) {
 				GPGTaskOrder *order = [GPGTaskOrder orderWithYesToAll];
 				[order addInt:0 prompt:@"ask_revocation_reason.code" optional:YES];
 				[order addCmd:@"\n" prompt:@"ask_revocation_reason.text" optional:YES];
@@ -582,7 +628,6 @@ BOOL gpgConfigReaded = NO;
 				[gpgTask addArgument:fingerprint];
 				[gpgTask start];
 			}
-		
 		} else {
 			@throw [GPGException exceptionWithReason:localizedLibmacgpgString(@"Generate new key failed!") gpgTask:gpgTask];
 		}
@@ -840,7 +885,7 @@ BOOL gpgConfigReaded = NO;
 		GPGTaskOrder *order = [GPGTaskOrder orderWithYesToAll];
 		
 		if (subkey) {
-			int index = [self indexOfSubkey:subkey fromKey:key];
+			int index = (int)[self indexOfSubkey:subkey fromKey:key];
 			if (index > 0) {
 				[order addCmd:[NSString stringWithFormat:@"key %i\n", index] prompt:@"keyedit.prompt"];
 			} else {
@@ -997,12 +1042,12 @@ BOOL gpgConfigReaded = NO;
 		GPGTaskOrder *order = [GPGTaskOrder orderWithYesToAll];
 		
 		if (hashID) {
-			int uid = [self indexOfUserID:hashID fromKey:key];
+			NSInteger uid = [self indexOfUserID:hashID fromKey:key];
 			
 			if (uid <= 0) {
 				@throw [GPGException exceptionWithReason:localizedLibmacgpgString(@"UserID not found!") userInfo:[NSDictionary dictionaryWithObjectsAndKeys:hashID, @"hashID", key, @"key", nil] errorCode:GPGErrorNoUserID gpgTask:nil];
 			}
-			[order addCmd:[NSString stringWithFormat:@"uid %i\n", uid] prompt:@"keyedit.prompt"];
+			[order addCmd:[NSString stringWithFormat:@"uid %li\n", (long)uid] prompt:@"keyedit.prompt"];
 		}
 		[order addCmd:[NSString stringWithFormat:@"setpref %@\n", preferences] prompt:@"keyedit.prompt"];
 		[order addCmd:@"save\n" prompt:@"keyedit.prompt"];
@@ -1059,7 +1104,7 @@ BOOL gpgConfigReaded = NO;
 - (void)key:(NSObject <KeyFingerprint> *)key setOwnerTrust:(GPGValidity)trust {
 	if (async && !asyncStarted) {
 		asyncStarted = YES;
-		[asyncProxy key:key setOwnerTrsut:trust];
+		[asyncProxy key:key setOwnerTrust:trust];
 		return;
 	}
 	@try {
@@ -1138,7 +1183,7 @@ BOOL gpgConfigReaded = NO;
 				// Data is RTF encoded.
 				
 				//Get keys from RTF data.
-				dataToCheck = [[[[NSAttributedString alloc] initWithData:data options:nil documentAttributes:nil error:nil] string] dataUsingEncoding:NSUTF8StringEncoding];
+				dataToCheck = [[[[NSAttributedString alloc] initWithData:data options:@{} documentAttributes:nil error:nil] string] dataUsingEncoding:NSUTF8StringEncoding];
 				if (dataToCheck.isArmored) {
 					GPGUnArmor *unArmor = [GPGUnArmor unArmorWithGPGStream:[GPGMemoryStream memoryStreamForReading:dataToCheck]];
 					dataToCheck = [unArmor decodeAll];
@@ -1165,7 +1210,7 @@ BOOL gpgConfigReaded = NO;
 		self.gpgTask = [GPGTask gpgTask];
 		[self addArgumentsForOptions];
 		//gpgTask.userInfo = [NSDictionary dictionaryWithObject:order forKey:@"order"]; 
-		[gpgTask addInData:data];
+		[gpgTask setInData:data];
 		[gpgTask addArgument:@"--import"];
 		if (fullImport) {
 			[gpgTask addArgument:@"--import-options"];
@@ -1298,7 +1343,7 @@ BOOL gpgConfigReaded = NO;
 		if (!hashID) {
 			uid = @"uid *\n";
 		} else {
-			int uidIndex = [self indexOfUserID:hashID fromKey:key];
+			int uidIndex = (int)[self indexOfUserID:hashID fromKey:key];
 			if (uidIndex > 0) {
 				uid = [NSString stringWithFormat:@"uid %i\n", uidIndex];
 			} else {
@@ -1350,11 +1395,11 @@ BOOL gpgConfigReaded = NO;
 		[self operationDidStart];
 		[self registerUndoForKey:key withName:@"Undo_RemoveSignature"];
 
-		int uid = [self indexOfUserID:userID.hashID fromKey:key];
+		NSInteger uid = [self indexOfUserID:userID.hashID fromKey:key];
 		
 		if (uid > 0) {
 			GPGTaskOrder *order = [GPGTaskOrder orderWithNoToAll];
-			[order addCmd:[NSString stringWithFormat:@"uid %i\n", uid] prompt:@"keyedit.prompt"];
+			[order addCmd:[NSString stringWithFormat:@"uid %li\n", (long)uid] prompt:@"keyedit.prompt"];
 			[order addCmd:@"delsig\n" prompt:@"keyedit.prompt"];
 			
 			NSArray *userIDsignatures = userID.signatures;
@@ -1405,7 +1450,7 @@ BOOL gpgConfigReaded = NO;
 		[self operationDidStart];
 		[self registerUndoForKey:key withName:@"Undo_RevokeSignature"];
 
-		int uid = [self indexOfUserID:userID.hashID fromKey:key];
+		int uid = (int)[self indexOfUserID:userID.hashID fromKey:key];
 		
 		if (uid > 0) {
 			GPGTaskOrder *order = [GPGTaskOrder orderWithNoToAll];
@@ -1508,11 +1553,11 @@ BOOL gpgConfigReaded = NO;
 		[self operationDidStart];
 		[self registerUndoForKey:key withName:@"Undo_RemoveSubkey"];
 
-		int index = [self indexOfSubkey:subkey fromKey:key];
+		NSInteger index = [self indexOfSubkey:subkey fromKey:key];
 		
 		if (index > 0) {
 			GPGTaskOrder *order = [GPGTaskOrder orderWithYesToAll];
-			[order addCmd:[NSString stringWithFormat:@"key %i\n", index] prompt:@"keyedit.prompt"];
+			[order addCmd:[NSString stringWithFormat:@"key %li\n", (long)index] prompt:@"keyedit.prompt"];
 			[order addCmd:@"delkey\n" prompt:@"keyedit.prompt"];
 			[order addCmd:@"save\n" prompt:@"keyedit.prompt"];
 			
@@ -1548,11 +1593,11 @@ BOOL gpgConfigReaded = NO;
 		[self operationDidStart];
 		[self registerUndoForKey:key withName:@"Undo_RevokeSubkey"];
 
-		int index = [self indexOfSubkey:subkey fromKey:key];
+		NSInteger index = [self indexOfSubkey:subkey fromKey:key];
 		
 		if (index > 0) {
 			GPGTaskOrder *order = [GPGTaskOrder orderWithYesToAll];
-			[order addCmd:[NSString stringWithFormat:@"key %i\n", index] prompt:@"keyedit.prompt"];
+			[order addCmd:[NSString stringWithFormat:@"key %li\n", (long)index] prompt:@"keyedit.prompt"];
 			[order addCmd:@"revkey\n" prompt:@"keyedit.prompt"];
 			[order addInt:reason prompt:@"ask_revocation_reason.code" optional:YES];
 			if (description) {
@@ -1609,6 +1654,7 @@ BOOL gpgConfigReaded = NO;
 		
 		
 		self.gpgTask = [GPGTask gpgTask];
+		[gpgTask addArgument:@"--allow-freeform-uid"];
 		[self addArgumentsForOptions];
 		gpgTask.userInfo = [NSDictionary dictionaryWithObject:order forKey:@"order"]; 
 		[gpgTask addArgument:@"--edit-key"];
@@ -1637,11 +1683,11 @@ BOOL gpgConfigReaded = NO;
 		[self operationDidStart];
 		[self registerUndoForKey:key withName:@"Undo_RemoveUserID"];
 		
-		int uid = [self indexOfUserID:hashID fromKey:key];
+		NSInteger uid = [self indexOfUserID:hashID fromKey:key];
 		
 		if (uid > 0) {
 			GPGTaskOrder *order = [GPGTaskOrder orderWithYesToAll];
-			[order addCmd:[NSString stringWithFormat:@"uid %i\n", uid] prompt:@"keyedit.prompt"];
+			[order addCmd:[NSString stringWithFormat:@"uid %li\n", (long)uid] prompt:@"keyedit.prompt"];
 			[order addCmd:@"deluid\n" prompt:@"keyedit.prompt"];
 			[order addCmd:@"save\n" prompt:@"keyedit.prompt"];
 			
@@ -1677,11 +1723,11 @@ BOOL gpgConfigReaded = NO;
 		[self operationDidStart];
 		[self registerUndoForKey:key withName:@"Undo_RevokeUserID"];
 		
-		int uid = [self indexOfUserID:hashID fromKey:key];
+		NSInteger uid = [self indexOfUserID:hashID fromKey:key];
 		
 		if (uid > 0) {
 			GPGTaskOrder *order = [GPGTaskOrder orderWithYesToAll];
-			[order addCmd:[NSString stringWithFormat:@"uid %i\n", uid] prompt:@"keyedit.prompt"];
+			[order addCmd:[NSString stringWithFormat:@"uid %li\n", (long)uid] prompt:@"keyedit.prompt"];
 			[order addCmd:@"revuid\n" prompt:@"keyedit.prompt"];
 			[order addInt:reason prompt:@"ask_revocation_reason.code" optional:YES];
 			if (description) {
@@ -1726,14 +1772,14 @@ BOOL gpgConfigReaded = NO;
 		[self operationDidStart];
 		[self registerUndoForKey:key withName:@"Undo_PrimaryUserID"];
 		
-		int uid = [self indexOfUserID:hashID fromKey:key];
+		NSInteger uid = [self indexOfUserID:hashID fromKey:key];
 		
 		if (uid > 0) {
 			self.gpgTask = [GPGTask gpgTask];
 			[self addArgumentsForOptions];
 			[gpgTask addArgument:@"--edit-key"];
 			[gpgTask addArgument:[key description]];
-			[gpgTask addArgument:[NSString stringWithFormat:@"%i", uid]];
+			[gpgTask addArgument:[NSString stringWithFormat:@"%li", (long)uid]];
 			[gpgTask addArgument:@"primary"];
 			[gpgTask addArgument:@"save"];
 			
@@ -1845,7 +1891,7 @@ BOOL gpgConfigReaded = NO;
 			[gpgTask addArgument:[key description]];
 		}
 		
-		if ([gpgTask start] != 0 && ![gpgTask.statusDict objectForKey:@"IMPORT_RES"]) {
+		if ([gpgTask start] != 0 && ![gpgTask.statusDict objectForKey:@"IMPORT_RES"] && gpgTask.errorCode != GPGErrorNoData) {
 			@throw [GPGException exceptionWithReason:localizedLibmacgpgString(@"Receive keys failed!") gpgTask:gpgTask];
 		}
 		
@@ -1874,13 +1920,30 @@ BOOL gpgConfigReaded = NO;
 		if ([keys count] == 0) {
 			[NSException raise:NSInvalidArgumentException format:@"Empty key list!"];
 		}
+		
+		
+		NSDictionary *cache = [[GPGOptions sharedOptions] valueInCommonDefaultsForKey:keysOnServerCacheKey];
+		NSMutableDictionary *mutableCache = nil;
+		if ([cache isKindOfClass:[NSDictionary class]]) {
+			mutableCache = [[cache mutableCopy] autorelease];
+		}
+		
 		self.gpgTask = [GPGTask gpgTask];
 		[self addArgumentsForOptions];
 		[self addArgumentsForKeyserver];
 		[gpgTask addArgument:@"--send-keys"];
 		for (id key in keys) {
-			[gpgTask addArgument:[key description]];
+			NSString *fingerprint = [key description];
+			[gpgTask addArgument:fingerprint];
+			if ([mutableCache[fingerprint][@"exists"] boolValue] == NO) {
+				[mutableCache removeObjectForKey:fingerprint];
+			}
 		}
+		
+		if (mutableCache && ![mutableCache isEqualToDictionary:cache]) {
+			[[GPGOptions sharedOptions] setValueInCommonDefaults:mutableCache forKey:keysOnServerCacheKey];
+		}
+		
 		
 		if ([gpgTask start] != 0) {
 			@throw [GPGException exceptionWithReason:localizedLibmacgpgString(@"Send keys failed!") gpgTask:gpgTask];
@@ -1952,7 +2015,7 @@ BOOL gpgConfigReaded = NO;
 		[gpgTask addArgument:@"--"];
 		[gpgTask addArgument:pattern];
 		
-		if ([gpgTask start] != 0) {
+		if ([gpgTask start] != 0 && gpgTask.errorCode != GPGErrorNoData) {
 			@throw [GPGException exceptionWithReason:localizedLibmacgpgString(@"Search keys failed!") gpgTask:gpgTask];
 		}
 		
@@ -1978,17 +2041,17 @@ BOOL gpgConfigReaded = NO;
 	@try {
 		[self operationDidStart];
 		self.gpgTask = [GPGTask gpgTask];
-		
-		GPGTaskOrder *order = [GPGTaskOrder order];
-		[order addCmd:@"q\n" prompt:@"keysearch.prompt" optional:YES];
-		gpgTask.userInfo = @{@"order": order};
-		
+				
 		[self addArgumentsForOptions];
 		[self addArgumentsForKeyserver];
+		gpgTask.batchMode = YES;
 		[gpgTask addArgument:@"--search-keys"];
-		[gpgTask addArgument:@" "];
+		[gpgTask addArgument:@"0x00000000"];
 		
-		result = ([gpgTask start] == 0);
+		[gpgTask start];
+		if (gpgTask.errorCode == GPGErrorNoError || gpgTask.errorCode == GPGErrorCancelled) {
+			result = YES;
+		}
 	} @catch (NSException *e) {
 	} @finally {
 		[self cleanAfterOperation];
@@ -1997,6 +2060,148 @@ BOOL gpgConfigReaded = NO;
 	[self operationDidFinishWithReturnValue:@(result)];
 	return result;
 }
+
+
+- (void)keysExistOnServer:(NSArray *)keys callback:(void (^)(NSArray *existingKeys, NSArray *nonExistingKeys))callback {
+	
+	// Check if GPGKeyserver should be used.
+	// GPGKeyserver is faster than gpg, but only supports http(s) requests.
+	BOOL useGPGKeyserver = NO;
+//	NSURL *url = [NSURL URLWithString:[[GPGOptions sharedOptions] keyserver]];
+//	if (url) {
+//		NSString *scheme = url.scheme;
+//		if (!scheme || [scheme isEqualToString:@"hkp"] || [scheme isEqualToString:@"hkps"] || [scheme isEqualToString:@"http"] || [scheme isEqualToString:@"https"]) {
+//			useGPGKeyserver = YES;
+//		}
+//	}
+	
+	
+	// Prepare cache.
+	NSDictionary *cache = [[GPGOptions sharedOptions] valueInCommonDefaultsForKey:keysOnServerCacheKey];
+	if (![cache isKindOfClass:[NSDictionary class]]) {
+		cache = [[NSDictionary new] autorelease];
+	}
+	NSDate *now = [NSDate date];
+	
+	
+	
+	NSUInteger count = keys.count;
+	NSUInteger i = 0;
+	// resultsData is used as an array. 0 = error, -1 = not on server, 1 = extists on server.
+	__block NSMutableData *resultsData = [[NSMutableData alloc] initWithLength:count];
+	__block char *results = resultsData.mutableBytes;
+	
+	
+	
+	dispatch_group_t dispatchGroup = dispatch_group_create();
+	dispatch_group_enter(dispatchGroup);
+	
+	dispatch_group_notify(dispatchGroup, dispatch_get_main_queue(),^{
+		// This block fills the cache and runs the callback.
+		NSMutableArray *existingKeys = [[NSMutableArray new] autorelease];
+		NSMutableArray *nonExistingKeys = [[NSMutableArray new] autorelease];
+		NSMutableDictionary *mutableCache = [[cache mutableCopy] autorelease];
+		
+		for (NSUInteger j = 0; j < count; j++) {
+			NSInteger value = results[j];
+			
+			GPGKey *key = keys[j];
+			if (value == 1) {
+				NSString *fingerprint = key.description;
+				mutableCache[fingerprint] = @{@"exists": @YES, @"date": now};
+				[existingKeys addObject:key];
+			} else {
+				[nonExistingKeys addObject:key];
+			}
+		}
+		
+		[[GPGOptions sharedOptions] setValueInCommonDefaults:mutableCache forKey:keysOnServerCacheKey];
+		
+		callback([[existingKeys copy] autorelease], [[nonExistingKeys copy] autorelease]);
+		
+		[resultsData release];
+	});
+
+	
+	
+	// Search async for every key in the array.
+	for (GPGKey *key in keys) {
+		dispatch_group_enter(dispatchGroup);
+		NSString *fingerprint = key.description;
+		
+		
+		// Is there a cached result?
+		NSDictionary *cacheEntry = cache[fingerprint];
+		BOOL cacheUsed = NO;
+		if ([cacheEntry[@"exists"] boolValue]) {
+			cacheUsed = YES;
+			results[i] = 1;
+		}
+		
+		
+		if (cacheUsed) {
+			dispatch_group_leave(dispatchGroup);
+		} else {
+			
+			if (useGPGKeyserver) {
+				
+				GPGKeyserver *gpgKeyserver = [[GPGKeyserver new] autorelease];
+				
+				gpgKeyserver.finishedHandler = ^(GPGKeyserver *server) {
+					if (server.error) {
+					} else {
+						NSData *receivedData = server.receivedData;
+						NSData *searchData = [[NSString stringWithFormat:@"pub:%@:", fingerprint] dataUsingEncoding:NSUTF8StringEncoding];
+						
+						if ([receivedData rangeOfData:searchData options:0 range:NSMakeRange(0, receivedData.length)].length > 0) {
+							results[i] = 1;
+						} else {
+							results[i] = -1;
+						}
+					}
+					dispatch_group_leave(dispatchGroup);
+				};
+				[gpgKeyserver searchKey:[@"0x" stringByAppendingString:fingerprint]];
+				
+			} else {
+				
+				self.gpgTask = [GPGTask gpgTask];
+				[self addArgumentsForOptions];
+				gpgTask.batchMode = YES;
+				[self addArgumentsForKeyserver];
+				gpgTask.nonBlocking = YES;
+				[gpgTask addArgument:@"--search-keys"];
+				[gpgTask addArgument:@"--"];
+				[gpgTask addArgument:[@"0x" stringByAppendingString:fingerprint]];
+				GPGTask *searchTask = gpgTask;
+				
+				
+				dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
+					if ([searchTask start] != 0 && gpgTask.errorCode != GPGErrorNoData) {
+					} else {
+						NSData *receivedData = searchTask.outData;
+						NSData *searchData = [[NSString stringWithFormat:@"pub:%@:", fingerprint] dataUsingEncoding:NSUTF8StringEncoding];
+						
+						if ([receivedData rangeOfData:searchData options:0 range:NSMakeRange(0, receivedData.length)].length > 0) {
+							results[i] = 1;
+						} else {
+							results[i] = -1;
+						}
+					}
+					dispatch_group_leave(dispatchGroup);
+				});
+				
+			}
+		}
+		i++;
+	}
+
+	
+	dispatch_group_leave(dispatchGroup);
+
+}
+
+
 
 /*- (NSString *)refreshKeysFromServer:(NSObject <EnumerationList> *)keys { //DEPRECATED!
 	return [self receiveKeysFromServer:keys];
@@ -2238,7 +2443,7 @@ BOOL gpgConfigReaded = NO;
 
 - (BOOL)isPassphraseForKeyInKeychain:(NSObject <KeyFingerprint> *)key {
 	NSString *fingerprint = [key description];
-	return SecKeychainFindGenericPassword (nil, strlen(GPG_SERVICE_NAME), GPG_SERVICE_NAME, [fingerprint UTF8Length], [fingerprint UTF8String], nil, nil, nil) == 0; 
+	return SecKeychainFindGenericPassword (nil, strlen(GPG_SERVICE_NAME), GPG_SERVICE_NAME, (UInt32)fingerprint.UTF8Length, fingerprint.UTF8String, nil, nil, nil) == 0;
 }
 
 - (BOOL)isPassphraseForKeyInGPGAgentCache:(NSObject <KeyFingerprint> *)key {
@@ -2267,9 +2472,7 @@ BOOL gpgConfigReaded = NO;
 	[gpgTask addArgument:@"-k"];
 	[gpgTask addArgument:[key description]];
 	
-	if ([gpgTask start] != 0) {
-		@throw [GPGException exceptionWithReason:localizedLibmacgpgString(@"indexOfUserID failed!") gpgTask:gpgTask];
-	}
+	[gpgTask start];
 	
 	NSString *outText = gpgTask.outText;
 	
@@ -2779,6 +2982,10 @@ BOOL gpgConfigReaded = NO;
 	}
 	if (passphrase) {
 		gpgTask.passphrase = passphrase;
+		if ([[[self.class gpgVersion] substringToIndex:3] isEqualToString:@"2.1"]) {
+			[gpgTask addArgument:@"--pinentry-mode"];
+			[gpgTask addArgument:@"loopback"];
+		}
 	}
 	
 	gpgTask.delegate = self;
@@ -2883,12 +3090,14 @@ BOOL gpgConfigReaded = NO;
 	}
 	
 	@try {
+		GPGOptions *options = [GPGOptions sharedOptions];
+		[options repairGPGConf];
+
+		
 		GPGTask *gpgTask = [GPGTask gpgTask];
 		// Should return as quick as possible if the xpc helper is not available.
 		gpgTask.timeout = GPGTASKHELPER_DISPATCH_TIMEOUT_QUICKLY;
 		[gpgTask addArgument:@"--list-config"];
-		
-		
 		
 		
 		if ([gpgTask start] != 0) {
@@ -2897,18 +3106,13 @@ BOOL gpgConfigReaded = NO;
 			
 			// GPG could also return an error code if there is only an insignificant error. Like a missing keyring or so.
 			// So we need to test explicit for a config error.
-			if ([gpgTask2 start] != 0) { // Config Error.
-				GPGOptions *options = [GPGOptions sharedOptions];
-				[options repairGPGConf];
-				
-				if ([gpgTask start] != 0 && [gpgTask2 start] != 0) {
-					GPGDebugLog(@"GPGController -readGPGConfig: GPGErrorConfigurationError");
-					GPGDebugLog(@"Error text: %@\nStatus text: %@", gpgTask.errText, gpgTask.statusText);
-					if (error) {
-						*error = [GPGException exceptionWithReason:@"GPGErrorConfigurationError" errorCode:GPGErrorConfigurationError gpgTask:gpgTask];
-					}
-					return GPGErrorConfigurationError;
+			if ([gpgTask2 start] == 0) { // Config Error.
+				GPGDebugLog(@"GPGController -readGPGConfig: GPGErrorConfigurationError");
+				GPGDebugLog(@"Error text: %@\nStatus text: %@", gpgTask.errText, gpgTask.statusText);
+				if (error) {
+					*error = [GPGException exceptionWithReason:@"GPGErrorConfigurationError" errorCode:GPGErrorConfigurationError gpgTask:gpgTask];
 				}
+				return GPGErrorConfigurationError;
 			}
 		}
 		

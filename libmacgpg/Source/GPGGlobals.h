@@ -1,5 +1,5 @@
 /*
- Copyright © Roman Zechmeister, 2014
+ Copyright © Roman Zechmeister, 2017
  
  Diese Datei ist Teil von Libmacgpg.
  
@@ -43,7 +43,8 @@ typedef enum {
     GPG_EllipticCurveAlgorithm      = 18,
     GPG_ECDSAAlgorithm              = 19,
     GPG_ElgamalAlgorithm            = 20,
-    GPG_DiffieHellmanAlgorithm      = 21
+    GPG_DiffieHellmanAlgorithm      = 21,
+	GPG_EdDSAAlgorithm				= 22
 } GPGPublicKeyAlgorithm;
 typedef enum {
     GPGPublicKeyEncrypt = 1,
@@ -105,7 +106,7 @@ typedef enum {
 	GPGContent_Key
 } GPGContentType;
 
-typedef enum {
+typedef NS_ENUM(NSInteger, GPGHashAlgorithm) {
     GPGHashAlgorithmMD5 = 1,
     GPGHashAlgorithmSHA1 = 2,
     GPGHashAlgorithmRMD160 = 3,
@@ -113,7 +114,7 @@ typedef enum {
     GPGHashAlgorithmSHA384 = 9,
     GPGHashAlgorithmSHA512 = 10,
     GPGHashAlgorithmSHA224 = 11
-} GPGHashAlgorithm;
+};
 
 enum gpgStatusCodes {
 	GPG_STATUS_NONE = 0, //No Status Code!
@@ -188,7 +189,10 @@ enum gpgStatusCodes {
 	GPG_STATUS_GOODMDC,
 	GPG_STATUS_BADMDC,
 	GPG_STATUS_ERRMDC,
-	
+	GPG_STATUS_WARNING,
+	GPG_STATUS_SUCCESS,
+	GPG_STATUS_FAILURE,
+
 	
 	//DO NOT CHANGE THE ORDER OF THE FOLLOWING LINES!
 	GPG_STATUS_NEWSIG,
