@@ -1,5 +1,5 @@
 /*
- Copyright © Roman Zechmeister, 2014
+ Copyright © Roman Zechmeister, 2017
  
  Diese Datei ist Teil von Libmacgpg.
  
@@ -47,7 +47,7 @@
 	BOOL getAttributeData;
 	NSDictionary *_environmentVariables;
 	
-	NSMutableArray *inDatas;
+	GPGStream *inData;
 	NSString *passphrase;
 	
     GPGTaskHelper *taskHelper;
@@ -82,6 +82,7 @@
 @property (nonatomic, strong) NSString *passphrase;
 @property (nonatomic, readonly) NSInteger exitcode;
 @property (nonatomic, readonly) int errorCode;
+@property (nonatomic, readonly) int fullErrorCode;
 // if not set before starting, GPGTask will use a GPGMemoryStream
 @property (nonatomic, retain) GPGStream *outStream;
 @property (nonatomic, readonly, retain) NSData *errData;
@@ -105,9 +106,9 @@
 - (NSInteger)start;
 
 - (NSData *)outData;
-- (void)addInput:(GPGStream *)stream;
-- (void)addInData:(NSData *)data;
-- (void)addInText:(NSString *)string;
+- (void)setInput:(GPGStream *)stream;
+- (void)setInData:(NSData *)data;
+- (void)setInText:(NSString *)string;
 
 - (void)cancel;
 
