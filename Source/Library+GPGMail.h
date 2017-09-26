@@ -29,6 +29,8 @@
 
 #import <Foundation/Foundation.h>
 
+@class MCMessage, MCMimePart;
+
 @interface Library_GPGMail : NSObject
 
 /**
@@ -39,5 +41,10 @@
  To fix this, they are converted to normal strings first.
  */
 + (id)MAPlistDataForMessage:(id)message subject:(id)subject sender:(id)sender to:(id)to dateSent:(id)dateSent remoteID:(id)remoteID originalMailbox:(id)originalMailbox flags:(long long)flags mergeWithDictionary:(id)mergeWithDictionary;
+
++ (BOOL)GMGetTopLevelMimePart:(__autoreleasing id *)topLevelMimePart headers:(__autoreleasing id *)headers body:(__autoreleasing id *)body forMessage:(MCMessage *)currentMessage messageData:(NSData *)messageData shouldProcessPGPData:(BOOL)shouldProcessPGPData;
+
++ (BOOL)GMMessageMightContainPGPData:(MCMessage *)message;
++ (NSData *)GMRawDataForMessage:(MCMessage *)currentMessage topLevelPart:(MCMimePart *)topLevelPart fetchIfNotAvailable:(BOOL)fetchIfNotAvailable;
 
 @end

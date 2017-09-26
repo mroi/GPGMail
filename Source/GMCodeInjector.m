@@ -481,7 +481,64 @@
              };
 }
 
-
++ (NSDictionary *)hookChangesForHighSierra {
+    return @{
+             @"MFLibrary": @{
+                     @"selectors": @{
+                             @"added": @[
+                                     @"getTopLevelMimePart:headers:body:forMessage:"
+                                     ]
+                             }
+                     },
+             @"MCMessage": @{
+                     @"selectors": @{
+                             @"added": @[
+                                     @"bodyFetchIfNotAvailable:updateFlags:allowPartial:"
+                                     ]
+                             }
+                     },
+             @"MFLibraryStore": @{
+                     @"selectors": @[
+                             @"getTopLevelMimePart:headers:body:forMessage:fetchIfNotAvailable:updateFlags:allowPartial:"]
+             },
+             @"MCMimePart": @{
+                     @"selectors": @{
+                             @"added": @[
+                                     @"_decode",
+                                     @"messageBody"]
+                             }
+                     },
+//             @"MailApp": @{
+//                     @"selectors": @[
+//                             @"setPreferencesController:"]
+//                     },
+//             @"MailTabViewController": @{
+//                     @"selectors": @[
+//                             @"toolbar:itemForItemIdentifier:willBeInsertedIntoToolbar:",
+//                             @"toolbarAllowedItemIdentifiers:",
+//                             @"toolbarSelectableItemIdentifiers:",
+//                             @"toolbarDefaultItemIdentifiers:"
+//                             ]
+//                     }
+             @"HeaderViewController": @{
+                     @"selectors": @{
+                             @"added": @[@"securityHeaderString"]
+                             }
+                     },
+             @"MCMemoryDataSource": @{
+                     @"selectors": @[@"getTopLevelMimePart:headers:body:forMessage:fetchIfNotAvailable:updateFlags:allowPartial:"]
+                     },
+             @"ComposeBackEnd": @{
+                     @"selectors": @{
+                             @"renamed": @[
+                                     @[
+                                         @"_generateParsedMessageFromOriginalMessages",
+                                         @"_generateMessageBodiesFromOriginalMessages"]
+                                     ]
+                             }
+                     }
+     };
+}
 
 + (NSDictionary *)hooks {
 	static dispatch_once_t onceToken;
@@ -505,6 +562,9 @@
         if([GPGMailBundle isSierra]) {
             [self applyHookChangesForVersion:@"10.12" toHooks:hooks];
         }
+        if([GPGMailBundle isHighSierra]) {
+            [self applyHookChangesForVersion:@"10.13" toHooks:hooks];
+        }
         
 		_hooks = [NSDictionary dictionaryWithDictionary:hooks];
 	});
@@ -522,7 +582,8 @@
 		hookChanges = [self hookChangesForElCapitan];
     else if([osxVersion isEqualToString:@"10.12"])
         hookChanges = [self hookChangesForSierra];
-	
+	else if([osxVersion isEqualToString:@"10.13"])
+        hookChanges = [self hookChangesForHighSierra];
 	for(NSString *class in hookChanges) {
 		NSDictionary *hook = hookChanges[class];
         // class seems to be a protected identifier in lldb.
@@ -620,6 +681,7 @@
     
     NSError * __autoreleasing error = nil;
     for(NSString *class in hooks) {
+        NSString *klass = class;
         NSString *oldClass = [[self class] legacyClassNameForName:class];
         error = nil;
         

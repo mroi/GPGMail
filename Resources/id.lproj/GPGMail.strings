@@ -15,7 +15,7 @@
 "MESSAGE_ERROR_ALERT_PGP_VERIFY_NOT_IN_KEYCHAIN_MESSAGE" = "Tak ada informasi tambahan yang diketahui tentang kunci PGP ini, karena ini tak ada dalam keychain Anda.";
 
 "MESSAGE_BANNER_PGP_DECRYPT_SECKEY_ERROR_TITLE" = "Kunci rahasia untuk mendekripsi pesan ini hilang.";
-"MESSAGE_BANNER_PGP_DECRYPT_SECKEY_ERROR_MESSAGE" = "Tak satupun dari kunci rahasia berikut dapat ditemukan dalam ring kunci Anda (%@). Kunci rahasia diperlukan untuk mendekripsi pesan ini.\n\nPeriksalah dengan si pengirim bahwa mereka memakai kunci publik Anda yang benar.\nPeriksalah cadangan ring kunci Anda, dan cobalah mengimpor kunci rahasia dari sana.";
+"MESSAGE_BANNER_PGP_DECRYPT_SECKEY_ERROR_MESSAGE" = "None of the following secret keys could be found in your keychain (%@). The secret key is needed to decrypt this message. \n\nPlease check with the sender that they used your correct public key.\nCheck any backup of your keychain, and try to import the secret key from there.";
 
 "MESSAGE_BANNER_PGP_DECRYPT_SYSTEM_ERROR_TITLE" = "Dekripsi gagal dengan kesalahan tak dikenal!";
 "MESSAGE_BANNER_PGP_DECRYPT_SYSTEM_ERROR_MESSAGE" = "Terjadi galat yang tak dikenal ketika mendekripsi pesan ini.\n\nHarap hubungi kami pada https://gpgtools.tenderapp.com";
@@ -75,7 +75,7 @@
 
 /* Message Error Banner Attachment messages. */
 "MESSAGE_BANNER_PGP_ATTACHMENT_DECRYPT_SECKEY_ERROR_TITLE" = "Kunci rahasia untuk mendekripsi lampiran hilang.";
-"MESSAGE_BANNER_PGP_ATTACHMENT_DECRYPT_SECKEY_ERROR_MESSAGE" = "Tak satupun dari kunci rahasia berikut dapat ditemukan dalam ring kunci Anda (%@). Kunci rahasia diperlukan untuk mendekripsi lampiran ini.\n\nPeriksalah dengan si pengirim bahwa mereka memakai kunci publik Anda yang benar.\nPeriksalah cadangan ring kunci Anda, dan cobalah mengimpor kunci rahasia dari sana.";
+"MESSAGE_BANNER_PGP_ATTACHMENT_DECRYPT_SECKEY_ERROR_MESSAGE" = "None of the following secret keys could be found in your keychain (%@). The secret key is needed to decrypt this attachment. \n\nPlease check with the sender that they used your correct public key.\nCheck any backup of your keychain, and try to import the secret key from there.";
 
 "MESSAGE_BANNER_PGP_ATTACHMENT_DECRYPT_SYSTEM_ERROR_TITLE" = "Dekripsi gagal dengan kesalahan tak dikenal!";
 "MESSAGE_BANNER_PGP_ATTACHMENT_DECRYPT_SYSTEM_ERROR_MESSAGE" = "Terjadi galat yang tak dikenal ketika mendekripsi pesan ini.\n\nHarap hubungi kami pada https://gpgtools.tenderapp.com";
@@ -231,9 +231,19 @@ NO_DEFAULTS_MESSAGE = "GPGMail tidak bekerja seperti yang diharapkan.\n\nHarap u
 "UNENCRYPTED_REPLY_TO_ENCRYPTED_MESSAGE_EXPLANATION" = "Bila Anda memilih untuk melanjutkan, jawaban Anda akan dikirim tak terenkripsi. Akibatnya, informasi konfidensial mungkin bocor, menyebabkan risiko bagi Anda dan penerima surat Anda.";
 "UNENCRYPTED_REPLY_TO_ENCRYPTED_MESSAGE_SOLUTION_REMOVE_PREVIOUS_CORRESPONDENCE" = "\n\nBila Anda memang hendak mengirim jawaban ini tak terenkripsi, harap hapus semua korespondensi terdahulu yang disertakan dalam jawaban Anda sebelum mengirim.";
 "UNENCRYPTED_REPLY_TO_ENCRYPTED_MESSAGE_SOLUTION_IMPORT_KEYS" = "Bila tidak, cari dan impor kunci publik yang terkait memakai GPG Keychain agar mengirim jawaban terenkripsi.";
-"UNENCRYPTED_REPLY_TO_ENCRYPTED_MESSAGE_SOLUTION_IMPORT_KEYS_SINGULAR" = "Bila tidak, cari dan impor kunci publik yang terkait memakai GPG Keychain agar mengirim jawaban terenkripsi.";
+"UNENCRYPTED_REPLY_TO_ENCRYPTED_MESSAGE_SOLUTION_IMPORT_KEYS_SINGULAR" = "Otherwise, search and import the corresponding public key using GPG Keychain in order to send the reply encrypted.";
 "UNENCRYPTED_REPLY_TO_ENCRYPTED_MESSAGE_BUTTON_SEND_ANYWAY" = "Kirim Saja";
 "UNENCRYPTED_REPLY_TO_ENCRYPTED_MESSAGE_BUTTON_CANCEL" = "Batal";
+
+"UNENCRYPTED_FORWARD_OF_ENCRYPTED_MESSAGE_TITLE" = "Attention: You're about to forward the decrypted version of an encrypted message";
+"UNENCRYPTED_FORWARD_OF_ENCRYPTED_MESSAGE_MISSING_KEYS_SINGULAR" = "It's not possible to encrypt the message you are about to forward, because the public key for the following recipient is missing:\n\n%@";
+"UNENCRYPTED_FORWARD_OF_ENCRYPTED_MESSAGE_MISSING_KEYS" = "It's not possible to encrypt the message you are about to forward, because public keys for the following recipients are missing:\n\n%@";
+"UNENCRYPTED_FORWARD_OF_ENCRYPTED_MESSAGE_EXPLANATION" = "If you choose to proceed, the message you are about to forward will be sent unencrypted. As a result, confidential information might be leaked, putting you and your recipients at risk.";
+"UNENCRYPTED_FORWARD_OF_ENCRYPTED_MESSAGE_SOLUTION_IMPORT_KEYS" = "Otherwise, search and import the corresponding public keys using GPG Keychain in order to forward an encrypted version of the message.";
+"UNENCRYPTED_FORWARD_OF_ENCRYPTED_MESSAGE_SOLUTION_IMPORT_KEYS_SINGULAR" = "Otherwise, search and import the corresponding public key using GPG Keychain in order to forward an encrypted version of the message.";
+"UNENCRYPTED_FORWARD_OF_ENCRYPTED_MESSAGE_BUTTON_SEND_ANYWAY" = "Forward Anyway";
+"UNENCRYPTED_FORWARD_OF_ENCRYPTED_MESSAGE_BUTTON_CANCEL" = "Batal";
+
 
 
 /* Accessibility */

@@ -173,6 +173,16 @@
     [self MAToggleDetails:target];
 }
 
+
+
+- (NSAttributedString *)MASecurityHeaderString {
+    NSAttributedString *securityHeaderString = [self MA_displayStringForSecurityKey];
+    if(!securityHeaderString || [securityHeaderString length] == 0) {
+        return [self MASecurityHeaderString];
+    }
+    return securityHeaderString;
+}
+
 - (void)MA_updateTextStorageWithHardInvalidation:(BOOL)hardValidation {
     [self MA_updateTextStorageWithHardInvalidation:hardValidation];
     

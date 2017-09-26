@@ -34,16 +34,21 @@ typedef enum {
     
     ThreeStateBoolean _userShouldSignMessage;
     ThreeStateBoolean _userShouldEncryptMessage;
+
+    GPGKey *_signingKey;
+    NSString *_signingSender;
 }
 
 + (GPGMAIL_SECURITY_METHOD)defaultSecurityMethod;
 
 - (id)initWithSender:(NSString *)sender recipients:(NSArray *)recipients;
-- (id)initWithSender:(NSString *)sender recipients:(NSArray *)recipients userShouldSignMessage:(ThreeStateBoolean)userShouldSignMessage userShouldEncryptMessage:(ThreeStateBoolean)userShouldEncryptMessage;
+- (id)initWithSender:(NSString *)sender signingKey:(GPGKey *)signingKey recipients:(NSArray *)recipients userShouldSignMessage:(ThreeStateBoolean)userShouldSignMessage userShouldEncryptMessage:(ThreeStateBoolean)userShouldEncryptMessage;
 
 - (void)addHintsFromBackEnd:(ComposeBackEnd *)backEnd;
 
 - (void)computePreferredSecurityPropertiesForSecurityMethod:(GPGMAIL_SECURITY_METHOD)securityMethod;
+
+- (void)updateSigningKey:(GPGKey *)signingKey forSender:(NSString *)sender;
 
 - (GPGKey *)encryptionKeyForDraft;
 
@@ -80,6 +85,9 @@ typedef enum {
 
 @property (nonatomic, copy) NSString *sender;
 @property (nonatomic, copy) NSArray *recipients;
+
+@property (nonatomic, readonly, retain) GPGKey *signingKey;
+@property (nonatomic, readonly, retain) NSString *signingSender;
 
 @property (nonatomic, copy) NSDictionary *cachedSigningIdentities;
 @property (nonatomic, copy) NSDictionary *cachedEncryptionCertificates;

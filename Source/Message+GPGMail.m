@@ -60,7 +60,7 @@
 
 #define mailself ((MCMessage *)self)
 
-const static NSString *kMessageSecurityFeaturesKey = @"MessageSecurityFeaturesKey";
+NSString * const kMessageSecurityFeaturesKey = @"MessageSecurityFeaturesKey";
 extern const NSString *kMimeBodyMessageKey;
 extern NSString * const kMimePartAllowPGPProcessingKey;
 
@@ -203,23 +203,10 @@ extern NSString * const kMimePartAllowPGPProcessingKey;
     return [self getIvar:kMessageSecurityFeaturesKey];
 }
 
-//
-//// TODO: Save all PGP info on the mimebody object instead.
-- (id)MAParsedMessage {
-    // This method is called, when a message is opened from outside the library (an .eml is loaded.)
-    id messageData = [((MCMessage *)self) messageDataIncludingFromSpace:0x0 newDocumentID:0x0 fetchIfNotAvailable:0x1];
-    id parsedMessage = nil;
-    if (messageData) {
-        MCMimePart *topLevelPart = [[MCMimePart alloc] initWithEncodedData:messageData];
-        MCMimeBody *body = [MCMimeBody new];
-        [body setIvar:kMimeBodyMessageKey value:self];
-        [topLevelPart setIvar:kMimePartAllowPGPProcessingKey value:@(YES)];
-        [topLevelPart setIvar:@"MimeBody" value:body];
-        [body setTopLevelPart:topLevelPart];
-        [(MCMimePart *)topLevelPart parse];
-        parsedMessage = [body parsedMessage];
-    }
-    return parsedMessage;
+- (id)MABodyFetchIfNotAvailable:(BOOL)arg1 updateFlags:(BOOL)arg2 allowPartial:(BOOL)arg3 {
+    id ret = [self MABodyFetchIfNotAvailable:arg1 updateFlags:arg2 allowPartial:arg3];
+    [ret setIvar:kMessageSecurityFeaturesKey value:[ret getIvar:kMessageSecurityFeaturesKey]];
+    return ret;
 }
 
 @end

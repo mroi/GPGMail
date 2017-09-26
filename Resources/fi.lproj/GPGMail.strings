@@ -15,7 +15,7 @@
 "MESSAGE_ERROR_ALERT_PGP_VERIFY_NOT_IN_KEYCHAIN_MESSAGE" = "Tästä PGP-avaimesta ei ole lisätietoja, koska se ei ole avainrenkaassasi.";
 
 "MESSAGE_BANNER_PGP_DECRYPT_SECKEY_ERROR_TITLE" = "Viestin purkuun vaadittava salainen avain puuttuu.";
-"MESSAGE_BANNER_PGP_DECRYPT_SECKEY_ERROR_MESSAGE" = "Viestin purkamista varten tarvitaan salainen avain, mutta sopivaa salaista avainta ei löydetty avainnipustasi (%@).\n\nSyynä voi olla, että lähettäjä on käyttänyt väärää, rikkinäistä tai kelvotonta julkista avainta viestin salaamiseen. Voit siis pyytää lähettäjää tarkistamaan käytetyn avaimen. Tai jos epäilet että olet hukannut avaimen tms. ja sinulla on varmuuskopio avainnipustasi, niin voit koettaa löytää salaisen avaimen varmuuskopiostasi. ";
+"MESSAGE_BANNER_PGP_DECRYPT_SECKEY_ERROR_MESSAGE" = "None of the following secret keys could be found in your keychain (%@). The secret key is needed to decrypt this message. \n\nPlease check with the sender that they used your correct public key.\nCheck any backup of your keychain, and try to import the secret key from there.";
 
 "MESSAGE_BANNER_PGP_DECRYPT_SYSTEM_ERROR_TITLE" = "Salauksen purkaminen epäonnistui tuntemattoman virheen takia!";
 "MESSAGE_BANNER_PGP_DECRYPT_SYSTEM_ERROR_MESSAGE" = "Tuntematon virhe salausta purettaessa.\n\nOle hyvä ja ota yhteyttä meihin osoitteessa https://gpgtools.tenderapp.com";
@@ -75,7 +75,7 @@
 
 /* Message Error Banner Attachment messages. */
 "MESSAGE_BANNER_PGP_ATTACHMENT_DECRYPT_SECKEY_ERROR_TITLE" = "Liitteen salauksen purkamiseen tarvittavaa salaista avainta ei löydy.";
-"MESSAGE_BANNER_PGP_ATTACHMENT_DECRYPT_SECKEY_ERROR_MESSAGE" = "None of the following secret keys could be found in your keychain (%@). The secret key is needed to decrypt this attachment. \n\n Please check with the sender that they used your correct public key.\nCheck any backup of your keychain, and try to import the secret key from there.";
+"MESSAGE_BANNER_PGP_ATTACHMENT_DECRYPT_SECKEY_ERROR_MESSAGE" = "None of the following secret keys could be found in your keychain (%@). The secret key is needed to decrypt this attachment. \n\nPlease check with the sender that they used your correct public key.\nCheck any backup of your keychain, and try to import the secret key from there.";
 
 "MESSAGE_BANNER_PGP_ATTACHMENT_DECRYPT_SYSTEM_ERROR_TITLE" = "Salauksen purkaminen epäonnistui tuntemattoman virheen takia!";
 "MESSAGE_BANNER_PGP_ATTACHMENT_DECRYPT_SYSTEM_ERROR_MESSAGE" = "Tuntematon virhe ilmeni liitteen salausta purkaessa.\n\nOle hyvä ja ota yhteyttä https://gpgtools.tenderapp.com/";
@@ -231,9 +231,19 @@ NO_DEFAULTS_MESSAGE = "GPGMail ei toimi odotetusti.\n\nOle hyvä ja asenna GPG S
 "UNENCRYPTED_REPLY_TO_ENCRYPTED_MESSAGE_EXPLANATION" = "Jos jatkat, vastauksesi lähetetään salaamattomana ja sen sisältö on tietovuodon sattuessa suojaton. Suojattoman viestin tietojen väärinkäytöstä voi koitua haittaa sinulle, viestin vastaanottajalle ja/tai muille asianosaisille.";
 "UNENCRYPTED_REPLY_TO_ENCRYPTED_MESSAGE_SOLUTION_REMOVE_PREVIOUS_CORRESPONDENCE" = "\n\nJos todellakin haluat lähettää vastauksen salaamattomana, ole hyvä ja jätä vastauksesta pois aiempi (salattu) kirjeenvaihto.";
 "UNENCRYPTED_REPLY_TO_ENCRYPTED_MESSAGE_SOLUTION_IMPORT_KEYS" = "Muussa tapauksessa, nouda vastaavat julkiset avaimet GPG Keychain -ohjelmaan salataksesi vastauksen.";
-"UNENCRYPTED_REPLY_TO_ENCRYPTED_MESSAGE_SOLUTION_IMPORT_KEYS_SINGULAR" = "Muussa tapauksessa, nouda vastaava julkinen avain GPG Keychain -ohjelmaan salataksesi vastauksen.";
+"UNENCRYPTED_REPLY_TO_ENCRYPTED_MESSAGE_SOLUTION_IMPORT_KEYS_SINGULAR" = "Otherwise, search and import the corresponding public key using GPG Keychain in order to send the reply encrypted.";
 "UNENCRYPTED_REPLY_TO_ENCRYPTED_MESSAGE_BUTTON_SEND_ANYWAY" = "Lähetä joka tapauksessa";
 "UNENCRYPTED_REPLY_TO_ENCRYPTED_MESSAGE_BUTTON_CANCEL" = "Peruuta";
+
+"UNENCRYPTED_FORWARD_OF_ENCRYPTED_MESSAGE_TITLE" = "Attention: You're about to forward the decrypted version of an encrypted message";
+"UNENCRYPTED_FORWARD_OF_ENCRYPTED_MESSAGE_MISSING_KEYS_SINGULAR" = "It's not possible to encrypt the message you are about to forward, because the public key for the following recipient is missing:\n\n%@";
+"UNENCRYPTED_FORWARD_OF_ENCRYPTED_MESSAGE_MISSING_KEYS" = "It's not possible to encrypt the message you are about to forward, because public keys for the following recipients are missing:\n\n%@";
+"UNENCRYPTED_FORWARD_OF_ENCRYPTED_MESSAGE_EXPLANATION" = "If you choose to proceed, the message you are about to forward will be sent unencrypted. As a result, confidential information might be leaked, putting you and your recipients at risk.";
+"UNENCRYPTED_FORWARD_OF_ENCRYPTED_MESSAGE_SOLUTION_IMPORT_KEYS" = "Otherwise, search and import the corresponding public keys using GPG Keychain in order to forward an encrypted version of the message.";
+"UNENCRYPTED_FORWARD_OF_ENCRYPTED_MESSAGE_SOLUTION_IMPORT_KEYS_SINGULAR" = "Otherwise, search and import the corresponding public key using GPG Keychain in order to forward an encrypted version of the message.";
+"UNENCRYPTED_FORWARD_OF_ENCRYPTED_MESSAGE_BUTTON_SEND_ANYWAY" = "Forward Anyway";
+"UNENCRYPTED_FORWARD_OF_ENCRYPTED_MESSAGE_BUTTON_CANCEL" = "Peruuta";
+
 
 
 /* Accessibility */

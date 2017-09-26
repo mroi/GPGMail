@@ -34,6 +34,7 @@
 
 @class MimeBody;
 @class MCMessage;
+@class GMMessageSecurityFeatures;
 
 #define PGP_ATTACHMENT_EXTENSION @"pgp"
 #define PGP_PART_MARKER_START @"::gpgmail-start-pgp-part::"
@@ -78,7 +79,7 @@ enum {
 @property (retain) NSArray *PGPSignatures;
 @property (retain) NSError *PGPError;
 //@property (retain) NSData *PGPDecryptedData;
-@property (retain) MCMimeBody *PGPDecryptedBody;
+//@property (retain) MCMimeBody *PGPDecryptedBody;
 //@property (retain) NSString *PGPDecryptedContent;
 @property (retain) NSString *PGPVerifiedContent;
 @property (retain) NSData *PGPVerifiedData;
@@ -231,7 +232,7 @@ enum {
 /**
  Creates a new message similar the way S/MIME does it, from the decryptedData.
  */
-- (MCMimeBody *)decryptedMessageBodyFromDecryptedData:(NSData *)decryptedData;
+//- (MCMimeBody *)decryptedMessageBodyFromDecryptedData:(NSData *)decryptedData;
 
 /**
  Returns the complete part data but replaces the encrypted data with the decrypted
@@ -383,6 +384,12 @@ enum {
 - (void)failedToEncryptForRecipients:(NSArray *)recipients gpgErrorCode:(GPGErrorCode)errorCode error:(NSException *)error;
 
 - (BOOL)shouldBePGPProcessed;
+
+- (MCMimePart *)decryptedTopLevelMimePart;
+- (GMMessageSecurityFeatures *)securityFeatures;
+
+- (BOOL)mightContainPGPMIMESignedData;
+- (BOOL)mightContainPGPData;
 
 @end
 

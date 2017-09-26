@@ -120,7 +120,14 @@ const static NSString *kMCMessageGeneratorSigningKeyKey = @"MCMessageGeneratorSi
         messageShouldBeProtectedUsingPGP = YES;
     }
     for(id certificate in encryptionCertificates) {
-        if([certificate isKindOfClass:[GPGKey class]]) {
+        if([certificate isKindOfClass:[NSArray class]]) {
+            for(id element in certificate) {
+                if([element isKindOfClass:[GPGKey class]]) {
+                    messageShouldBeProtectedUsingPGP = YES;
+                }
+            }
+        }
+        else if([certificate isKindOfClass:[GPGKey class]]) {
             messageShouldBeProtectedUsingPGP = YES;
         }
     }
@@ -138,7 +145,7 @@ const static NSString *kMCMessageGeneratorSigningKeyKey = @"MCMessageGeneratorSi
     if(signingIdentity) {
         NSString *senderAddress = [EAEmailAddressParser rawAddressFromFullAddress:[topLevelHeaders firstAddressForKey:@"resent-from"]];
         if(!senderAddress) {
-            [EAEmailAddressParser rawAddressFromFullAddress:[topLevelHeaders firstAddressForKey:@"from"]];
+            senderAddress = [EAEmailAddressParser rawAddressFromFullAddress:[topLevelHeaders firstAddressForKey:@"from"]];
         }
         
         NSMutableData *newData = [mailself _newDataForMimePart:topLevelPart withPartData:partData];
@@ -190,7 +197,7 @@ const static NSString *kMCMessageGeneratorSigningKeyKey = @"MCMessageGeneratorSi
     // Since the encryption certificates were reset, in order to prevent Mail from encrypting
     // the message itself, they have to be re-added now, that the message has been created,
     // so it's possible for future calls of this method, to have the contents encrypted as well.
-    [mailself setSigningIdentity:(__bridge struct OpaqueSecIdentityRef *)(signingIdentity)];
+    [mailself setSigningIdentity:signingIdentity];
     mailself.encryptionCertificates = encryptionCertificates;
     
     return outgoingMessage;

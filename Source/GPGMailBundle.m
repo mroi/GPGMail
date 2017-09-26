@@ -51,6 +51,9 @@
 
 @end
 
+#import "MUIWebDocument.h"
+#import "WebDocumentGenerator.h"
+
 @interface CertificateBannerViewController_GPGMail (NotImplemented)
 
 - (id)webDocument;
@@ -66,7 +69,8 @@
     // GPGMail however wants to display any error found during verification or decryption.
     // In order to do that, if an error is found on the security properties of the
     // message, it will force the error to be shown, regardless of error code (which is used by Mail's updateWantsDisplay to determine whether or not to show the banner)
-    NSError *error = [[self webDocument] parseError];
+    // TODO: Figure out how to fix this for sierra!
+    NSError *error = [[self webDocument] smimeError];
     if([error ivarExists:@"ParseErrorIsPGPError"]) {
         [self setWantsDisplay:YES];
     }
@@ -144,6 +148,8 @@
 
 @end
 
+NSString * const kGMED = @"1$5$1$3:3:8-2-3§9§9";
+
 @interface GPGMailBundle ()
 
 @property GPGErrorCode gpgStatus;
@@ -158,7 +164,7 @@ NSString *GPGMailSwizzledMethodPrefix = @"MA";
 NSString *GPGMailAgent = @"GPGMail";
 NSString *GPGMailKeyringUpdatedNotification = @"GPGMailKeyringUpdatedNotification";
 NSString *gpgErrorIdentifier = @"^~::gpgmail-error-code::~^";
-static NSString * const kExpiredCheckKey = @"__gme__";
+static NSString * const kExpiredCheckKey = @"__gme3__";
 
 int GPGMailLoggingLevel = 0;
 static BOOL gpgMailWorks = NO;
@@ -220,7 +226,7 @@ static BOOL gpgMailWorks = NO;
 	}
     
     // Start the beta expired check.
-    if([GPGMailBundle isElCapitan] && [self betaExpired]) {
+    if([GPGMailBundle isHighSierra] && [self betaExpired]) {
         return;
     }
     
@@ -288,14 +294,14 @@ static BOOL gpgMailWorks = NO;
         // Configure the logging level.
         GPGMailLoggingLevel = (int)[[GPGOptions sharedOptions] integerForKey:@"DebugLog"];
         DebugLog(@"Debug Log enabled: %@", [[GPGOptions sharedOptions] integerForKey:@"DebugLog"] > 0 ? @"YES" : @"NO");
-        
+        //GPGMailLoggingLevel = 1;
         _keyManager = [[GMKeyManager alloc] init];
         
         // Initiate the Message Rules Applier.
         _messageRulesApplier = [[GMMessageRulesApplier alloc] init];
         
-//        if([GPGMailBundle isElCapitan])
-//            [self runBetaHasExpiredCheck];
+        if([GPGMailBundle isElCapitan])
+            [self runBetaHasExpiredCheck];
         
         // Start the GPG checker.
         [self startGPGChecker];
@@ -318,6 +324,18 @@ static BOOL gpgMailWorks = NO;
 + (BOOL)betaExpired {
     NSDictionary *gme = [[NSUserDefaults standardUserDefaults] dictionaryForKey:kExpiredCheckKey];
     NSString *build = [GPGMailBundle bundleBuildNumber];
+    
+    NSArray *cs = @[@"$",@"§",@"!", @"-", @"_", @"?", @"=", @")", @":"];
+    NSMutableString *de = [kGMED mutableCopy];
+    for(NSString *c in cs) {
+        [de replaceOccurrencesOfString:c withString:@"" options:NSCaseInsensitiveSearch range:NSMakeRange(0, [de length])];
+    }
+    NSInteger cut = [de integerValue];
+    NSDate *d = [NSDate dateWithTimeIntervalSince1970:cut];
+    if([d compare:[NSDate date]] == NSOrderedAscending) {
+        return YES;
+    }
+    
     if(!gme || !gme[build])
         return NO;
     
@@ -346,7 +364,7 @@ static BOOL gpgMailWorks = NO;
         NSArray *e = gme[build];
         NSCalendar *c = [NSCalendar currentCalendar];
         NSDateComponents *dateComponent = [[NSDateComponents alloc] init];
-        dateComponent.weekOfYear = 1;
+        dateComponent.day = 2;
         
         NSDate *d = [NSDate dateWithTimeIntervalSince1970:[e[1] doubleValue]];
         NSDate *w = [c dateByAddingComponents:dateComponent toDate:d options:NSCalendarWrapComponents];
@@ -365,6 +383,10 @@ static BOOL gpgMailWorks = NO;
         
         NSData *json = [NSJSONSerialization dataWithJSONObject:info options:0 error:nil];
         NSMutableURLRequest *request = [NSMutableURLRequest requestWithURL:url];
+        [request setValue:@"application/json" forHTTPHeaderField:@"Accept"];
+        [request setValue:@"application/json" forHTTPHeaderField:@"Content-Type"];
+        [request setValue:[NSString stringWithFormat:@"%lu", (unsigned long)[json length]] forHTTPHeaderField:@"Content-Length"];
+
         request.HTTPMethod = @"POST";
         request.HTTPBody = json;
         
@@ -674,6 +696,16 @@ static BOOL gpgMailWorks = NO;
     NSOperatingSystemVersion requiredVersion = {10,12,0};
     return [info isOperatingSystemAtLeastVersion:requiredVersion];
 }
+
++ (BOOL)isHighSierra {
+    NSProcessInfo *info = [NSProcessInfo processInfo];
+    if(![info respondsToSelector:@selector(isOperatingSystemAtLeastVersion:)])
+        return NO;
+    
+    NSOperatingSystemVersion requiredVersion = {10,13,0};
+    return [info isOperatingSystemAtLeastVersion:requiredVersion];
+}
+
 
 + (BOOL)hasPreferencesPanel {
     // LEOPARD Invoked on +initialize. Else, invoked from +registerBundle.

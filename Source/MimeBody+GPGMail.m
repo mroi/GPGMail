@@ -43,7 +43,7 @@
 
 #define MAIL_SELF ((MCMimeBody *)self)
 
-const static NSString *kMessageSecurityFeaturesKey = @"MessageSecurityFeaturesKey";
+extern NSString * const kMessageSecurityFeaturesKey;
 const NSString *kMimeBodyMessageKey = @"MimeBodyMessageKey";
 
 @interface MimeBody_GPGMail (NotImplemented)
@@ -54,20 +54,21 @@ const NSString *kMimeBodyMessageKey = @"MimeBodyMessageKey";
 
 @implementation MimeBody_GPGMail
 
-- (BOOL)MAIsSignedByMe {
-    // This method tries to check the
-    // signatures internally, if some are set.
-    // This results in a crash, since Mail.app
-    // can't handle GPGSignature signatures.
-    GMMessageSecurityFeatures *securityProperties = [self securityFeatures];
-    NSArray *messageSigners = [securityProperties PGPSignatures];
-    if([messageSigners count] && [messageSigners[0] isKindOfClass:[GPGSignature class]]) {
-        return YES;
-    }
-    // Otherwise call the original method.
-    BOOL ret = [self MAIsSignedByMe];
-    return ret;
-}
+// TODO: Gone in High Sierra. Remove? Find replacement?
+//- (BOOL)MAIsSignedByMe {
+//    // This method tries to check the
+//    // signatures internally, if some are set.
+//    // This results in a crash, since Mail.app
+//    // can't handle GPGSignature signatures.
+//    GMMessageSecurityFeatures *securityProperties = [self securityFeatures];
+//    NSArray *messageSigners = [securityProperties PGPSignatures];
+//    if([messageSigners count] && [messageSigners[0] isKindOfClass:[GPGSignature class]]) {
+//        return YES;
+//    }
+//    // Otherwise call the original method.
+//    BOOL ret = [self MAIsSignedByMe];
+//    return ret;
+//}
 
 /**
  It's not exactly clear when this method is used, but internally it
@@ -81,14 +82,13 @@ const NSString *kMimeBodyMessageKey = @"MimeBodyMessageKey";
  Apparently 
  
  */
-- (BOOL)MA_isPossiblySignedOrEncrypted {
-    // Check if message should be processed (-[Message shouldBePGPProcessed] - Snippet generation check)
-    // otherwise out of here!
-    if(![(MimePart_GPGMail *)[MAIL_SELF topLevelPart] shouldBePGPProcessed])
-        return [self MA_isPossiblySignedOrEncrypted];
-
-    return [self MA_isPossiblySignedOrEncrypted] || [self mightContainPGPData];
-}
+// TODO: Gone in High Sierra. Remove? Find replacement?
+//- (BOOL)MA_isPossiblySignedOrEncrypted {
+//    // Check if message should be processed (-[Message shouldBePGPProcessed] - Snippet generation check)
+//    // otherwise out of here!
+//    if(![(MimePart_GPGMail *)[MAIL_SELF topLevelPart] shouldBePGPProcessed])
+//        return [self MA_isPossiblySignedOrEncrypted];
+//}
 
 - (BOOL)mightContainPGPMIMESignedData {
     __block BOOL foundMIMESignedTopLevel = NO;

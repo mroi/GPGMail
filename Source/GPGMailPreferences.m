@@ -34,6 +34,7 @@
 
 #import "MFMailAccount.h"
 #import "MFRemoteStoreAccount.h"
+#import "MailApp.h"
 
 #define localized(key) [GPGMailBundle localizedStringForKey:key]
 
@@ -188,14 +189,13 @@ NSString *SUScheduledCheckIntervalKey = @"SUScheduledCheckInterval";
 	return NO;
 }
 
-
 - (BOOL)validateEncryptDrafts:(NSNumber **)value error:(NSError **)error {
 	if ([*value boolValue] == NO) {
 		NSArray *accounts = (NSArray *)[MFMailAccount mailAccounts];
 		for (id account in accounts) {
 			if ([account respondsToSelector:@selector(storeDraftsOnServer)] && [account storeDraftsOnServer]) {
 				
-				NSWindow *window = [[NSPreferences sharedPreferences] valueForKey:@"_preferencesPanel"];
+                NSWindow *window = [[(MailApp *)[NSClassFromString(@"MailApp") sharedApplication] preferencesController] window];
 				
 				if (floor(NSAppKitVersionNumber) >= NSAppKitVersionNumber10_9) {
 					NSAlert *unencryptedReplyAlert = [NSAlert new];

@@ -297,16 +297,16 @@ extern const NSString *kComposeWindowControllerAllowWindowTearDown;
 	if([self backEnd:backEnd handleDeliveryError:error])
 		[self MABackEnd:backEnd didCancelMessageDeliveryForEncryptionError:error];
 	
-	if([GPGMailBundle isElCapitan])
-		[self restoreComposerView];
+//    if([GPGMailBundle isElCapitan])
+//        [self restoreComposerView];
 }
 
 - (void)MABackEnd:(id)backEnd didCancelMessageDeliveryForError:(NSError *)error {
 	if([self backEnd:backEnd handleDeliveryError:error])
 		[self MABackEnd:backEnd didCancelMessageDeliveryForEncryptionError:error];
 
-	if([GPGMailBundle isElCapitan])
-		[self restoreComposerView];
+//    if([GPGMailBundle isElCapitan])
+//        [self restoreComposerView];
 }
 
 - (void)MABackEndDidAppendMessageToOutbox:(id)backEnd result:(long long)result {
@@ -316,9 +316,10 @@ extern const NSString *kComposeWindowControllerAllowWindowTearDown;
 	// Unfortunately, if let it do that at the point of the send animation, there's no way we could
 	// display an error.
 	if(result == 3) {
-		[self setIvar:kComposeWindowControllerAllowWindowTearDown value:@(YES)];
-		[(ComposeWindowController *)[self delegate] composeViewControllerDidSend:self];
-		[self removeIvar:kComposeWindowControllerAllowWindowTearDown];
+        // TODO: Fix for HighSierra. Seems to crash! Timing bug!
+//        [self setIvar:kComposeWindowControllerAllowWindowTearDown value:@(YES)];
+//        [(ComposeWindowController *)[self delegate] composeViewControllerDidSend:self];
+//        [self removeIvar:kComposeWindowControllerAllowWindowTearDown];
 	}
 }
 
