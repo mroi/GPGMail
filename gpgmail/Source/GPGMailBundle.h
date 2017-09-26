@@ -103,6 +103,7 @@ extern NSString *gpgErrorIdentifier; // This identifier is used to set and find 
 + (BOOL)isLion;
 + (BOOL)isElCapitan;
 + (BOOL)isSierra;
++ (BOOL)isHighSierra;
 
 /**
  Schedules a message which should have rules applied.

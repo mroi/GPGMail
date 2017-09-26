@@ -704,9 +704,16 @@ const NSString *kHeadersEditorFromControlParentItemKey = @"HeadersEditorFromCont
     else
         [button addItemWithTitle:(parentItem ? parentItem : item).title];
     
-    // Set the selected key in the back-end.
-	ComposeBackEnd *backEnd = [GPGMailBundle backEndFromObject:self];
-	[backEnd setIvar:@"gpgKeyForSigning" value:[item getIvar:kHeadersEditorFromControlGPGKeyKey]];
+    ComposeBackEnd *backEnd = [GPGMailBundle backEndFromObject:self];
+    GMComposeMessagePreferredSecurityProperties *securityProperties = [(ComposeBackEnd_GPGMail *)backEnd preferredSecurityProperties];
+    GPGKey *signingKey = [item getIvar:kHeadersEditorFromControlGPGKeyKey];
+    if(signingKey) {
+        // Configure the security properties to always used the specified key for signing,
+        // instead of looking up a matching key using the signers email address.
+        // This is especially necessary in case multiple signing keys are available for the
+        // same email address. (#895)
+        [securityProperties updateSigningKey:signingKey forSender:item.representedObject];
+    }
     
     [self MAChangeFromHeader:button];
 }

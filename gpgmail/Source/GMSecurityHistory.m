@@ -34,6 +34,9 @@
 
 #import "GMMessageSecurityFeatures.h"
 
+#import "MCMessage.h"
+#import "MCMessageHeaders.h"
+
 @implementation GMSecurityHistory
 
 + (GPGMAIL_SECURITY_METHOD)defaultSecurityMethod {
@@ -320,8 +323,9 @@
        [message securityFeatures].PGPSigned || [message securityFeatures].PGPEncrypted)
 		securityMethod = [message isSMIMEEncrypted] || [message isSMIMESigned] ? GPGMAIL_SECURITY_METHOD_SMIME : GPGMAIL_SECURITY_METHOD_OPENPGP;
 	
-	BOOL shouldSign = [[((GM_CAST_CLASS(MutableMessageHeaders *, id))[(GM_CAST_CLASS(Message *, id))message headers]) firstHeaderForKey:@"x-should-pgp-sign"] boolValue];
-	BOOL shouldEncrypt = [[((GM_CAST_CLASS(MutableMessageHeaders *, id))[(GM_CAST_CLASS(Message *, id))message headers]) firstHeaderForKey:@"x-should-pgp-encrypt"] boolValue];
+    MCMessageHeaders *headers = [(MCMessage *)message headersFetchIfNotAvailable:NO];
+    BOOL shouldSign = headers && [[headers firstHeaderForKey:@"x-should-pgp-sign"] isEqualToString:@"YES"];
+    BOOL shouldEncrypt = headers && [[headers firstHeaderForKey:@"x-should-pgp-encrypt"] isEqualToString:@"YES"];
 	
 	return [GMSecurityOptions securityOptionsWithSecurityMethod:securityMethod shouldSign:shouldSign shouldEncrypt:shouldEncrypt];
 }

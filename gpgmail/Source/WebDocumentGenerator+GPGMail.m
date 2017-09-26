@@ -41,7 +41,7 @@
 @implementation WebDocumentGenerator_GPGMail
 
 - (void)MASetWebDocument:(MUIWebDocument *)webDocument {
-	/* On Yosemite, the message selector no longer exists, but is encapsulated in a conversation member object. */
+    /* On Yosemite, the message selector no longer exists, but is encapsulated in a conversation member object. */
     MCMessage *message = nil;
     if([self respondsToSelector:@selector(message)])
         message = (MCMessage *)[(id)self message];
@@ -52,9 +52,13 @@
     NSError *error = [[(Message_GPGMail *)message securityFeatures] PGPMainError];
     if(error) {
         [error setIvar:@"ParseErrorIsPGPError" value:@(YES)];
-        [webDocument setParseError:error];
+        [webDocument setSmimeError:error];
     }
-	[self MASetWebDocument:webDocument];
+    [self MASetWebDocument:webDocument];
 }
+
+//- (void)MAAsyncLoadAllowingRemoteFetch:(BOOL)arg1 completionHandler:(CDUnknownBlockType)arg2 {
+//    [self MAAsyncLoadAllowingRemoteFetch:arg1 completionHandler:arg2];
+//}
 
 @end

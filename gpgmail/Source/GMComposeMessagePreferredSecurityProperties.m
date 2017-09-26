@@ -57,10 +57,12 @@
     return self;
 }
 
-- (id)initWithSender:(NSString *)sender recipients:(NSArray *)recipients userShouldSignMessage:(ThreeStateBoolean)userShouldSign userShouldEncryptMessage:(ThreeStateBoolean)userShouldEncrypt {
+- (id)initWithSender:(NSString *)sender signingKey:(GPGKey *)signingKey recipients:(NSArray *)recipients userShouldSignMessage:(ThreeStateBoolean)userShouldSign userShouldEncryptMessage:(ThreeStateBoolean)userShouldEncrypt {
     if((self = [self initWithSender:sender recipients:recipients])) {
         _userShouldSignMessage = userShouldSign;
         _userShouldEncryptMessage = userShouldEncrypt;
+        _signingKey = [signingKey copy];
+        _signingSender = [sender copy];
     }
     
     return self;
@@ -125,6 +127,13 @@
     return [[GPGMailBundle sharedInstance] anyPersonalPublicKeyWithPreferenceAddress:senderAddress];
 }
 
+- (void)updateSigningKey:(GPGKey *)signingKey forSender:(NSString *)sender {
+    // Once a signing key is set, the keyring is no longer queried for a key matching
+    // the signer address, but the set signing key is always used. (#895)
+    _signingKey = [signingKey copy];
+    _signingSender = [sender copy];
+}
+
 - (void)computePreferredSecurityPropertiesForSecurityMethod:(GPGMAIL_SECURITY_METHOD)securityMethod {
     // Load signing identity and certificates for S/MIME.
     NSMutableDictionary *signingIdentities = [self.cachedSigningIdentities mutableCopy];
@@ -187,14 +196,23 @@
             signingKey = nil;
         }
         if(!signingKey) {
-            NSArray *signingKeyList = [[[GPGMailBundle sharedInstance] signingKeyListForAddress:senderAddress] allObjects];
-            // TODO: Consider pereferring the default key if one is configured.
-            signingKeys[senderAddress] = [signingKeyList count] > 0 ? signingKeyList[0] : [NSNull null];
-            // In order to trick mail into accepting the key, it has to be added under the sender
-            // with email and full name as well. Otherwise, the last check before calling
-            // -[ComposeBackEnd _makeMessageWithContents:isDraft:shouldSign:shouldEncrypt:shouldSkipSignature:shouldBePlainText:]
-            // will disable signing, since no key for the full address can be found in the _signingIdentities dictionary.
-            signingKeys[sender] = signingKeys[senderAddress];
+            // If a particular signing key has been chosen from the "From" field,
+            // always use that key. Otherwise query all signing keys matching the address.
+            // (#895)
+            if(_signingKey && [_signingSender isEqualToString:sender]) {
+                signingKeys[senderAddress] = _signingKey;
+                signingKeys[sender] = signingKeys[senderAddress];
+            }
+            else {
+                NSArray *signingKeyList = [[[GPGMailBundle sharedInstance] signingKeyListForAddress:senderAddress] allObjects];
+                // TODO: Consider pereferring the default key if one is configured.
+                signingKeys[senderAddress] = [signingKeyList count] > 0 ? signingKeyList[0] : [NSNull null];
+                // In order to trick mail into accepting the key, it has to be added under the sender
+                // with email and full name as well. Otherwise, the last check before calling
+                // -[ComposeBackEnd _makeMessageWithContents:isDraft:shouldSign:shouldEncrypt:shouldSkipSignature:shouldBePlainText:]
+                // will disable signing, since no key for the full address can be found in the _signingIdentities dictionary.
+                signingKeys[sender] = signingKeys[senderAddress];
+            }
         }
         canPGPSign = signingKeys[senderAddress] && signingKeys[senderAddress] != [NSNull null] ? YES : NO;
     }
@@ -212,7 +230,10 @@
         }
         if(!key) {
             NSArray *keyList = [[[GPGMailBundle sharedInstance] publicKeyListForAddresses:@[normalizedRecipient]] allObjects];
-            encryptionKeys[normalizedRecipient] = [keyList count] > 0 ? keyList[0] : [NSNull null];
+            // In order to support gnupg groups, it's possible that a list of keys is returned, even if only
+            // one recipient is passed in. If more than one key is found, the list of keys is stored for that recipient,
+            // instead of only the first key. (#903)
+            encryptionKeys[normalizedRecipient] = [keyList count] > 0 ? keyList : [NSNull null];
         }
         if(encryptionKeys[normalizedRecipient] == [NSNull null]) {
             canPGPEncrypt = NO;

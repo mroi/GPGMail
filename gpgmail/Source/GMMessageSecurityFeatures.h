@@ -14,6 +14,7 @@
 @interface GMMessageSecurityFeatures : NSObject
 
 + (GMMessageSecurityFeatures *)securityFeaturesFromMimeBody:(GM_CAST_CLASS(MimePart *, id))mimeBody;
++ (GMMessageSecurityFeatures *)securityFeaturesFromTopLevelMimePart:(MCMimePart *)topLevelMimePart;
 
 @property (assign) BOOL PGPInfoCollected;
 @property (assign) BOOL PGPEncrypted;

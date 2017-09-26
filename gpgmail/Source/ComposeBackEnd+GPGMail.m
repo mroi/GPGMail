@@ -59,7 +59,8 @@ NSString * const kLibraryMimeBodyReturnCompleteBodyDataForComposeBackendKey = @"
 @implementation ComposeBackEnd_GPGMail
 
 - (id)MASender {
-	// If a message is to be redirected, the flagged from string,
+	// TODO: Find out if this is still necessary, if there might be a better way to do this.
+    // If a message is to be redirected, the flagged from string,
 	// which might have been set in -[ComposeBackEnd _makeMessageWithContents:isDraft:shouldSign:shouldEncrypt:shouldSkipSignature:shouldBePlainText:]
 	// is replaced with this value, which of course is a simple string and
 	// not a flagged value.
@@ -81,17 +82,18 @@ NSString * const kLibraryMimeBodyReturnCompleteBodyDataForComposeBackendKey = @"
 		return [self MASender];
 	
     // On Sierra from 10.12.4b1, Mail calls senderWithValidation in -[ComposeBackEnd sender]
-    if([self respondsToSelector:@selector(senderWithValidation:)]) {
-        sender = [MAIL_SELF senderWithValidation:NO];
-    }
-    else {
-        // Now emulate what -[ComposeBackEnd sender] does internally.
-        // At least part of it.
-        MFMailAccount *account = [MFMailAccount accountContainingEmailAddress:sender];
-        // Not sure what to do in this case, so let's fall back.
-        if(!account)
-            return [self MASender];
-    }
+    // TODO: Figure out how this is implemented now.
+//    if([self respondsToSelector:@selector(senderWithValidation:)]) {
+//        sender = [MAIL_SELF senderWithValidation:NO];
+//    }
+//    else {
+//        // Now emulate what -[ComposeBackEnd sender] does internally.
+//        // At least part of it.
+//        MFMailAccount *account = [MFMailAccount accountContainingEmailAddress:sender];
+//        // Not sure what to do in this case, so let's fall back.
+//        if(!account)
+//            return [self MASender];
+//    }
 	// IF we're still in here, return the flagged sender.
 	return sender;
 }
@@ -700,7 +702,7 @@ NSString * const kLibraryMimeBodyReturnCompleteBodyDataForComposeBackendKey = @"
 	
 	
 	// Build the message.
-	NSData *headerData = [headers encodedHeadersIncludingFromSpace:NO];
+	NSData *headerData = [headers encodedHeaders];
 	
 	NSMutableData *mutableBodyData = [NSMutableData data];
 	[mutableBodyData appendData:headerData];
@@ -819,7 +821,7 @@ NSString * const kLibraryMimeBodyReturnCompleteBodyDataForComposeBackendKey = @"
 	else
         [headers removeHeaderForKey:@"bcc"];
     // Create the actualy body data.
-    NSData *headerData = [headers encodedHeadersIncludingFromSpace:NO];
+    NSData *headerData = [headers encodedHeaders];
     NSMutableData *bodyData = [[NSMutableData alloc] init];
     // First add the header data.
     [bodyData appendData:headerData];
@@ -902,7 +904,7 @@ NSString * const kLibraryMimeBodyReturnCompleteBodyDataForComposeBackendKey = @"
 	else
         [headers removeHeaderForKey:@"bcc"];
     // Create the actualy body data.
-    NSData *headerData = [headers encodedHeadersIncludingFromSpace:NO];
+    NSData *headerData = [headers encodedHeaders];
     NSMutableData *bodyData = [[NSMutableData alloc] init];
     // First add the header data.
     [bodyData appendData:headerData];
@@ -985,7 +987,7 @@ NSString * const kLibraryMimeBodyReturnCompleteBodyDataForComposeBackendKey = @"
 }
 
 // TODO: Possibly remove later. only for testing
-- (void)MAUpdateSMIMEStatus:(CDUnknownBlockType)onComplete {
+- (void)MAUpdateSMIMEStatus:(void(^)(void))onComplete {
     // Re-Implementation of Mail's updateSMIMEStatus.
     // updateSMIMEStatus is invoked by updateSecurityControls, which is responsible for any UI updates.
     // If we're *not* on the main thread, we let Mail handle the logging of the error.
@@ -994,12 +996,12 @@ NSString * const kLibraryMimeBodyReturnCompleteBodyDataForComposeBackendKey = @"
         return;
     }
     NSString *sender = nil;
-    if([MAIL_SELF respondsToSelector:@selector(senderWithValidation:)]) {
-        sender = [MAIL_SELF senderWithValidation:YES];
-    }
-    else {
+//    if([MAIL_SELF respondsToSelector:@selector(senderWithValidation:)]) {
+//        sender = [MAIL_SELF senderWithValidation:YES];
+//    }
+//    else {
         sender = [MAIL_SELF sender];
-    }
+//    }
     NSArray *recipients = [MAIL_SELF allRecipients];
     if(sender) {
         recipients = [recipients arrayByAddingObject:sender];
@@ -1025,7 +1027,8 @@ NSString * const kLibraryMimeBodyReturnCompleteBodyDataForComposeBackendKey = @"
             // If there are already preferredSecurityProperties determined, copy the userShouldSignMessage and
             // userShouldEncryptMessage on to the new security properties.
             GMComposeMessagePreferredSecurityProperties *currentSecurityProperties = self.preferredSecurityProperties;
-            GMComposeMessagePreferredSecurityProperties *preferredSecurityProperties = [[GMComposeMessagePreferredSecurityProperties alloc] initWithSender:sender recipients:recipients userShouldSignMessage:currentSecurityProperties ? currentSecurityProperties.userShouldSignMessage : ThreeStateBooleanUndetermined userShouldEncryptMessage:currentSecurityProperties ? currentSecurityProperties.userShouldEncryptMessage : ThreeStateBooleanUndetermined];
+            GPGKey *signingKey = [currentSecurityProperties.signingSender isEqualToString:sender] ? currentSecurityProperties.signingKey : nil;
+            GMComposeMessagePreferredSecurityProperties *preferredSecurityProperties = [[GMComposeMessagePreferredSecurityProperties alloc] initWithSender:sender signingKey:signingKey recipients:recipients userShouldSignMessage:currentSecurityProperties ? currentSecurityProperties.userShouldSignMessage : ThreeStateBooleanUndetermined userShouldEncryptMessage:currentSecurityProperties ? currentSecurityProperties.userShouldEncryptMessage : ThreeStateBooleanUndetermined];
             preferredSecurityProperties.cachedSigningIdentities = [self valueForKey:@"_signingIdentities"];
             preferredSecurityProperties.cachedEncryptionCertificates = [self valueForKey:@"_encryptionCertificates"];
             
