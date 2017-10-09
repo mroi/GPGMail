@@ -648,18 +648,6 @@ static NSString * const kGpgAgentConfKVKey = @"gpgAgentConf";
 		NSString *pinentryPath = [self valueInGPGAgentConfForKey:kPinentry_program];
 		pinentryPath = [pinentryPath stringByStandardizingPath];
 		
-		if (pinentryPath) {
-			NSFileManager *fileManager = [NSFileManager defaultManager];
-
-			// Remove an invalid path from gpg-agent.conf.
-			// A pinentry in Libmacgpg is an old version, don't use it anymore.
-			if ([pinentryPath rangeOfString:@"/Libmacgpg.framework/"].length > 0 || ![fileManager isExecutableFileAtPath:pinentryPath]) {
-				pinentryPath = nil;
-				[self setValueInGPGAgentConf:nil forKey:kPinentry_program];
-				[self gpgAgentFlush];
-			}
-		}
-		
 		if (!pinentryPath) {
 			pinentryPath = @"/usr/local/MacGPG2/libexec/pinentry-mac.app/Contents/MacOS/pinentry-mac";
 		}
