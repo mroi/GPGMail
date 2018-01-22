@@ -216,12 +216,30 @@ const NSString *kHeadersEditorFromControlParentItemKey = @"HeadersEditorFromCont
             // is available, so canEncrypt will also be set.
             BOOL canEncrypt = [backEnd canEncrypt];
             
+            // Bug #957: Adapt GPGMail to the S/MIME changes introduced in Mail for 10.13.2b3
+            //
+            // Apple Mail team has added a possibility to display errors, if macOS fails to read
+            // a signing identity.
+            NSError *invalidSigningIdentityError = nil;
+            if([backEnd respondsToSelector:@selector(invalidSigningIdentityError)]) {
+                invalidSigningIdentityError = [backEnd invalidSigningIdentityError];
+            }
+
             // Apple only shows the buttons to toggle sign and encrypt if signing is possible.
             // OpenPGP does work if only sign or encrypt is available, so we'll also show the buttons
             // if sign is not is possible, but only encrypt.
-            [tomailself(strongSelf) _setVisibilityForEncryptionAndSigning:canSign || canEncrypt];
-            [tomailself(strongSelf) setCanSign:canSign];
-            [tomailself(strongSelf) setCanEncrypt:canEncrypt];
+            [tomailself(strongSelf) _setVisibilityForEncryptionAndSigning:(canSign || invalidSigningIdentityError != nil) || canEncrypt];
+            if([tomailself(strongSelf) respondsToSelector:@selector(setSignButtonEnabled:)]) {
+                [tomailself(strongSelf) setSignButtonEnabled:(canSign || invalidSigningIdentityError != nil)];
+                [tomailself(strongSelf) setEncryptButtonEnabled:canEncrypt];
+                if(invalidSigningIdentityError != nil) {
+                    [[tomailself(strongSelf) signButton] setSelectedSegment:NSNotFound];
+                }
+            }
+            else {
+                [tomailself(strongSelf) setCanSign:canSign];
+                [tomailself(strongSelf) setCanEncrypt:canEncrypt];
+            }
             
             // For reference, the original Apple code follows below.
             // Apple uses standard defaults to remember the last set status of sign and encrypt.

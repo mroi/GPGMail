@@ -486,7 +486,9 @@
              @"MFLibrary": @{
                      @"selectors": @{
                              @"added": @[
-                                     @"getTopLevelMimePart:headers:body:forMessage:"
+                                     @"getTopLevelMimePart:headers:body:forMessage:",
+                                     @"updateFileForMessage:",
+                                     @"_messageDataAtPath:"
                                      ]
                              }
                      },
@@ -536,6 +538,11 @@
                                          @"_generateMessageBodiesFromOriginalMessages"]
                                      ]
                              }
+                     },
+             @"MailPreferences": @{
+                     @"selectors": @[
+                             @"makePreferenceTabViewItems"
+                             ]
                      }
      };
 }

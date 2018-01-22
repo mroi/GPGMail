@@ -51,14 +51,33 @@ extern NSString * const kMessageSecurityFeaturesKey;
         return;
     }
     
+    // Bug #948: GPGMail crashes Mail due to recursive loop (with MailTags installed)
+    //
+    // In case a draft is opened, topLevelMimePart will be NULL, but if the temporary
+    // mime part is passed in instead of topLevelMimePart, the Mail method call will result in a
+    // recursive loop.
+    // When a message is opened from disk however, topLevelMimePart will be set to NULL, so in
+    // that case it's necessary to pass the temporary mime part to the Mail method call.
+    // It's not yet entirely clear, why this is currently only reproducible with MailTags installed,
+    // since no call into any MailTag methods can be observed on the call stack.
     MCMimePart *temporaryMimePart = nil;
-    [self MAGetTopLevelMimePart:&temporaryMimePart headers:headers body:body forMessage:currentMessage fetchIfNotAvailable:fetchIfNotAvailable updateFlags:updateFlags allowPartial:allowPartial];
-    if(body != NULL) {
-        // If a
-        [temporaryMimePart setIvar:kMimePartAllowPGPProcessingKey value:@(YES)];
-        MCMessageBody *messageBody = [temporaryMimePart messageBody];
-        [currentMessage setIvar:kMessageSecurityFeaturesKey value:[(MimePart_GPGMail *)temporaryMimePart securityFeatures]];
-        *body = messageBody;
+    BOOL useTemporaryMimePart = topLevelMimePart == NULL;
+    if(body == NULL) {
+        [self MAGetTopLevelMimePart:topLevelMimePart headers:headers body:body forMessage:currentMessage fetchIfNotAvailable:fetchIfNotAvailable updateFlags:updateFlags allowPartial:allowPartial];
+    }
+    else {
+        [self MAGetTopLevelMimePart:&temporaryMimePart headers:headers body:body forMessage:currentMessage fetchIfNotAvailable:fetchIfNotAvailable updateFlags:updateFlags allowPartial:allowPartial];
+        if(body != NULL) {
+            // Body will not be NULL, if a message file is opened, so in that case allow the PGP data
+            // that might be contained in the message to be processed.
+            if(!useTemporaryMimePart) {
+                temporaryMimePart = *topLevelMimePart;
+            }
+            [temporaryMimePart setIvar:kMimePartAllowPGPProcessingKey value:@(YES)];
+            MCMessageBody *messageBody = [temporaryMimePart messageBody];
+            [currentMessage setIvar:kMessageSecurityFeaturesKey value:[(MimePart_GPGMail *)temporaryMimePart securityFeatures]];
+            *body = messageBody;
+        }
     }
 }
 

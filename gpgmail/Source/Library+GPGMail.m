@@ -66,6 +66,8 @@
 // 10.13
 #import "NSData-MailCoreAdditions.h"
 
+#import <sys/stat.h>
+
 #define MAIL_SELF(self) ((MFLibrary *)(self))
 
 extern NSString *MCDescriptionForMessageFlags(int arg0);
@@ -79,6 +81,9 @@ extern NSString * const kLibraryMimeBodyReturnCompleteBodyDataForComposeBackendK
 NSString * const kLibraryMessagePreventSnippingAttachmentDataKey = @"LibraryMessagePreventSnippingAttachmentDataKey";
 
 extern NSString * const kMessageSecurityFeaturesKey;
+extern NSString * const kMFLibraryStoreMessageWaitForData;
+
+static NSMutableDictionary *messageDataAccessMap;
 
 @implementation Library_GPGMail
 
@@ -198,6 +203,9 @@ extern NSString * const kMessageSecurityFeaturesKey;
     if(isCompleteMessageAvailable) {
         return messageData;
     }
+    if(!messageData) {
+        DebugLog(@"Oh noes, can't fetch message data for message: %@", currentMessage);
+    }
     
     if(!topLevelPart) {
         topLevelPart = [[MCMimePart alloc] initWithEncodedData:messageData];
@@ -290,46 +298,37 @@ extern NSString * const kMessageSecurityFeaturesKey;
 }
 
 + (NSData *)GMMessageDataForMessage:(MCMessage *)currentMessage isCompleteMessageAvailable:(BOOL *)isCompleteMessageAvailable {
-    NSData *messageData = nil;
-    NSString *completeMessagePath = [MFLibrary _dataPathForMessage:currentMessage type:0];
-    BOOL hasEntireMessage = [[NSFileManager defaultManager] fileExistsAtPath:completeMessagePath];
-    *isCompleteMessageAvailable = hasEntireMessage;
-    
-    if(hasEntireMessage) {
-        messageData = [MFLibrary _messageDataAtPath:completeMessagePath];
+    // Bug #952: Messages containing PGP data are not always processed properly
+    //
+    // Under certain circumstances -[MFLibrary _dataForMessageAtPath:] does not always
+    // return the message data contained in the local .emlx file.
+    // It appears that this is happening, if -[MFLibrary _updateMessageForFile:] is
+    // updating the last access date of a message, while -[MFLibrary _dataForMessageAtPath:]
+    // is trying to access the data within the same message.
+    //
+    // In order to work around that issue, a lock is introduced which makes sure, that
+    // the read waits for the write to complete or vice versa.
+    // As a last resort, a change to -[MFLibrary _dataForMessageAtPath:] has been added
+    // which polls for the data to be available again and returning it once it is.
+    __block NSData *messageData = nil;
+    __block BOOL complete = YES;
+
+    @try {
+        [self exclusiveAccessToMessage:currentMessage withBlock:^{
+            messageData = [MFLibrary fullMessageDataForMessage:currentMessage];
+            if(!messageData) {
+                complete = NO;
+                messageData = [MFLibrary _messageDataAtPath:[MFLibrary _dataPathForMessage:currentMessage type:1]];
+            }
+        }];
     }
-    else {
-        // The complete message is not available, so it's necessary to load the partial message in order to build
-        // a mime tree from.
-        messageData = [MFLibrary _messageDataAtPath:[MFLibrary _dataPathForMessage:currentMessage type:1]];
+    @catch(NSException *exception) {}
+
+    if(isCompleteMessageAvailable != NULL) {
+        *isCompleteMessageAvailable = complete;
     }
+
     return messageData;
-}
-
-+ (BOOL)GMMessageMightContainPGPData:(MCMessage *)message {
-    BOOL isCompleteMessageAvailable = NO;
-    NSData *messageData = [self GMMessageDataForMessage:message isCompleteMessageAvailable:&isCompleteMessageAvailable];
-    MCMimePart *topLevelMimePart = [[MCMimePart alloc] initWithEncodedData:messageData];
-    if([topLevelMimePart parse] && [(MimePart_GPGMail *)topLevelMimePart mightContainPGPData]) {
-        return YES;
-    }
-    
-    return NO;
-}
-
-+ (BOOL)MAGetTopLevelMimePart:(__autoreleasing id *)topLevelMimePart headers:(__autoreleasing id *)headers body:(__autoreleasing id *)body forMessage:(MCMessage *)currentMessage {
-    // This method is responsible for fetching the complete message data
-    // in case it's not yet available, or re-construct it from the locally cached data.
-    // It's only allowed to do so however, if a user actively selected a message, in which
-    // case it's invoked from -[RedundantContentIdentificationManager redundantContentMarkupForMessage:inConversation:]
-    // and the current thread dictionary has the ReturnCompleteBodyData and the ReturnCompleteBodyDataForMessage message reference set.
-    BOOL wantsCompleteBodyData = ([[[[NSThread currentThread] threadDictionary] valueForKey:kLibraryMimeBodyReturnCompleteBodyDataKey] boolValue] &&
-                                  [[[NSThread currentThread] threadDictionary] valueForKey:kLibraryMimeBodyReturnCompleteBodyDataForMessageKey] == currentMessage) || [[[[NSThread currentThread] threadDictionary] valueForKey:kLibraryMimeBodyReturnCompleteBodyDataForComposeBackendKey] boolValue];
-    
-    BOOL isCompleteMessageAvailable = NO;
-    NSData *messageData = [self GMMessageDataForMessage:currentMessage isCompleteMessageAvailable:&isCompleteMessageAvailable];
-    
-    return [self GMGetTopLevelMimePart:topLevelMimePart headers:headers body:body forMessage:currentMessage messageData:messageData shouldProcessPGPData:wantsCompleteBodyData];
 }
 
 + (void)GMSetupDataSourcesForParsedMessage:(id)parsedMessage ofMessage:(MCMessage *)message {
@@ -384,6 +383,124 @@ extern NSString * const kMessageSecurityFeaturesKey;
         [message setIvar:kLibraryMessagePreventSnippingAttachmentDataKey value:@(YES)];
     }
     [self MASetData:data forMessage:message isPartial:isPartial hasCompleteText:hasCompleteText];
+}
+
++ (NSMutableDictionary *)messageDataAccessMap {
+    static dispatch_once_t onceToken;
+    dispatch_once(&onceToken, ^{
+        messageDataAccessMap = [[NSMutableDictionary alloc] init];
+    });
+    return messageDataAccessMap;
+}
+
++ (void)exclusiveAccessToMessage:(MCMessage *)message withBlock:(void (^)(void))block {
+    NSMutableDictionary *accessMap = [self messageDataAccessMap];
+
+    NSException *exception = nil;
+    NSRecursiveLock *messageLock = nil;
+    @synchronized(accessMap) {
+        messageLock = accessMap[message];
+        if(!messageLock) {
+            messageLock = [NSRecursiveLock new];
+            accessMap[message] = messageLock;
+        }
+    }
+    [messageLock lock];
+    @try {
+        if(block) {
+            block();
+        }
+    }
+    @catch(NSException *e) {
+        exception = e;
+    }
+    @finally {
+        [messageLock unlock];
+    }
+
+    @synchronized(accessMap) {
+        NSRecursiveLock *currentLock = accessMap[message];
+        if(currentLock == messageLock) {
+            @try {
+                [accessMap removeObjectForKey:message];
+            }
+            @catch(NSException *e) {}
+        }
+    }
+
+    if(exception != nil) {
+        @throw exception;
+    }
+}
+
++ (void)MAUpdateFileForMessage:(MCMessage *)message {
+    // Bug #952: Messages containing PGP data are not always processed properly
+    //
+    // See -[Library_GPGMail GMMessageDataForMessage:isCompleteMessageAvailable:] for
+    // a more detailed explanation.
+    @try {
+        [self exclusiveAccessToMessage:message withBlock:^{
+            [self MAUpdateFileForMessage:message];
+        }];
+    }
+    @catch(NSException *exception) {}
+}
+
++ (NSData *)MA_messageDataAtPath:(NSString *)path {
+    // Bug #952: Messages containing PGP data are not always processed properly
+    //
+    // While the locks added to +[MFLibrary updateFileForMessage:] and
+    // +[Library_GPGMail GMMessageDataForMessage:isCompleteMessageAvailable:] should
+    // make sure that Mail always returns the message data from a local emlx file,
+    // an additional workaround should guarantee it.
+    // If still no data is available, GPGMail will poll the size of the file via stat
+    // and return its content once size is greater 0 again.
+    BOOL waitForData = [[[[NSThread currentThread] threadDictionary] valueForKey:kMFLibraryStoreMessageWaitForData] boolValue] && [[NSFileManager  defaultManager] fileExistsAtPath:path];
+    __block NSData *messageData = [self MA_messageDataAtPath:path];
+    // Check stat, if size is already > 0 the meta data update performed in +[MFLibrary updateFileForMessage:]
+    // should be completed and repeating the previous +[MFLibrary _messageDataAtPath:] should
+    // return the message data.
+    if(!messageData || [messageData length]) {
+        struct stat fileInfo;
+        int error = stat([path fileSystemRepresentation], &fileInfo);
+        if(!error && fileInfo.st_size > 0) {
+            messageData = [self MA_messageDataAtPath:path];
+        }
+        // If there's still no message data available and waitForData
+        // is set, poll the size until it's greater zero and try one last time.
+        if(!messageData && waitForData) {
+            __block int maxRetries = 30;
+            __block dispatch_semaphore_t sem = dispatch_semaphore_create(0);
+            dispatch_queue_t fileSizeCheckQueue = dispatch_queue_create("org.gpgtools.GPGMail.messageDataAvailableCheck", DISPATCH_QUEUE_SERIAL);
+            dispatch_source_t timer = dispatch_source_create(DISPATCH_SOURCE_TYPE_TIMER, 0, 0, fileSizeCheckQueue);
+            dispatch_source_set_timer(timer, DISPATCH_TIME_NOW, 0.01 * NSEC_PER_SEC, 1 * NSEC_PER_SEC);
+            dispatch_source_set_event_handler(timer, ^{
+                struct stat _fileInfo;
+                int _error = stat([path fileSystemRepresentation], &_fileInfo);
+                if(_error) {
+                    return;
+                }
+                if(_fileInfo.st_size > 0) {
+                    messageData = [self MA_messageDataAtPath:path];
+                    dispatch_semaphore_signal(sem);
+                }
+                else {
+                    maxRetries -= 1;
+                }
+                if(maxRetries <= 0) {
+                    dispatch_semaphore_signal(sem);
+                }
+            });
+            dispatch_resume(timer);
+            dispatch_semaphore_wait(sem, DISPATCH_TIME_FOREVER);
+            dispatch_cancel(timer);
+
+            dispatch_release(timer);
+            dispatch_release(fileSizeCheckQueue);
+            dispatch_release(sem);
+        }
+    }
+    return messageData;
 }
 
 @end

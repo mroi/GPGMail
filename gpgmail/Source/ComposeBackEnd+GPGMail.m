@@ -581,21 +581,24 @@ NSString * const kLibraryMimeBodyReturnCompleteBodyDataForComposeBackendKey = @"
         // on the writer, a fitting certificate is added at this point.
         BOOL userWantsDraftsEncrypted = [[GPGOptions sharedOptions] boolForKey:@"OptionallyEncryptDrafts"];
         id smimeLock = [self valueForKey:@"_smimeLock"];
-        GPGKey *encryptionKeyForDraft = nil;
-        @synchronized (smimeLock) {
-            // In case the user doesn't want drafts encrypted, -[MCMessageGenerator encryptionCertificates] has
-            // to be nil instead of an empty array.
-            NSMutableArray *keys = nil;
-            if(userWantsDraftsEncrypted) {
-                keys = [NSMutableArray array];
-                encryptionKeyForDraft = [securityProperties encryptionKeyForDraft];
-                if(encryptionKeyForDraft) {
-                    [keys addObject:encryptionKeyForDraft];
-                }
+        // Bug #957: Adapt GPGMail to the S/MIME changes introduced in Mail for 10.13.2b3
+        //
+        // _smimeLock is no longer a simple object to be used with @synchronized but instead
+        // a real NSLock.
+        if([smimeLock isKindOfClass:[NSLock class]]) {
+            @try {
+                [smimeLock lock];
+                [self GMConfigureEncryptionCertificatesForMessageGenerator:writer shouldEncryptDraft:userWantsDraftsEncrypted];
             }
-            // TODO: If userWantsDraftsEncrypted is enabled, but no appropriate key could be found
-            // warn the user that draft is not going to be encrypted.
-            [writer setEncryptionCertificates:[keys copy]];
+            @catch(NSException *e) {}
+            @finally {
+                [smimeLock unlock];
+            }
+        }
+        else {
+            @synchronized (smimeLock) {
+                [self GMConfigureEncryptionCertificatesForMessageGenerator:writer shouldEncryptDraft:userWantsDraftsEncrypted];
+            }
         }
 	}
 	else {
@@ -603,6 +606,29 @@ NSString * const kLibraryMimeBodyReturnCompleteBodyDataForComposeBackendKey = @"
 		[headers removeHeaderForKey:@"x-should-pgp-sign"];
 	}
 	return [self MAOutgoingMessageUsingWriter:writer contents:contents headers:headers isDraft:isDraft shouldBePlainText:shouldBePlainText];
+}
+
+- (void)GMConfigureEncryptionCertificatesForMessageGenerator:(MCMessageGenerator *)messageGenerator shouldEncryptDraft:(BOOL)shouldEncryptDraft {
+    // In case the user doesn't want drafts encrypted, -[MCMessageGenerator encryptionCertificates] has
+    // to be nil instead of an empty array.
+    GMComposeMessagePreferredSecurityProperties *securityProperties = [self preferredSecurityProperties];
+    NSMutableArray *keys = nil;
+    GPGKey *encryptionKeyForDraft = nil;
+    if(shouldEncryptDraft) {
+        // Bug #951: GPGMail tries to encrypt draft even though no PGP key is available
+        //
+        // In case no PGP key is returned by -[GMComposeMessagePreferredSecurityProperties encryptionKeyForDraft],
+        // the Mail's writer object is currently passed an empty array, which errorneously causes Mail to try to
+        // encrypt the message even thogh no key is available.
+        // In order to fix that, the array has to be niled
+        encryptionKeyForDraft = [securityProperties encryptionKeyForDraft];
+        if(encryptionKeyForDraft) {
+            keys = [NSMutableArray arrayWithObject:encryptionKeyForDraft];
+        }
+    }
+    // TODO: If userWantsDraftsEncrypted is enabled, but no appropriate key could be found
+    // warn the user that draft is not going to be encrypted.
+    [messageGenerator setEncryptionCertificates:[keys copy]];
 }
 
 - (void)didCancelMessageDeliveryForError:(NSError *)error {
@@ -923,20 +949,51 @@ NSString * const kLibraryMimeBodyReturnCompleteBodyDataForComposeBackendKey = @"
     if(![((ComposeBackEnd *)self) delegate])
 		return [NSArray array];
 	
+    // Bug #957: Adapt GPGMail to the S/MIME changes introduced in Mail for 10.13.2b3
+    //
+    // _smimeLock is no longer a simple object to be used with @synchronized but instead
+    // a real NSLock.
+    id smimeLock = [self valueForKey:@"_smimeLock"];
+    NSMutableArray *nonEligibleRecipients = [NSMutableArray array];
+    if([smimeLock isKindOfClass:[NSLock class]]) {
+        @try {
+            [smimeLock lock];
+            nonEligibleRecipients = [self _GMRecipientsThatHaveNoKeyForEncryption];
+        }
+        @catch(NSException *e) {}
+        @finally {
+            [smimeLock unlock];
+        }
+    }
+    else {
+        @synchronized(smimeLock) {
+            nonEligibleRecipients = [self _GMRecipientsThatHaveNoKeyForEncryption];
+        }
+    }
+
+    return nonEligibleRecipients;
+}
+
+- (id)_GMRecipientsThatHaveNoKeyForEncryption {
     NSMutableArray *nonEligibleRecipients = [NSMutableArray array];
 
-	GPGMAIL_SECURITY_METHOD securityMethod = self.preferredSecurityProperties.securityMethod;
-
-    if(securityMethod == GPGMAIL_SECURITY_METHOD_SMIME)
-        return [self MARecipientsThatHaveNoKeyForEncryption];
-
-    @synchronized ([self valueForKey:@"_smimeLock"]) {
-        for(NSString *recipient in [((ComposeBackEnd *)self) allRecipients]) {
-            NSString *recipientAddress = [recipient gpgNormalizedEmail];
-            NSDictionary *encryptionCertificates = [self valueForKey:@"_encryptionCertificates"];
-            if(!encryptionCertificates[recipientAddress] || encryptionCertificates[recipientAddress] == [NSNull null]) {
-                [nonEligibleRecipients addObject:recipient];
-            }
+    GPGMAIL_SECURITY_METHOD securityMethod = self.preferredSecurityProperties.securityMethod;
+    BOOL isSMIME = securityMethod == GPGMAIL_SECURITY_METHOD_SMIME;
+    // Bug #961: Deadlock when using S/MIME and trying to toggle encryption state of a message on macOS 10.13
+    //
+    // -[ComposeBackEnd recipientsThatHaveNoKeyForEncryption] uses the smimeLock internally.
+    // Since the calling method of _GMRecipientsThatHaveNoKeyForEncryption already uses the smimeLock,
+    // a deadlock is triggered when calling the original mail method.
+    //
+    // Since the code for checking for missing S/MIME certificates is by now almost identical to the
+    // check performed for OpenPGP keys, there's no need to call into the original mail method anymore.
+    for(NSString *recipient in [((ComposeBackEnd *)self) allRecipients]) {
+        // For Apple's S/MIME implementation it's important that the full recipient matches the certificate.
+        // For OpenPGP the email address of the recipient suffices.
+        NSString *recipientAddress = isSMIME ? recipient : [recipient gpgNormalizedEmail];
+        NSDictionary *encryptionCertificates = [self valueForKey:@"_encryptionCertificates"];
+        if(!encryptionCertificates[recipientAddress] || encryptionCertificates[recipientAddress] == [NSNull null]) {
+            [nonEligibleRecipients addObject:recipient];
         }
     }
 
@@ -974,16 +1031,21 @@ NSString * const kLibraryMimeBodyReturnCompleteBodyDataForComposeBackendKey = @"
 
 - (GMComposeMessagePreferredSecurityProperties *)preferredSecurityProperties {
     GMComposeMessagePreferredSecurityProperties *securityProperties = nil;
-    @synchronized ([self valueForKey:@"_smimeLock"]) {
-        securityProperties = [self getIvar:kComposeBackEndPreferredSecurityPropertiesKey];
-    }
+    // Bug #957: Adapt GPGMail to the S/MIME changes introduced in Mail for 10.13.2b3
+    //
+    // _smimeLock is no longer a simple object to be used with @synchronized but instead
+    // a real NSLock.
+    securityProperties = [self getIvar:kComposeBackEndPreferredSecurityPropertiesKey];
+
     return securityProperties;
 }
 
 - (void)setPreferredSecurityProperties:(GMComposeMessagePreferredSecurityProperties *)preferredSecurityProperties {
-    @synchronized ([self valueForKey:@"_smimeLock"]) {
-        [self setIvar:kComposeBackEndPreferredSecurityPropertiesKey value:preferredSecurityProperties];
-    }
+    // Bug #957: Adapt GPGMail to the S/MIME changes introduced in Mail for 10.13.2b3
+    //
+    // _smimeLock is no longer a simple object to be used with @synchronized but instead
+    // a real NSLock.
+    [self setIvar:kComposeBackEndPreferredSecurityPropertiesKey value:preferredSecurityProperties];
 }
 
 // TODO: Possibly remove later. only for testing
@@ -995,6 +1057,7 @@ NSString * const kLibraryMimeBodyReturnCompleteBodyDataForComposeBackendKey = @"
         [self MAUpdateSMIMEStatus:onComplete];
         return;
     }
+    [MAIL_SELF setDefaultSenderIfNeeded];
     NSString *sender = nil;
 //    if([MAIL_SELF respondsToSelector:@selector(senderWithValidation:)]) {
 //        sender = [MAIL_SELF senderWithValidation:YES];
@@ -1007,9 +1070,10 @@ NSString * const kLibraryMimeBodyReturnCompleteBodyDataForComposeBackendKey = @"
         recipients = [recipients arrayByAddingObject:sender];
     }
     
-    [[MAIL_SELF smimeQueue] addOperationWithBlock:^{
-        id smimeLock = [self valueForKey:@"_smimeLock"];
-        @synchronized (smimeLock) {
+    NSOperationQueue *smimeQueue = [MAIL_SELF smimeQueue];
+    [smimeQueue cancelAllOperations];
+    [smimeQueue addOperationWithBlock:^{
+        void (^checkCertificates)(void) = ^{
             NSMutableDictionary *signingIdentitiesMap = [self valueForKey:@"_signingIdentities"];
             // Remove signing identities not matching the current sender.
             NSSet *signingIdentities = [signingIdentitiesMap keysOfEntriesPassingTest:^BOOL(id key, __unused id obj, __unused BOOL *stop) {
@@ -1028,7 +1092,7 @@ NSString * const kLibraryMimeBodyReturnCompleteBodyDataForComposeBackendKey = @"
             // userShouldEncryptMessage on to the new security properties.
             GMComposeMessagePreferredSecurityProperties *currentSecurityProperties = self.preferredSecurityProperties;
             GPGKey *signingKey = [currentSecurityProperties.signingSender isEqualToString:sender] ? currentSecurityProperties.signingKey : nil;
-            GMComposeMessagePreferredSecurityProperties *preferredSecurityProperties = [[GMComposeMessagePreferredSecurityProperties alloc] initWithSender:sender signingKey:signingKey recipients:recipients userShouldSignMessage:currentSecurityProperties ? currentSecurityProperties.userShouldSignMessage : ThreeStateBooleanUndetermined userShouldEncryptMessage:currentSecurityProperties ? currentSecurityProperties.userShouldEncryptMessage : ThreeStateBooleanUndetermined];
+            GMComposeMessagePreferredSecurityProperties *preferredSecurityProperties = [[GMComposeMessagePreferredSecurityProperties alloc] initWithSender:sender signingKey:signingKey invalidSigningIdentityError:currentSecurityProperties.invalidSigningIdentityError recipients:recipients userShouldSignMessage:currentSecurityProperties ? currentSecurityProperties.userShouldSignMessage : ThreeStateBooleanUndetermined userShouldEncryptMessage:currentSecurityProperties ? currentSecurityProperties.userShouldEncryptMessage : ThreeStateBooleanUndetermined];
             preferredSecurityProperties.cachedSigningIdentities = [self valueForKey:@"_signingIdentities"];
             preferredSecurityProperties.cachedEncryptionCertificates = [self valueForKey:@"_encryptionCertificates"];
             
@@ -1039,8 +1103,32 @@ NSString * const kLibraryMimeBodyReturnCompleteBodyDataForComposeBackendKey = @"
             [MAIL_SELF setCanEncrypt:preferredSecurityProperties.canEncrypt];
             [self setValue:[preferredSecurityProperties.cachedSigningIdentities mutableCopy] forKey:@"_signingIdentities"];
             [self setValue:[preferredSecurityProperties.cachedEncryptionCertificates mutableCopy] forKey:@"_encryptionCertificates"];
-            
+            if([MAIL_SELF respondsToSelector:@selector(setInvalidSigningIdentityError:)]) {
+                [MAIL_SELF setInvalidSigningIdentityError:preferredSecurityProperties.invalidSigningIdentityError];
+            }
+
             self.preferredSecurityProperties = preferredSecurityProperties;
+        };
+
+        id smimeLock = [self valueForKey:@"_smimeLock"];
+        // Bug #957: Adapt GPGMail to the S/MIME changes introduced in Mail for 10.13.2b3
+        //
+        // _smimeLock is no longer a simple object to be used with @synchronized but instead
+        // a real NSLock.
+        if([smimeLock isKindOfClass:[NSLock class]]) {
+            @try {
+                [smimeLock lock];
+                checkCertificates();
+            }
+            @catch(NSException *e) {}
+            @finally {
+                [smimeLock unlock];
+            }
+        }
+        else {
+            @synchronized(smimeLock) {
+                checkCertificates();
+            }
         }
         
         // We have our certificate information, now onto running the UI code.

@@ -27,15 +27,9 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-/*
- * Credit for the re-inserting toolbar code when preference pane is restored
- * no re-opened (Lion restore feature) goes to Adam Nohejl.
- *
- * http://nohejl.name/2011/07/21/mail-preferences-modules-in-mac-os-x-10-7/
- */
-
 #import "CCLog.h"
 #import "NSObject+LPDynamicIvars.h"
+#import "NSArray+Functional.h"
 #import <NSPreferences.h>
 #import <NSPreferencesModule.h>
 #import "NSPreferences+GPGMail.h"
@@ -44,113 +38,42 @@
 
 @implementation NSPreferences (GPGMail)
 
-+ (id)MASharedPreferences {
-	static BOOL added = NO;
-	
-	id preferences = [self MASharedPreferences];
++ (id)MAMakePreferenceTabViewItems {
+    // Bug #943: Make sure the GPGMail preference item is only added once.
+    //
+    // In theory -[GPGMailBundle registerBundle] is responsible for registering
+    // the preference panel of GPGMail with Mail.app
+    // This however only works, if an instance of MailPreferences already exists,
+    // which seems to only be the case, if it was instantiated by a second plugin.
+    // Otherwise +[MailPreferences sharedPreferences] would return nil and the
+    // preference panel would not be registered.
+    // To fix this problem, GPGMail hooked into +[MailPreferences sharedPreferences]
+    // This however lead to the problem that the preference panel might have been registered
+    // twice, if a second plugin was available which was loaded *prior* to GPGMail being
+    // loaded.
+    // In that case the preference panel would be loaded once in +[MailPreferences sharedPreferences]
+    // and again in -[GPGMailBundle registerBundle].
+    // In order to make sure that the preference panel is really only registered once, the code
+    // hook on +[MailPreferences sharedPreferences] has been moved here.
+    // This method is called by Mail, once the preference window is loaded,
+    // and is probably the best place to add GPGMail's preference panel, if
+    // it has not been already added from -[GPGMailBundle registerBundle]
     
-    if(preferences == nil)
-        return nil;
-    
-    if(added)
-        return preferences;
-    
-    // Check modules, if GPGMailPreferences is not yet in there.
+    // At this point, the preference panel has been registered by -[GPGMailBundle registerBundle]
+    // if a second plugin is available and has been loaded first, so it's safe, to trust the
+    // bundles registered in preference owners.
+    // Only if GPGMail's NSPreferencesModule is not yet present, it will be registered.
+    NSPreferences *preferences = [NSClassFromString(@"MailPreferences") sharedPreferences];
     NSPreferencesModule *gpgMailPreferences = [GPGMailPreferences sharedInstance];
-    NSString *preferencesName = GMLocalizedString(@"PGP_PREFERENCES");
-    [preferences addPreferenceNamed:preferencesName owner:gpgMailPreferences];
-    added = YES;
-	
-    NSWindow *preferencesPanel = [preferences valueForKey:@"_preferencesPanel"];
-    NSToolbar *toolbar = [preferencesPanel toolbar];
-    // If the toolbar is nil, the setup will be done later by Mail.app.
-    if(!toolbar)
-        return preferences;
-    
-    BOOL gpgMailPreferencesToolbarExists = NO;
-    // Mail Preferences is not able to restore to the GPGMail preference module
-    // if it was last open.
-    // That's why GPGMail saves the information of the last open one and restores it
-    // on its own.
-    NSToolbarItem *lastSelectedItem = nil;
-    NSString *lastSelectedItemIdentifier = [[GPGOptions sharedOptions] valueForKey:@"MailPreferencesLastSelectedToolbarItem"];
-    int i = 0;
-    for(id item in [toolbar items]) {
-        if((!lastSelectedItemIdentifier && i == 0) || [lastSelectedItemIdentifier isEqualToString:[item itemIdentifier]])
-            lastSelectedItem = item;
-        
-        if([[item itemIdentifier] isEqualToString:preferencesName]) {
-            gpgMailPreferencesToolbarExists = YES;
-            break;
-        }
-        i++;
+    NSArray *preferencesModules = [preferences valueForKey:@"_preferenceOwners"];
+    NSString *panelName = [GPGMailBundle preferencesPanelName];
+
+    // Register the preference panel if it's not already registered.
+    if(![preferencesModules containsObject:gpgMailPreferences]) {
+        [preferences addPreferenceNamed:panelName
+                                  owner:gpgMailPreferences];
     }
-    
-    // If the GPGMail Preference toolbar item doesn't exist,
-    // add it.
-    if(!gpgMailPreferencesToolbarExists)
-        [toolbar insertItemWithItemIdentifier:preferencesName atIndex:[[toolbar items] count]];
-    
-    // Make sure the preferences window shows all toolbar items.
-    [preferences setIvar:@"makeAllToolbarItemsVisible" value:@YES];
-    // If the preference window wasn't closed before Mail.app was shutdown
-    // and the last preference module to be shown was GPGMail,
-    // Mail.app doesn't show it automatically after restarting and restoring
-    // the preference pane window.
-    // In case of GPGMail being the last item, it's not in the toolbar yet
-    // since it was just recently added. Use _selectModuleOwner to select it.
-    if(!lastSelectedItem && [lastSelectedItemIdentifier isEqualToString:preferencesName]) {
-        NSToolbarItem *toolbarItem = [[NSToolbarItem alloc] initWithItemIdentifier:preferencesName];
-        [preferences toolbarItemClicked:toolbarItem];
-    }
-    else
-        [preferences toolbarItemClicked:lastSelectedItem];
-    // Force resizing of the window so that all toolbar items fit.
-    [preferences resizeWindowToShowAllToolbarItems:preferencesPanel];
-    
-    return preferences;
-}
-
-
-- (NSSize)sizeForWindowShowingAllToolbarItems:(NSWindow *)window {
-    NSRect frame = [window frame];
-    float width = 0.0f;
-	NSArray *subviews = [[[[window toolbar] valueForKey:@"_toolbarView"] subviews][0] subviews];
-    for (NSView *view in subviews) {
-        width += view.frame.size.width;
-	}
-    // Add padding to fit them all.
-    width += 10;
-    return NSMakeSize(width > frame.size.width ? width : frame.size.width, frame.size.height);
-}
-
-- (NSSize)MAWindowWillResize:(id)window toSize:(NSSize)toSize {
-    if(![[self getIvar:@"makeAllToolbarItemsVisible"] boolValue])
-        return [self MAWindowWillResize:window toSize:toSize];
-    
-    NSSize newSize = [self sizeForWindowShowingAllToolbarItems:window];
-    [self removeIvar:@"makeAllToolbarItemsVisible"];
-    return newSize;
-}
-
-- (void)resizeWindowToShowAllToolbarItems:(NSWindow *)window {
-    NSRect frame = [window frame];
-    frame.size = [self sizeForWindowShowingAllToolbarItems:window];
-    [self setIvar:@"makeAllToolbarItemsVisible" value:@YES];
-    [window setFrame:frame display:YES];
-}
-
-- (void)MAToolbarItemClicked:(id)toolbarItem {
-    // Resize the window, otherwise it would make it small
-    // again.
-    [[GPGOptions sharedOptions] setValue:[toolbarItem itemIdentifier] forKey:@"MailPreferencesLastSelectedToolbarItem"];
-    [self MAToolbarItemClicked:toolbarItem];
-    [self resizeWindowToShowAllToolbarItems:[self valueForKey:@"_preferencesPanel"]];
-}
-
-- (void)MAShowPreferencesPanelForOwner:(id)owner {
-    [self MAShowPreferencesPanelForOwner:owner];
-    [self resizeWindowToShowAllToolbarItems:[self valueForKey:@"_preferencesPanel"]];
+    return [self MAMakePreferenceTabViewItems];
 }
 
 @end

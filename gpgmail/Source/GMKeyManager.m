@@ -93,10 +93,12 @@ publicKeyMap = _publicKeyMap, groups = _groups, allSecretKeys = _allSecretKeys, 
 	
 	// The best match would be the public key of on of our secret keys, with address
 	// as UID.
-	for(key in [self publicKeyListForAddresses:@[address]]) {
-		if(key.secret)
-			break;
-	}
+    if(address) {
+        for(key in [self publicKeyListForAddresses:@[address]]) {
+            if(key.secret)
+                break;
+        }
+    }
 	
 	// If we don't find a key, any of our secret public key's will do.
 	if(!key)
