@@ -37,13 +37,15 @@ typedef enum {
 
     GPGKey *_signingKey;
     NSString *_signingSender;
+
+    // Bug #957: Adapt GPGMail to the S/MIME changes introduced in Mail for 10.13.2b3
+    NSError *_invalidSigningIdentityError;
 }
 
 + (GPGMAIL_SECURITY_METHOD)defaultSecurityMethod;
 
 - (id)initWithSender:(NSString *)sender recipients:(NSArray *)recipients;
-- (id)initWithSender:(NSString *)sender signingKey:(GPGKey *)signingKey recipients:(NSArray *)recipients userShouldSignMessage:(ThreeStateBoolean)userShouldSignMessage userShouldEncryptMessage:(ThreeStateBoolean)userShouldEncryptMessage;
-
+- (id)initWithSender:(NSString *)sender signingKey:(GPGKey *)signingKey invalidSigningIdentityError:(NSError *)invalidSigningIdentitiyError recipients:(NSArray *)recipients userShouldSignMessage:(ThreeStateBoolean)userShouldSign userShouldEncryptMessage:(ThreeStateBoolean)userShouldEncrypt;
 - (void)addHintsFromBackEnd:(ComposeBackEnd *)backEnd;
 
 - (void)computePreferredSecurityPropertiesForSecurityMethod:(GPGMAIL_SECURITY_METHOD)securityMethod;
@@ -97,5 +99,7 @@ typedef enum {
 @property (nonatomic, readonly, retain) MCMessage *message;
 
 @property (nonatomic, readonly, assign) BOOL userDidChooseSecurityMethod;
+
+@property (nonatomic, readonly, copy) NSError *invalidSigningIdentityError;
 
 @end

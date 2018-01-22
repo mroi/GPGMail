@@ -110,8 +110,8 @@
                         </connections>
                     </button>
                     <button verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="VxY-Gt-nbh">
-                        <rect key="frame" x="193" y="190" width="230" height="18"/>
-                        <buttonCell key="cell" type="check" title="Encrypt new messages by default" bezelStyle="regularSquare" imagePosition="left" state="on" inset="2" id="yJs-2y-8Cb">
+                        <rect key="frame" x="193" y="190" width="140" height="18"/>
+                        <buttonCell key="cell" type="check" title="Encrypt new emails" bezelStyle="regularSquare" imagePosition="left" state="on" inset="2" id="yJs-2y-8Cb">
                             <behavior key="behavior" changeContents="YES" doesNotDimImage="YES" lightByContents="YES"/>
                             <font key="font" metaFont="system"/>
                         </buttonCell>
@@ -120,8 +120,8 @@
                         </connections>
                     </button>
                     <button verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="6KF-1a-b8O">
-                        <rect key="frame" x="193" y="170" width="210" height="18"/>
-                        <buttonCell key="cell" type="check" title="Sign new messages by default" bezelStyle="regularSquare" imagePosition="left" state="on" inset="2" id="2ul-d0-5ir">
+                        <rect key="frame" x="193" y="170" width="120" height="18"/>
+                        <buttonCell key="cell" type="check" title="Sign new emails" bezelStyle="regularSquare" imagePosition="left" state="on" inset="2" id="2ul-d0-5ir">
                             <behavior key="behavior" changeContents="YES" doesNotDimImage="YES" lightByContents="YES"/>
                             <font key="font" metaFont="system"/>
                         </buttonCell>

@@ -2071,7 +2071,7 @@
 				1B38B25F1F1187E900A21F27 /* MailUIFW */,
 			);
 			name = HighSierra;
-			path = "HighSierra-10.13_17A362a_CLEANUP";
+			path = "HighSierra-10.13.2b4_17C79a_CLEANUP";
 			sourceTree = "<group>";
 		};
 		1B38AD161F1187E400A21F27 /* EmailAddressing */ = {

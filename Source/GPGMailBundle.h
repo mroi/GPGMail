@@ -176,6 +176,8 @@ extern NSString *gpgErrorIdentifier; // This identifier is used to set and find 
 
 + (NSError *)errorWithCode:(NSInteger)code userInfo:(nullable NSDictionary *)userInfo;
 
++ (NSString *)preferencesPanelName;
+
 @property (readonly) GPGErrorCode gpgStatus;
 @property (readonly, strong) NSSet *allGPGKeys;
 @property (nonatomic, assign) BOOL accountExistsForSigning;

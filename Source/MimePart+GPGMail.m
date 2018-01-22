@@ -2959,7 +2959,10 @@ NSString * const kMimePartAllowPGPProcessingKey = @"MimePartAllowPGPProcessingKe
            [nameParameter isEqualToString:@"win.dat"] ||
            [filenameParameter isEqualToString:@"winmail.dat"] ||
            [filenameParameter isEqualToString:@"win.dat"]) {
-            mightContainPGPData = YES;
+            // Bug #950: Ignore winmail.dat files if Letter Opener is installed.
+            if(!NSClassFromString(@"OMiCBundle")) {
+                mightContainPGPData = YES;
+            }
             return;
         }
         
@@ -2972,10 +2975,29 @@ NSString * const kMimePartAllowPGPProcessingKey = @"MimePartAllowPGPProcessingKe
         // While the message might not contain PGP data, YES is still returned
         // from this method, in order to instruct GPGMail to rebuild the message.
         if([mimePart isType:@"message" subtype:@"rfc822"]) {
-            mightContainPGPData = YES;
+            if(!NSClassFromString(@"OMiCBundle")) {
+                mightContainPGPData = YES;
+            }
             return;
         }
         
+        // Bug #945: GPGMail does not detect inline PGP in incoming messages.
+        // If a message contains inline PGP in the text/plain or text/html file,
+        // none of the above methods will detect that and thus GPGMail is led to believe,
+        // that the message doesn't contain any PGP data.
+        // In order to properly detect inline PGP, it is necessary to check the body data
+        // that is available for each mime part. (Even partial contain the non-attachment
+        // mime part body data).
+        if(![mimePart isAttachment]) {
+            NSData *partBodyData = [mimePart decodedData];
+            
+            if(partBodyData) {
+                partBodyData = [mimePart encodedBodyData];
+            }
+            if(partBodyData && [partBodyData mightContainPGPEncryptedDataOrSignatures]) {
+                mightContainPGPData = YES;
+            }
+        }
     }];
     
     return mightContainPGPData && !mightContainSMIMEData;

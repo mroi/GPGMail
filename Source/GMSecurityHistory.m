@@ -260,7 +260,12 @@
                                                encryptFlags:(GPGMAIL_ENCRYPT_FLAG)encryptFlags {
     
     GMSecurityOptions *defaultSecurityOptions = [self securityOptionsFromDefaults];
-    GPGMAIL_SECURITY_METHOD securityMethod = 0;
+    // Bug #953: Wrong security method is selected for replies if keys for both methods are available.
+    //
+    // If a reply is composed and keys are available for either security methods, it's possible
+    // that the returned security method remains OPENPGP_SECURITY_METHOD_UNKNOWN.
+    // To fix that, securityMethod is initially set to the default.
+    GPGMAIL_SECURITY_METHOD securityMethod = defaultSecurityOptions.securityMethod;
     BOOL canPGPSign = (signFlags & GPGMAIL_SIGN_FLAG_OPENPGP);
     BOOL canPGPEncrypt = (encryptFlags & GPGMAIL_ENCRYPT_FLAG_OPENPGP);
     BOOL canSMIMESign = (signFlags & GPGMAIL_SIGN_FLAG_SMIME);

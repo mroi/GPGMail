@@ -35,6 +35,8 @@
 @property (nonatomic, readwrite, assign) BOOL shouldSignMessage;
 @property (nonatomic, readwrite, assign) BOOL shouldEncryptMessage;
 
+@property (nonatomic, readwrite, copy) NSError *invalidSigningIdentitiyError;
+
 @end
 
 @implementation GMComposeMessagePreferredSecurityProperties
@@ -52,21 +54,26 @@
         
         _userShouldSignMessage = ThreeStateBooleanUndetermined;
         _userShouldEncryptMessage = ThreeStateBooleanUndetermined;
+
+        _invalidSigningIdentityError = nil;
     }
     
     return self;
 }
 
-- (id)initWithSender:(NSString *)sender signingKey:(GPGKey *)signingKey recipients:(NSArray *)recipients userShouldSignMessage:(ThreeStateBoolean)userShouldSign userShouldEncryptMessage:(ThreeStateBoolean)userShouldEncrypt {
+- (id)initWithSender:(NSString *)sender signingKey:(GPGKey *)signingKey invalidSigningIdentityError:(NSError *)invalidSigningIdentitiyError recipients:(NSArray *)recipients userShouldSignMessage:(ThreeStateBoolean)userShouldSign userShouldEncryptMessage:(ThreeStateBoolean)userShouldEncrypt {
     if((self = [self initWithSender:sender recipients:recipients])) {
         _userShouldSignMessage = userShouldSign;
         _userShouldEncryptMessage = userShouldEncrypt;
         _signingKey = [signingKey copy];
         _signingSender = [sender copy];
+
+        _invalidSigningIdentityError = [invalidSigningIdentitiyError copy];
     }
     
     return self;
 }
+
 
 + (GPGMAIL_SECURITY_METHOD)defaultSecurityMethod {
     return [GMSecurityHistory defaultSecurityMethod];
@@ -119,11 +126,17 @@
 - (GPGKey *)encryptionKeyForDraft {
     // Check if a key for encrypting the draft is available matching the sender.
     // Otherwise, return any key pair with encryption capabilities.
+    // The best match is of course a signing key which is set when selecting a sender address.
+    if(self.signingKey) {
+        return self.signingKey;
+    }
+    // Otherwise check for a secret key matching the sender address.
     NSString *senderAddress = [self.sender gpgNormalizedEmail];
     id key = [self.PGPSigningKeys valueForKey:senderAddress];
     if([key isKindOfClass:[GPGKey class]] && ((GPGKey *)key).canAnyEncrypt) {
         return key;
     }
+    // Last but not least, accept any public key associated with an available secret key.
     return [[GPGMailBundle sharedInstance] anyPersonalPublicKeyWithPreferenceAddress:senderAddress];
 }
 
@@ -146,6 +159,7 @@
     BOOL canSMIMEEncrypt = [self.recipients count] ? YES : NO;
     BOOL canPGPSign = NO;
     BOOL canPGPEncrypt = [self.recipients count] ? YES : NO;
+    BOOL allowEncryptEvenIfNoSigningKeyIsAvailable = [[GPGOptions sharedOptions] boolForKey:@"AllowEncryptEvenIfNoSigningKeyIsAvailable"];
     
     NSString *sender = [self.sender copy];
     NSArray *recipients = [self.recipients copy];
@@ -157,8 +171,19 @@
             signingIdentity = nil;
         }
         if(!signingIdentity) {
-            signingIdentity = (__bridge id)[MCKeychainManager copySigningIdentityForAddress:sender];
+            // Bug #957: Adapt GPGMail to the S/MIME changes introduced in Mail for 10.13.2b3
+            //
+            // Apple Mail team has added a possibility to display errors, if macOS fails to read
+            // a signing identity.
+            NSError __autoreleasing *invalidSigningIdentityError = nil;
+            if([MCKeychainManager respondsToSelector:@selector(copySigningIdentityForAddress:error:)]) {
+                signingIdentity = (__bridge id)[MCKeychainManager copySigningIdentityForAddress:sender error:&invalidSigningIdentityError];
+            }
+            else {
+                signingIdentity = (__bridge id)[MCKeychainManager copySigningIdentityForAddress:sender];
+            }
             signingIdentities[sender] = signingIdentity ? signingIdentity : [NSNull null];
+            self.invalidSigningIdentitiyError = invalidSigningIdentityError;
         }
         canSMIMESign = signingIdentities[sender] && signingIdentities[sender] != [NSNull null] ? YES : NO;
     }
@@ -167,19 +192,30 @@
     }
     
     //BOOL canEncrypt = [recipients count] ? YES : NO;
-    for(id recipient in recipients) {
-        // Only accept cached S/MIME encryption certificates, otherwise for a new check.
-        id certificate = encryptionCertificates[recipient];
-        if(certificate && ([certificate isKindOfClass:[GPGKey class]] || certificate == [NSNull null])) {
-            certificate = nil;
+    // SMIME only allows encryption if a signing certificate exists.
+    if(canSMIMESign) {
+        for(id recipient in recipients) {
+            // Only accept cached S/MIME encryption certificates, otherwise for a new check.
+            id certificate = encryptionCertificates[recipient];
+            // Bug #962: Messages might be OpenPGP encrypted even though S/MIME is selected as security method
+            //
+            // Since adding support to the gnupg group feature, OpenPGP certificates are now stored as array
+            // and the key is the recipient.
+            // In order to remove any OpenPGP certificates, it's necessary to check for NSArray values.
+            if(certificate && ([certificate isKindOfClass:[GPGKey class]] || [certificate isKindOfClass:[NSArray class]] || certificate == [NSNull null])) {
+                certificate = nil;
+            }
+            if(!certificate) {
+                certificate = [MCKeychainManager copyEncryptionCertificateForAddress:recipient];
+                encryptionCertificates[recipient] = certificate ? certificate : [NSNull null];
+            }
+            if(encryptionCertificates[recipient] == [NSNull null]) {
+                canSMIMEEncrypt = NO;
+            }
         }
-        if(!certificate) {
-            certificate = [MCKeychainManager copyEncryptionCertificateForAddress:recipient];
-            encryptionCertificates[recipient] = certificate ? certificate : [NSNull null];
-        }
-        if(encryptionCertificates[recipient] == [NSNull null]) {
-            canSMIMEEncrypt = NO;
-        }
+    }
+    else {
+        canSMIMEEncrypt = NO;
     }
     
     // Load signing key and encryption keys for OpenPGP.
@@ -221,23 +257,36 @@
     }
     
     //BOOL canEncrypt = [recipients count] ? YES : NO;
-    for(id recipient in recipients) {
-        NSString *normalizedRecipient = [recipient gpgNormalizedEmail];
-        // Only accept cached PGP encryption certificates, otherwise for a new check.
-        id key = encryptionKeys[normalizedRecipient];
-        if(key && (![key isKindOfClass:[GPGKey class]] || key == [NSNull null])) {
-            key = nil;
+    if(canPGPSign || allowEncryptEvenIfNoSigningKeyIsAvailable) {
+        for(id recipient in recipients) {
+            NSString *normalizedRecipient = [recipient gpgNormalizedEmail];
+            // Only accept cached PGP encryption certificates, otherwise for a new check.
+            id key = encryptionKeys[normalizedRecipient];
+            if(key && (![key isKindOfClass:[GPGKey class]] || key == [NSNull null])) {
+                key = nil;
+            }
+            if(!key) {
+                NSArray *keyList = [[[GPGMailBundle sharedInstance] publicKeyListForAddresses:@[normalizedRecipient]] allObjects];
+                // In order to support gnupg groups, it's possible that a list of keys is returned, even if only
+                // one recipient is passed in. If more than one key is found, the list of keys is stored for that recipient,
+                // instead of only the first key. (#903)
+                encryptionKeys[normalizedRecipient] = [keyList count] > 0 ? keyList : [NSNull null];
+                // Bug #957: Adapt GPGMail to the S/MIME changes introduced in Mail for 10.13.2b3
+                //
+                // Apple has added another check if all encryption keys are valid within -[ComposeViewController sendMessageAfterChecking:]
+                // but instead of re-using the -[ComposeBackEnd recipientsThatHaveNoKeyForEncryption] method, they have copy
+                // and pasted the exact same code.
+                // Unfortunately that check wants the dictionary key to be the recipient instead of the normalizedRecipient, so
+                // it's necessary to store the certificates under both keys.
+                encryptionKeys[recipient] = [keyList count] > 0 ? keyList : [NSNull null];
+            }
+            if(encryptionKeys[normalizedRecipient] == [NSNull null]) {
+                canPGPEncrypt = NO;
+            }
         }
-        if(!key) {
-            NSArray *keyList = [[[GPGMailBundle sharedInstance] publicKeyListForAddresses:@[normalizedRecipient]] allObjects];
-            // In order to support gnupg groups, it's possible that a list of keys is returned, even if only
-            // one recipient is passed in. If more than one key is found, the list of keys is stored for that recipient,
-            // instead of only the first key. (#903)
-            encryptionKeys[normalizedRecipient] = [keyList count] > 0 ? keyList : [NSNull null];
-        }
-        if(encryptionKeys[normalizedRecipient] == [NSNull null]) {
-            canPGPEncrypt = NO;
-        }
+    }
+    else {
+        canPGPEncrypt = NO;
     }
     
     // Now we know, if signing and encryption is available. Now on to determine, what security properties should be enabled.
