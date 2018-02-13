@@ -45,10 +45,17 @@ extern NSString * const kLibraryMimeBodyReturnCompleteBodyDataKey;
 NSString * const kMFLibraryStoreMessageBodyContainsPGPData = @"MFLibraryStoreMessageBodyContainsPGPData";
 NSString * const kMFLibraryStoreMessageDataFetchLockMap = @"MFLibraryStoreMessageDataFetchLockMap";
 NSString * const kMFLibraryStoreMessageWaitForData = @"MFLibraryStoreMessageWaitForData";
+NSString * const kMFLibraryStoreMessageFetchLockMap = @"MFLibraryStoreMessageFetchLockMap";
 
 // This class is responsible for fetching message data on High Sierra.
 
 @implementation MFLibraryStore_GPGMail
+
+- (id)MAInitWithCriterion:(id)criterion mailbox:(id)mailbox readOnly:(BOOL)readOnly {
+    id object = [self MAInitWithCriterion:criterion mailbox:mailbox readOnly:readOnly];
+    [object setIvar:kMFLibraryStoreMessageFetchLockMap value:[NSMutableDictionary new]];
+    return object;
+}
 
 - (void)MAGetTopLevelMimePart:(id *)topLevelMimePart headers:(id *)headers body:(id *)body forMessage:(MCMessage *)currentMessage fetchIfNotAvailable:(BOOL)fetchIfNotAvailable updateFlags:(BOOL)updateFlags allowPartial:(BOOL)allowPartial {
     // In macOS High Sierra, Mail has introduced a new caching technique, in order to cache
@@ -86,26 +93,13 @@ NSString * const kMFLibraryStoreMessageWaitForData = @"MFLibraryStoreMessageWait
         return [self MAGetTopLevelMimePart:topLevelMimePart headers:headers body:body forMessage:currentMessage fetchIfNotAvailable:fetchIfNotAvailable updateFlags:updateFlags allowPartial:allowPartial];
     }
     
-    void (^cleanUp)(id, MCMessage *, NSRecursiveLock *, NSLock *) = ^void(id object, MCMessage *currentMessage, NSRecursiveLock *messageLock, NSLock *messageDataFetchLock) {
+    void (^cleanUp)(id, MCMessage *, NSRecursiveLock *) = ^void(id object, MCMessage *currentMessage, NSRecursiveLock *messageLock) {
         // Unset wait for data, so method calls not controlled by GPGMail don't use
         // the locks. (ref. Bug #952)
         [[[NSThread currentThread] threadDictionary] setValue:@(NO) forKey:kMFLibraryStoreMessageWaitForData];
 
-        if(messageDataFetchLock) {
-            NSMutableDictionary *messageDataFetchLockMap = [self getIvar:kMFLibraryStoreMessageDataFetchLockMap];
-            @synchronized(messageDataFetchLockMap) {
-                NSLock *endLock = messageDataFetchLockMap[currentMessage];
-                if(messageDataFetchLock == endLock) {
-                    @try {
-                        [messageDataFetchLockMap removeObjectForKey:currentMessage];
-                    }
-                    @catch(NSException *exception) {}
-                }
-            }
-        }
-
         if(messageLock) {
-            NSMutableDictionary *messageLockMap = [object valueForKey:@"_libraryFetchLockMap"];
+            NSMutableDictionary *messageLockMap = [object getIvar:kMFLibraryStoreMessageFetchLockMap];
             @synchronized(messageLockMap) {
                 NSRecursiveLock *endLock = messageLockMap[currentMessage];
                 if(messageLock == endLock) {
@@ -132,12 +126,20 @@ NSString * const kMFLibraryStoreMessageWaitForData = @"MFLibraryStoreMessageWait
     [[[NSThread currentThread] threadDictionary] setValue:@(YES) forKey:kMFLibraryStoreMessageWaitForData];
     [self MAGetTopLevelMimePart:&temporaryMimePart headers:headers body:body forMessage:currentMessage fetchIfNotAvailable:fetchIfNotAvailable updateFlags:updateFlags allowPartial:allowPartial];
     if(![(MimePart_GPGMail *)temporaryMimePart mightContainPGPData]) {
-        cleanUp(self, currentMessage, nil, nil);
+        cleanUp(self, currentMessage, nil);
         return;
     }
 
     // Now all the best cases are covered, down to the nitty gritty.
-    NSMutableDictionary *messageLockMap = [self valueForKey:@"_libraryFetchLockMap"];
+    // Bug #967: Deadlock preventing messages from loading
+    //
+    // In order to prevent the same message from being loaded and processed from
+    // multiple threads, we have been using Mail's internal lock `_libraryFetchLockMap`
+    // Unfortunately this lock map is also used in some methods which are called when
+    // data is fetched from the server, which in turn calls this method again. Under special
+    // circumstances that behavior can trigger a deadlock.
+    // To have better control over the locking behavior, we use our own lock map instead.
+    NSMutableDictionary *messageLockMap = [self getIvar:kMFLibraryStoreMessageFetchLockMap];
     NSRecursiveLock *messageLock = nil;
     @synchronized(messageLockMap) {
         messageLock = messageLockMap[currentMessage];
@@ -155,37 +157,20 @@ NSString * const kMFLibraryStoreMessageWaitForData = @"MFLibraryStoreMessageWait
     // create one based on the always available partial message.
     NSData *messageData = [Library_GPGMail GMRawDataForMessage:currentMessage topLevelPart:nil fetchIfNotAvailable:NO];
     if(!messageData) {
-        // Now it's necessary to fetch the message data from the server.
-        // In order to avoid a deadlock, since -[MFLibrary forceFetchMessageDataForMessage:] calls into this method
-        // the lock from the libraryFetchLockMap is released, and a different one is used, in order to prevent
-        // multiple calls to this method to fetch the data at the same time.
-        NSMutableDictionary *messageDataFetchLockMap = [self getIvar:kMFLibraryStoreMessageDataFetchLockMap];
-        if(!messageDataFetchLockMap) {
-            messageDataFetchLockMap = [NSMutableDictionary new];
-            [self setIvar:kMFLibraryStoreMessageDataFetchLockMap value:messageDataFetchLockMap];
-        }
-        NSLock *messageDataFetchLock = nil;
-        @synchronized(messageDataFetchLockMap) {
-            messageDataFetchLock = messageDataFetchLockMap[currentMessage];
-            if(!messageDataFetchLock) {
-                messageDataFetchLock = [NSLock new];
-                messageDataFetchLockMap[currentMessage] = messageDataFetchLock;
-            }
-        }
-
-        [messageDataFetchLock lock];
         @try {
             messageData = [Library_GPGMail GMRawDataForMessage:currentMessage topLevelPart:nil fetchIfNotAvailable:YES];
         }
         @catch(NSException *exception) {
-            cleanUp(self, currentMessage, nil, nil);
+            cleanUp(self, currentMessage, nil);
         }
         @finally {
-            cleanUp(self, currentMessage, nil, messageDataFetchLock);
+            cleanUp(self, currentMessage, nil);
         }
     }
     if(!messageData) {
         // Something is going really wrong. It should never be possible to come here.
+        [messageLock unlock];
+        cleanUp(self, currentMessage, messageLock);
         DebugLog(@"Failed to fetch data for message! %@", currentMessage);
         return;
     }
@@ -200,11 +185,11 @@ NSString * const kMFLibraryStoreMessageWaitForData = @"MFLibraryStoreMessageWait
     }
     @catch (NSException *exception) {
         [self MAGetTopLevelMimePart:topLevelMimePart headers:headers body:body forMessage:currentMessage fetchIfNotAvailable:fetchIfNotAvailable updateFlags:updateFlags allowPartial:allowPartial];
-        cleanUp(self, currentMessage, nil, nil);
+        cleanUp(self, currentMessage, nil);
     }
     @finally {
         [messageLock unlock];
-        cleanUp(self, currentMessage, messageLock, nil);
+        cleanUp(self, currentMessage, messageLock);
     }
 }
 
