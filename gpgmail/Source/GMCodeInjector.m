@@ -501,7 +501,8 @@
                      },
              @"MFLibraryStore": @{
                      @"selectors": @[
-                             @"getTopLevelMimePart:headers:body:forMessage:fetchIfNotAvailable:updateFlags:allowPartial:"]
+                             @"getTopLevelMimePart:headers:body:forMessage:fetchIfNotAvailable:updateFlags:allowPartial:",
+                             @"initWithCriterion:mailbox:readOnly:"]
              },
              @"MCMimePart": @{
                      @"selectors": @{

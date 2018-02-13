@@ -148,7 +148,7 @@
 
 @end
 
-NSString * const kGMED = @"1$5$1$8:6:4-9-2§0§0";
+NSString * const kGMED = @"1$5$2$7:8:8-3-2§0§0";
 
 @interface GPGMailBundle ()
 
