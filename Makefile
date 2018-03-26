@@ -1,6 +1,7 @@
 PLUGIN_DIR = $(shell echo ~)/Library/Mail/Bundles
 FRAMEWORK_DIR = $(PLUGIN_DIR)/GPGMail.mailbundle/Contents/Frameworks
 RESOURCE_DIR = $(FRAMEWORK_DIR)/Libmacgpg.framework/Resources
+LAUNCH_AGENT = $(shell echo ~)/Library/LaunchAgents/org.gpgtools.Libmacgpg.xpc.plist
 
 .PHONY: all install update clean
 
@@ -31,8 +32,9 @@ install: all
 	codesign -s "`id -F`" $(RESOURCE_DIR)/org.gpgtools.Libmacgpg.xpc -i org.gpgtools.Libmacgpg.xpc
 	codesign -s "`id -F`" $(FRAMEWORK_DIR)/Libmacgpg.framework
 	codesign -s "`id -F`" $(PLUGIN_DIR)/GPGMail.mailbundle
-	sed 's|/Library/Application Support/GPGTools|$(RESOURCE_DIR)|' < libmacgpg/build/org.gpgtools.Libmacgpg.xpc.plist > ~/Library/LaunchAgents/org.gpgtools.Libmacgpg.xpc.plist
-	-launchctl uncache gui/$$UID/org.gpgtools.Libmacgpg.xpc
+	sed 's|/Library/Application Support/GPGTools|$(RESOURCE_DIR)|' < libmacgpg/build/org.gpgtools.Libmacgpg.xpc.plist > $(LAUNCH_AGENT)
+	-launchctl bootout gui/$$UID/org.gpgtools.Libmacgpg.xpc
+	launchctl bootstrap gui/$$UID $(LAUNCH_AGENT)
 
 update:
 	git subtree merge --prefix=pinentry --squash pinentry/master
