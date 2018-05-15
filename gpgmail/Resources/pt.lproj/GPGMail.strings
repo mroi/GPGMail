@@ -52,11 +52,11 @@
 "MESSAGE_BANNER_PGP_VERIFY_SIGNATURE_EXPIRED_ERROR_TITLE" = "A assinatura da mensagem está vencida.";
 "MESSAGE_BANNER_PGP_VERIFY_SIGNATURE_EXPIRED_ERROR_MESSAGE" = "A assinatura está vencida e não pôde ser verificada.\n\nPergunte ao remetente porque a assinatura está vencida.";
 
-"MESSAGE_BANNER_PGP_DECRYPT_ERROR_NO_GPG_TITLE" = "MacGPG is not installed";
-"MESSAGE_BANNER_PGP_DECRYPT_ERROR_NO_GPG_MESSAGE" = "Decrypting failed because MacGPG is not installed.\n\nPlease download and re-install GPG Suite from https://gpgtools.org";
+"MESSAGE_BANNER_PGP_DECRYPT_ERROR_NO_GPG_TITLE" = "O MacGPG não está instalado";
+"MESSAGE_BANNER_PGP_DECRYPT_ERROR_NO_GPG_MESSAGE" = "A decriptografia falhou porque o MacGPG não está instalado.\n\nTransfira e reinstale a GPG Suite de https://gpgtools.org";
 
-"MESSAGE_BANNER_PGP_VERIFY_ERROR_NO_GPG_TITLE" = "MacGPG is not installed";
-"MESSAGE_BANNER_PGP_VERIFY_ERROR_NO_GPG_MESSAGE" = "Verifying failed because MacGPG is not installed.\n\nPlease download and re-install GPG Suite from https://gpgtools.org";
+"MESSAGE_BANNER_PGP_VERIFY_ERROR_NO_GPG_TITLE" = "O MacGPG não está instalado";
+"MESSAGE_BANNER_PGP_VERIFY_ERROR_NO_GPG_MESSAGE" = "A verificação falhou porque o MacGPG não está instalado.\n\nTransfira e reinstale a GPG Suite de https://gpgtools.org";
 
 "MESSAGE_BANNER_PGP_ATTACHMENTS_DECRYPT_VERIFY_ERROR_TITLE" = "%d anexos não puderam ser decriptografados ou verificados.";
 "MESSAGE_BANNER_PGP_ATTACHMENTS_DECRYPT_VERIFY_ERROR_MESSAGE" = "Clique no ícone do anexo na parte de segurança do cabeçalho da mensagem para obter mais detalhes.";
@@ -147,12 +147,12 @@
 /* GPGMail Preferences strings. */
 "GPG_STATUS_NO_ERROR_TITLE" = "O GPGMail está pronto.";
 "GPG_STATUS_NO_ERROR_TOOLTIP" = "A instalação do MacGPG está funcionando sem erros.";
-"GPG_STATUS_NOT_FOUND_TITLE" = "MacGPG is not installed. Check your installation.";
+"GPG_STATUS_NOT_FOUND_TITLE" = "O MacGPG não está instalado. Verifique a instalação.";
 "GPG_STATUS_NOT_FOUND_TOOLTIP" = "Para garantir a instalação de todos os componentes necessários, transfira e reinstale a GPG Suite de https://www.gpgtools.org.";
 "GPG_STATUS_OTHER_ERROR_TITLE" = "Verifique a instalação e configuração.";
 "GPG_STATUS_NOT_FOUND_TOOLTIP" = "Para garantir a instalação de todos os componentes necessários, transfira e reinstale a GPG Suite de https://www.gpgtools.org.";
 "DISABLE_ENCRYPT_DRAFTS_TITLE" = "Aviso: se você desativar esta opção, informações confidenciais poderão ser vazadas ao redigir uma mensagem.";
-"DISABLE_ENCRYPT_DRAFTS_MESSAGE" = "If the option \"Store drafts on server\" is enabled for your accounts, macOS Mail automatically stores your drafts on your mail server while you're composing a message.\nBy disabling \"Encrypt drafts\", your drafts will be stored in plain text (not encrypted) so that anyone with access to the mail server can read them.\n\nIf you keep \"Encrypt drafts\" enabled, your drafts will be encrypted before they are stored on a mail server and only you will be able to read them.\n\nDo you still want to disable \"Encrypt drafts\"?";
+"DISABLE_ENCRYPT_DRAFTS_MESSAGE" = "Se a opção “Armazenar rascunhos no servidor” estiver ativada nas contas, o Mail armazenará os rascunhos no servidor automaticamente enquanto você estiver redigindo uma mensagem.\n\nAo desativar a opção “Criptografar rascunhos”, eles serão salvos em texto simples (não criptografado) e qualquer um com acesso ao servidor poderá lê‑los.\n\nSe você mantiver a opção “Criptografar rascunhos” ativada, eles serão criptografados antes de serem armazenados no servidor e somente você poderá lê‑los.\n\nAinda deseja desativar a criptografia de rascunhos?";
 "DISABLE_ENCRYPT_DRAFTS_CONFIRM" = "Desativar Criptografia";
 "DISABLE_ENCRYPT_DRAFTS_CANCEL" = "Cancelar";
 
@@ -164,7 +164,7 @@
 
 /* No Libmacgpg. */
 "LIBMACGPG_NOT_FOUND_TITLE" = "Libmacgpg não encontrado.";
-"LIBMACGPG_NOT_FOUND_MESSAGE" = "Libmacgpg was not found on your system. Please download and install GPG Suite from https://www.gpgtools.org.";
+"LIBMACGPG_NOT_FOUND_MESSAGE" = "O Libmacgpg não foi encontrado no sistema. Transfira e instale a GPG Suite de https://www.gpgtools.org.";
 
 /* Code signature invalid */
 CODE_SIGN_ERROR_TITLE = "Alguém adulterou a instalação do GPGMail!";

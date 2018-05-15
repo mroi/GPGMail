@@ -339,6 +339,11 @@ static NSMutableDictionary *messageDataAccessMap;
         needRemoteDataSource = [messageDataSource isKindOfClass:[MFEWSStore class]] ? YES : NO;
     }
     
+    // Check if complete message eml is available. This is necessary in order to figure
+    // out whether to skip the attachment data source setup or not.
+    BOOL isCompleteMessageAvailable = NO;
+    NSData *messageData = [self GMMessageDataForMessage:message isCompleteMessageAvailable:&isCompleteMessageAvailable];
+
     for(id key in [parsedMessage attachmentsByURL]) {
         MCAttachment *attachment = [[parsedMessage attachmentsByURL] objectForKey:key];
         // In some cases the data source for the attachment is already setup, for example
@@ -346,7 +351,13 @@ static NSMutableDictionary *messageDataAccessMap;
         // In that case the data source *must no* be setup again.
         // Passing 0 to -[MCAttachment dataForAccessLevel:] guarantees that data is only returned,
         // if it's available locally.
-        if([attachment dataForAccessLevel:0]) {
+
+        // Bug #974: Don't reset attachment data source if the message is locally available in full and
+        //           the attachment is not remotely accessed
+        // This is a bug in my re-implementation of the data source setup part. If the complete eml file for
+        // a message is available (not only partial eml) and [attachment isRemotelyAccessed] returns NO
+        // the setup for the data source of the attachment must be skipped.
+        if([attachment dataForAccessLevel:0] || (![attachment isRemotelyAccessed] && isCompleteMessageAvailable)) {
             continue;
         }
         id <MCRemoteAttachmentDataSource> remoteDataSource = nil;

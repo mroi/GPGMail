@@ -52,11 +52,11 @@
 "MESSAGE_BANNER_PGP_VERIFY_SIGNATURE_EXPIRED_ERROR_TITLE" = "La firma del messaggio è scaduta.";
 "MESSAGE_BANNER_PGP_VERIFY_SIGNATURE_EXPIRED_ERROR_MESSAGE" = "La firma del messaggio è scaduta e non può essere verificata.\n\nChiedere al mittente come mai la firma è scaduta.";
 
-"MESSAGE_BANNER_PGP_DECRYPT_ERROR_NO_GPG_TITLE" = "MacGPG2 non è installato";
-"MESSAGE_BANNER_PGP_DECRYPT_ERROR_NO_GPG_MESSAGE" = "Decifratura fallita a causa della mancanza di MacGPG2.\n\nSi prega di scaricare e reinstallare GPG Suite da https://gpgtools.org";
+"MESSAGE_BANNER_PGP_DECRYPT_ERROR_NO_GPG_TITLE" = "MacGPG is not installed";
+"MESSAGE_BANNER_PGP_DECRYPT_ERROR_NO_GPG_MESSAGE" = "Decrypting failed because MacGPG is not installed.\n\nPlease download and re-install GPG Suite from https://gpgtools.org";
 
-"MESSAGE_BANNER_PGP_VERIFY_ERROR_NO_GPG_TITLE" = "MacGPG2 non è installato";
-"MESSAGE_BANNER_PGP_VERIFY_ERROR_NO_GPG_MESSAGE" = "Verifica fallita a causa della mancanza di MacGPG2.\n\nSi prega di scaricare e reinstallare GPG Suite da https://gpgtools.org";
+"MESSAGE_BANNER_PGP_VERIFY_ERROR_NO_GPG_TITLE" = "MacGPG is not installed";
+"MESSAGE_BANNER_PGP_VERIFY_ERROR_NO_GPG_MESSAGE" = "Verifying failed because MacGPG is not installed.\n\nPlease download and re-install GPG Suite from https://gpgtools.org";
 
 "MESSAGE_BANNER_PGP_ATTACHMENTS_DECRYPT_VERIFY_ERROR_TITLE" = "%d allegati non sono stati decifrati o verificati correttamente.";
 "MESSAGE_BANNER_PGP_ATTACHMENTS_DECRYPT_VERIFY_ERROR_MESSAGE" = "Per favore cliccare sull'icona di allegato nell'intestazione relativa alla sicurezza del messaggio per ulteriori informazioni.";
@@ -147,7 +147,7 @@
 /* GPGMail Preferences strings. */
 "GPG_STATUS_NO_ERROR_TITLE" = "GPGMail è pronto.";
 "GPG_STATUS_NO_ERROR_TOOLTIP" = "La tua installazione MacGPG funziona senza errori.";
-"GPG_STATUS_NOT_FOUND_TITLE" = "MacGPG2 non è installato. Controlla la tua installazione.";
+"GPG_STATUS_NOT_FOUND_TITLE" = "MacGPG is not installed. Check your installation.";
 "GPG_STATUS_NOT_FOUND_TOOLTIP" = "Prego scarica l'installer di GPG Suite da http://www.gpgtools.org per installare l'intera suite GPG Suite.";
 "GPG_STATUS_OTHER_ERROR_TITLE" = "Prego controlla la tua installazione e configurazione.";
 "GPG_STATUS_NOT_FOUND_TOOLTIP" = "Prego scarica l'installer di GPG Suite da http://www.gpgtools.org per installare l'intera suite GPG Suite.";
@@ -164,7 +164,7 @@
 
 /* No Libmacgpg. */
 "LIBMACGPG_NOT_FOUND_TITLE" = "Libmacgpg non è stato trovato";
-"LIBMACGPG_NOT_FOUND_MESSAGE" = "Libmacgpg non è stato trovato sul tuo sistema. Si prega di installarlo. Trovalo per esempio nel programma di installazione GPGTools su https://www.gpgtools.org.";
+"LIBMACGPG_NOT_FOUND_MESSAGE" = "Libmacgpg was not found on your system. Please download and install GPG Suite from https://www.gpgtools.org.";
 
 /* Code signature invalid */
 CODE_SIGN_ERROR_TITLE = "Qualcuno manomesso con l'installazione di GPGMail!";

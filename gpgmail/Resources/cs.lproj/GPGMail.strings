@@ -52,11 +52,11 @@
 "MESSAGE_BANNER_PGP_VERIFY_SIGNATURE_EXPIRED_ERROR_TITLE" = "Platnost podpis zprávy vypršela.";
 "MESSAGE_BANNER_PGP_VERIFY_SIGNATURE_EXPIRED_ERROR_MESSAGE" = "Platnost podpisu vypršela a nelze ověřit.\n\nZeptejte se odesilatele proč platnost jeho podpisu vypršela.";
 
-"MESSAGE_BANNER_PGP_DECRYPT_ERROR_NO_GPG_TITLE" = "MacGPG není nainstalováno";
-"MESSAGE_BANNER_PGP_DECRYPT_ERROR_NO_GPG_MESSAGE" = "Dešifrování se nezdařilo, protože MacGPG2 není nainstalován.\n\nZkopírujte si, prosím, znovu GPG Suite z https://gpgtools.org a nainstalujte.";
+"MESSAGE_BANNER_PGP_DECRYPT_ERROR_NO_GPG_TITLE" = "MacGPG is not installed";
+"MESSAGE_BANNER_PGP_DECRYPT_ERROR_NO_GPG_MESSAGE" = "Decrypting failed because MacGPG is not installed.\n\nPlease download and re-install GPG Suite from https://gpgtools.org";
 
-"MESSAGE_BANNER_PGP_VERIFY_ERROR_NO_GPG_TITLE" = "MacGPG2 není nainstalováno";
-"MESSAGE_BANNER_PGP_VERIFY_ERROR_NO_GPG_MESSAGE" = "Ověření selhalo protože aplikace MacGPG2 není nainstalována.\n\nZkopírujte si, prosím, znovu GPG Suite z https://gpgtools.org a nainstalujte.";
+"MESSAGE_BANNER_PGP_VERIFY_ERROR_NO_GPG_TITLE" = "MacGPG is not installed";
+"MESSAGE_BANNER_PGP_VERIFY_ERROR_NO_GPG_MESSAGE" = "Verifying failed because MacGPG is not installed.\n\nPlease download and re-install GPG Suite from https://gpgtools.org";
 
 "MESSAGE_BANNER_PGP_ATTACHMENTS_DECRYPT_VERIFY_ERROR_TITLE" = "Dešifrování nebo ověření příloh %d selhalo.";
 "MESSAGE_BANNER_PGP_ATTACHMENTS_DECRYPT_VERIFY_ERROR_MESSAGE" = "Pro zobrazení podrobností klepněte prosím na ikonu přílohy v hlavičce zabezpečení zprávy.";
@@ -147,12 +147,12 @@
 /* GPGMail Preferences strings. */
 "GPG_STATUS_NO_ERROR_TITLE" = "GPGMail je připraven.";
 "GPG_STATUS_NO_ERROR_TOOLTIP" = "Vaše instalace MacGPG pracuje správně a bez chyb.";
-"GPG_STATUS_NOT_FOUND_TITLE" = "MacGPG2 není nainstalováno. Ověřte prosím jeho instalaci.";
+"GPG_STATUS_NOT_FOUND_TITLE" = "MacGPG is not installed. Check your installation.";
 "GPG_STATUS_NOT_FOUND_TOOLTIP" = "Zkopírujte si prosím instalítor GPG Suite z http://www.gpgtools.org a nainstalujte vše z balíku GPG Suite.";
 "GPG_STATUS_OTHER_ERROR_TITLE" = "Ověřte prosím vaši instalaci a nastavení.";
 "GPG_STATUS_NOT_FOUND_TOOLTIP" = "Zkopírujte si prosím instalítor GPG Suite z http://www.gpgtools.org a nainstalujte vše z balíku GPG Suite.";
 "DISABLE_ENCRYPT_DRAFTS_TITLE" = "Varování: Deaktivace této možnosti by mohla vést k úniku citlivých informací při psaní zprávy";
-"DISABLE_ENCRYPT_DRAFTS_MESSAGE" = "If the option \"Store drafts on server\" is enabled for your accounts, OS X Mail automatically stores your drafts on your mail server while you're composing a message.\nBy disabling\"Encrypt drafts\", your drafts will be stored in plain text (not encrypted) so that anyone with access to the mail server can read them.\n\nIf you keep \"Encrypt drafts\" enabled, your drafts will be encrypted before they are stored on a mail server and only you will be able to read them.\n\nDo you still want want to disable \"Encrypt drafts\"?";
+"DISABLE_ENCRYPT_DRAFTS_MESSAGE" = "If the option \"Store drafts on server\" is enabled for your accounts, macOS Mail automatically stores your drafts on your mail server while you're composing a message.\nBy disabling \"Encrypt drafts\", your drafts will be stored in plain text (not encrypted) so that anyone with access to the mail server can read them.\n\nIf you keep \"Encrypt drafts\" enabled, your drafts will be encrypted before they are stored on a mail server and only you will be able to read them.\n\nDo you still want to disable \"Encrypt drafts\"?";
 "DISABLE_ENCRYPT_DRAFTS_CONFIRM" = "Vypnout šifrování";
 "DISABLE_ENCRYPT_DRAFTS_CANCEL" = "Zrušit";
 
@@ -164,7 +164,7 @@
 
 /* No Libmacgpg. */
 "LIBMACGPG_NOT_FOUND_TITLE" = "Knihovna Libmacgpg nebyla nalezena";
-"LIBMACGPG_NOT_FOUND_MESSAGE" = "Knihovna Libmacgpg nebyla ve vašem systému nalezena. Nainstalujte ji prosím. Lze ji nalézt například v instalátoru GPGTools na https://www.gpgtools.org.";
+"LIBMACGPG_NOT_FOUND_MESSAGE" = "Libmacgpg was not found on your system. Please download and install GPG Suite from https://www.gpgtools.org.";
 
 /* Code signature invalid */
 CODE_SIGN_ERROR_TITLE = "Někdo manipuloval s instalací GPGMail!";
