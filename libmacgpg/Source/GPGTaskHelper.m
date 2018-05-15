@@ -217,8 +217,17 @@ closeInput = _closeInput;
 	// in every other case, gpg stalls till it received the data to decrypt.
 	// So in that case, the data actually has to be written as the very first thing.
 	NSArray *options = @[@"--encrypt", @"--sign", @"--clearsign", @"--detach-sign", @"--symmetric", @"-e", @"-s", @"-b", @"-c"];
+	BOOL shouldWriteInput = ([self.arguments firstObjectCommonWithArray:options] == nil);
 	
-	if ([self.arguments firstObjectCommonWithArray:options] == nil) {
+	if (!shouldWriteInput) {
+		// If --passphrase-fd 0 is used, the data has to be written before any status
+		// was issued, because gpg will wait until it gets the passphrase from stdin.
+		NSUInteger index = [self.arguments indexOfObject:@"--passphrase-fd"];
+		if (self.arguments.count >= index + 1) {
+			shouldWriteInput = [self.arguments[index+1] isEqualToString:@"0"];
+		}
+	}
+	if (shouldWriteInput) {
 		dispatch_group_async(collectorGroup, queue, ^{
 			runBlockAndRecordExceptionSyncronized(^{
 				[self writeInputData];
@@ -528,7 +537,6 @@ closeInput = _closeInput;
     // Most keywords are handled by the processStatus callback,
     // but some like pinentry passphrase requests are handled
     // directly.
-	
 	NSData *response = self.processStatus(keyword, value);
     
     switch(code) {
@@ -795,6 +803,7 @@ closeInput = _closeInput;
 		  @"BEGIN_STREAM": @(GPG_STATUS_BEGIN_STREAM),
 		  @"CARDCTRL": @(GPG_STATUS_CARDCTRL),
 		  @"DECRYPTION_FAILED": @(GPG_STATUS_DECRYPTION_FAILED),
+		  @"DECRYPTION_INFO": @(GPG_STATUS_DECRYPTION_INFO),
 		  @"DECRYPTION_OKAY": @(GPG_STATUS_DECRYPTION_OKAY),
 		  @"DELETE_PROBLEM": @(GPG_STATUS_DELETE_PROBLEM),
 		  @"ENC_TO": @(GPG_STATUS_ENC_TO),
@@ -823,6 +832,7 @@ closeInput = _closeInput;
 		  @"INV_SGNR": @(GPG_STATUS_INV_SGNR),
 		  @"KEYEXPIRED": @(GPG_STATUS_KEYEXPIRED),
 		  @"KEYREVOKED": @(GPG_STATUS_KEYREVOKED),
+		  @"KEY_CONSIDERED": @(GPG_STATUS_KEY_CONSIDERED),
 		  @"KEY_CREATED": @(GPG_STATUS_KEY_CREATED),
 		  @"KEY_NOT_CREATED": @(GPG_STATUS_KEY_NOT_CREATED),
 		  @"MISSING_PASSPHRASE": @(GPG_STATUS_MISSING_PASSPHRASE),
@@ -884,15 +894,7 @@ closeInput = _closeInput;
 }
 
 + (NSString *)gpgAgentSocket {
-	NSString *socketPath = [[GPGOptions sharedOptions] valueForKey:@"GPG_AGENT_INFO" inDomain:GPGDomain_environment];
-	NSRange range;
-	if (socketPath && (range = [socketPath rangeOfString:@":"]).length > 0) {
-		socketPath = [socketPath substringToIndex:range.location - 1];
-		if ([self isGPGAgentSocket:socketPath]) {
-			return socketPath;
-		}
-	}
-	socketPath = [[[GPGOptions sharedOptions] gpgHome] stringByAppendingPathComponent:@"S.gpg-agent"];
+	NSString *socketPath = [[[GPGOptions sharedOptions] gpgHome] stringByAppendingPathComponent:@"S.gpg-agent"];
 	if ([self isGPGAgentSocket:socketPath]) {
 		return socketPath;
 	}

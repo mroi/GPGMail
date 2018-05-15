@@ -399,8 +399,9 @@ typedef enum {
 	GPGErrorUser14 = 1037,
 	GPGErrorUser15 = 1038,
 	GPGErrorUser16 = 1039,
-	GPGErrorTaskException,
-	GPGErrorSubkeyNotFound,
+	GPGErrorSubkeyNotFound = 1040, // GPGTools specific code.
+	GPGErrorBadMDC = 1041, // GPGTools specific code.
+	GPGErrorNoMDC = 1042, // GPGTools specific code.
 	GPGErrorMissingErrno = 16381,
 	GPGErrorUnknownErrno = 16382,
 	GPGErrorEOF = 16383,
