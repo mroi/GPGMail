@@ -278,6 +278,8 @@ static NSLock *gpgTaskLock;
 		if (nonBlocking == NO) {
 			[gpgTaskLock unlock];
 		}
+		// It's not good to return an error, but don't set it.
+		self.errorCode = GPGErrorCancelled;
 		return GPGErrorCancelled;
 	}
 	
@@ -377,6 +379,7 @@ static NSLock *gpgTaskLock;
 			self.errorCode = GPGErrorNoPublicKey;
 			break;
 		case GPG_STATUS_DECRYPTION_OKAY:
+		case GPG_STATUS_KEY_CONSIDERED:
 			[self unsetErrorCode:GPGErrorNoSecretKey];
 			break;
 		case GPG_STATUS_BAD_PASSPHRASE:
@@ -385,6 +388,20 @@ static NSLock *gpgTaskLock;
 		case GPG_STATUS_MISSING_PASSPHRASE:
 		case GPG_STATUS_GOOD_PASSPHRASE:
 			[self unsetErrorCode:GPGErrorBadPassphrase];
+			break;
+		case GPG_STATUS_DECRYPTION_FAILED:
+			if (self.errorCode == GPGErrorNoError) {
+				self.errorCode = GPGErrorDecryptionFailed;
+			}
+			break;
+		case GPG_STATUS_BADMDC:
+			self.errorCode = GPGErrorBadMDC;
+			break;
+		case GPG_STATUS_DECRYPTION_INFO:
+			if (parts.count >= 1 && [parts[0] isEqualToString:@"0"]) {
+				// No MDC was used.
+				self.errorCode = GPGErrorNoMDC;
+			}
 			break;
     }
 	
@@ -431,7 +448,8 @@ static NSLock *gpgTaskLock;
 	NSNumber *code = [NSNumber numberWithInt:value];
 	if (![errorCodes containsObject:code]) {
 		[errorCodes addObject:code];
-		if (!errorCode) {
+		// GPGErrorCancelled is the most important error code.
+		if (!errorCode || (value & 0xFFFF) == GPGErrorCancelled) {
 			errorCode = value;
 		}
 	}
