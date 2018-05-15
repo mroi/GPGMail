@@ -17,7 +17,7 @@
 	<key>CFBundleName</key>
 	<string>GPGMail</string>
 	<key>CFBundlePackageType</key>
-	<string>BNDL</string>
+	<string>GpgM</string>
 	<key>CFBundleShortVersionString</key>
 	<string>AUTOFILL</string>
 	<key>CFBundleVersion</key>

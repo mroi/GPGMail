@@ -52,11 +52,11 @@
 "MESSAGE_BANNER_PGP_VERIFY_SIGNATURE_EXPIRED_ERROR_TITLE" = "Denne melingssignaturen er utløpt.";
 "MESSAGE_BANNER_PGP_VERIFY_SIGNATURE_EXPIRED_ERROR_MESSAGE" = "Signaturen er utløpt og kunne ikke verifiseres.\n\nSjekk med avsender hvorfor signaturen er utløpt.";
 
-"MESSAGE_BANNER_PGP_DECRYPT_ERROR_NO_GPG_TITLE" = "MacGPG2 er ikke installert";
-"MESSAGE_BANNER_PGP_DECRYPT_ERROR_NO_GPG_MESSAGE" = "Dekryptering mislyktes fordi MacGPG2 ikke er installert.\n\nVennligst last ned og reinstaller GPG Suite fra https://gpgtools.org";
+"MESSAGE_BANNER_PGP_DECRYPT_ERROR_NO_GPG_TITLE" = "MacGPG er ikke installert";
+"MESSAGE_BANNER_PGP_DECRYPT_ERROR_NO_GPG_MESSAGE" = "Dekryptering mislyktes fordi MacGPG ikke er installert.\n\nVennligst last ned og reinstaller GPG Suite fra https://gpgtools.org";
 
-"MESSAGE_BANNER_PGP_VERIFY_ERROR_NO_GPG_TITLE" = "MacGPG2 er ikke installert";
-"MESSAGE_BANNER_PGP_VERIFY_ERROR_NO_GPG_MESSAGE" = "Verifisering mislyktes fordi MacGPG2 ikke er installert.\n\nVennligst last ned og reinstaller GPG Suite fra https://gpgtools.org";
+"MESSAGE_BANNER_PGP_VERIFY_ERROR_NO_GPG_TITLE" = "MacGPG er ikke installert";
+"MESSAGE_BANNER_PGP_VERIFY_ERROR_NO_GPG_MESSAGE" = "Verifisering mislyktes fordi MacGPG ikke er installert.\n\nVennligst last ned og reinstaller GPG Suite fra https://gpgtools.org";
 
 "MESSAGE_BANNER_PGP_ATTACHMENTS_DECRYPT_VERIFY_ERROR_TITLE" = "Dekryptering eller verifisering av vedlegg %d mislyktes.";
 "MESSAGE_BANNER_PGP_ATTACHMENTS_DECRYPT_VERIFY_ERROR_MESSAGE" = "Vennligst klikk på vedleggs-ikonet i sikkerhets-delen av meldings-hodet for ytterligere detaljer.";
@@ -75,7 +75,7 @@
 
 /* Message Error Banner Attachment messages. */
 "MESSAGE_BANNER_PGP_ATTACHMENT_DECRYPT_SECKEY_ERROR_TITLE" = "Den hemmelige nøkkelen for å dekryptere vedlegget mangler.";
-"MESSAGE_BANNER_PGP_ATTACHMENT_DECRYPT_SECKEY_ERROR_MESSAGE" = "None of the following secret keys could be found in your keychain (%@). The secret key is needed to decrypt this attachment. \n\nPlease check with the sender that they used your correct public key.\nCheck any backup of your keychain, and try to import the secret key from there.";
+"MESSAGE_BANNER_PGP_ATTACHMENT_DECRYPT_SECKEY_ERROR_MESSAGE" = "Ingen av disse hemmelige nøklene ble funnet i nøkkelringen din (%@). Den hemmelige nøkkelen kreves for å dekryptere dette vedlegget.\n\nVennligst sjekk med avsender om de brukte den riktige offentlige nøkkelen din.\nUndersøk eventuelt en sikkerhetskopi av nøkkelringen din, og prøv å importere den riktige hemmelige nøkkelen derfra.";
 
 "MESSAGE_BANNER_PGP_ATTACHMENT_DECRYPT_SYSTEM_ERROR_TITLE" = "Dekryptering mislyktes med ukjent feil!";
 "MESSAGE_BANNER_PGP_ATTACHMENT_DECRYPT_SYSTEM_ERROR_MESSAGE" = "En ukjent feil oppstod under dekryptering av dette vedlegget.\n\nVennligst kontakt oss på https://gpgtools.tenderapp.com";
@@ -147,12 +147,12 @@
 /* GPGMail Preferences strings. */
 "GPG_STATUS_NO_ERROR_TITLE" = "GPGMail er klar.";
 "GPG_STATUS_NO_ERROR_TOOLTIP" = "MacGPG installasjonen din fungerer uten feil.";
-"GPG_STATUS_NOT_FOUND_TITLE" = "MacGPG2 er ikke installert. Vennligst sjekk installasjonen din.";
+"GPG_STATUS_NOT_FOUND_TITLE" = "MacGPG er ikke installert. Sjekk installasjonen din.";
 "GPG_STATUS_NOT_FOUND_TOOLTIP" = "Vennligst last ned og installer GPG Suite på nytt fra https://www.gpgtools.org for å sikre at alle nødvendige komponenter er installert.";
 "GPG_STATUS_OTHER_ERROR_TITLE" = "Vennligst sjekk installasjonen og innstillingene.";
 "GPG_STATUS_NOT_FOUND_TOOLTIP" = "Vennligst last ned og installer GPG Suite på nytt fra https://www.gpgtools.org for å sikre at alle nødvendige komponenter er installert.";
 "DISABLE_ENCRYPT_DRAFTS_TITLE" = "Advarsel: Om du slår av denne funksjonen kan det lede til lekkasje av sensitiv informasjon når du skriver en melding";
-"DISABLE_ENCRYPT_DRAFTS_MESSAGE" = "If the option \"Store drafts on server\" is enabled for your accounts, macOS Mail automatically stores your drafts on your mail server while you're composing a message.\nBy disabling \"Encrypt drafts\", your drafts will be stored in plain text (not encrypted) so that anyone with access to the mail server can read them.\n\nIf you keep \"Encrypt drafts\" enabled, your drafts will be encrypted before they are stored on a mail server and only you will be able to read them.\n\nDo you still want to disable \"Encrypt drafts\"?";
+"DISABLE_ENCRYPT_DRAFTS_MESSAGE" = "Hvis valget \"Lagre kladder på tjerner\" er skrudd på for kontoene, vil macOS Mail automatisk lagre kladdene dine på e-posttjeneren mens du forfatter en melding.\nVed å skru av \"Krypter kladder\", vil kladdene dine bli sendt i klartekst (ikke kryptert), slik at alle med tilgang til e-posttjeneren kan lese dem.\n\nHvis du beholder \"Krypter kladder\" påskrudd, vil kladdene dine bli kryptert før de lagres på en e-posttjener og kun du vil kunne lese dem.\n\nØnsker du fremdeles å skru av \"Krypter kladder\"";
 "DISABLE_ENCRYPT_DRAFTS_CONFIRM" = "Skru av kryptering";
 "DISABLE_ENCRYPT_DRAFTS_CANCEL" = "Avbryt";
 
@@ -164,7 +164,7 @@
 
 /* No Libmacgpg. */
 "LIBMACGPG_NOT_FOUND_TITLE" = "Libmacgpg ble ikke funnet";
-"LIBMACGPG_NOT_FOUND_MESSAGE" = "Libmacgpg ikke funnet på ditt system. Vennligst installer det. Du kan finne det i for eksempel GPGTools sin installasjonspakke på https://www.gpgtools.org";
+"LIBMACGPG_NOT_FOUND_MESSAGE" = "Libmacgpg ikke funnet på ditt system. Last ned og installer GPG Suite fra https://www.gpgtools.org";
 
 /* Code signature invalid */
 CODE_SIGN_ERROR_TITLE = "Noen har tuklet med din installasjon av GPGMail!";

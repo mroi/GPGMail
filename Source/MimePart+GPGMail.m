@@ -738,9 +738,11 @@ NSString * const kMimePartAllowPGPProcessingKey = @"MimePartAllowPGPProcessingKe
 - (void)attachmentMightBePGPEncrypted:(BOOL *)mightEnc orSigned:(BOOL *)mightSig {
     *mightEnc = NO;
     *mightSig = NO;
-    NSString *nameExt = [[MAIL_SELF(self) bodyParameterForKey:@"name"] pathExtension];
-    NSString *filenameExt = [[MAIL_SELF(self) dispositionParameterForKey:@"filename"] pathExtension];
-    
+	NSString *name = [MAIL_SELF(self) bodyParameterForKey:@"name"];
+	NSString *filename = [MAIL_SELF(self) dispositionParameterForKey:@"filename"];
+	NSString *nameExt = [name pathExtension];
+	NSString *filenameExt = [filename pathExtension];
+	
     // Check if the attachment is part of a pgp/mime encrypted message.
     // In that case, don't try to inline decrypt it.
     // This is necessary since decodeMultipartWithContext checks the attachments
@@ -775,6 +777,22 @@ NSString * const kMimePartAllowPGPProcessingKey = @"MimePartAllowPGPProcessingKe
         *mightEnc = [self signedPartForDetachedSignaturePart:MAIL_SELF(self)] == nil;
         *mightSig = YES; 
     }
+	
+	// Bug #958: Single signature.asc files is erroneously recognized as encrypted attachment
+	// Since the current method to check for encrypted or signed data in attachments is based
+	// for the most part on the extension of the file, the signature.asc file looks to GPGMail
+	// like a signed attachment. As mentioned above for #936, a signed attachment has to be decrypted
+	// in order to strip the signature and get to the raw contents. signature.asc files however
+	// should never be treated as containing encrypted data.
+	// To further improve this fix, signed (not detached signed) attachments should be treated differently
+	// from encrypted attachments.
+	if([[name lowercaseString] isEqualToString:@"signature.asc"] || [[filename lowercaseString] isEqualToString:@"signature.asc"]) {
+		*mightEnc = NO;
+		// TODO: It should be safe to set signed to no, since that's the case for these messages and real
+		// PGP/MIME signed messages should still be properly recognized. VERIFY!
+		*mightSig = NO;
+	}
+	
     // .asc attachments might contain a public key. See #123.
     // So to avoid decrypting such attachments, check if the attachment
     // contains a public key.
@@ -892,11 +910,18 @@ NSString * const kMimePartAllowPGPProcessingKey = @"MimePartAllowPGPProcessingKe
 	// Sometimes decryption okay is issued even though a NODATA error occured.
 	BOOL success = gpgc.decryptionOkay && !error;
 	
-    // Check if this is a non-clear-signed message.
-    // Conditions: decryptionOkay == false and encrypted data has signature packets.
-    // If decryptedData length != 0 && !decryptionOkay signature packets are expected.
-    BOOL nonClearSigned = !gpgc.decryptionOkay && [decryptedData hasSignaturePacketsWithSignaturePacketsExpected:[decryptedData length] != 0 && !gpgc.decryptionOkay];
-    
+	// Bug #980: If the message doesn't contain a MDC or contains a modified MDC,
+	//           GPGMail currently believes that the message is non-clear-signed and
+	//           ignores the failed decryption.
+	//
+	// Libmacgpg has since been patched to no longer return the decrypted content
+	// if no MDC or a modified MDC is detected, so if data is returned and no DECRYPTION_OKAY
+	// status line is issued, there's a high chance, that the message was non-clear-signed instead of
+	// encrypted. In addition a check is added, to see if BEGIN_DECRYPTION wasn't issued either.
+	BOOL nonClearSigned = ![gpgc.statusDict objectForKey:@"BEGIN_DECRYPTION"] &&
+						  ![gpgc.statusDict objectForKey:@"DECRYPTION_OKAY"] &&
+						  [decryptedData length] != 0;
+
 	// Let's reset the error if the message is not clear-signed,
 	// since error will be general error.
 	if (nonClearSigned)
@@ -1029,6 +1054,14 @@ NSString * const kMimePartAllowPGPProcessingKey = @"MimePartAllowPGPProcessingKe
 		titleKey = [NSString stringWithFormat:@"%@_DECRYPT_ERROR_XPC_DAMAGED_TITLE", prefix];
 		messageKey = [NSString stringWithFormat:@"%@_DECRYPT_ERROR_XPC_DAMAGED_MESSAGE", prefix];
 		
+		title = GMLocalizedString(titleKey);
+		message = GMLocalizedString(messageKey);
+	}
+	else if(((GPGException *)operationError).errorCode == GPGErrorNoMDC ||
+			((GPGException *)operationError).errorCode == GPGErrorBadMDC) {
+		titleKey = [NSString stringWithFormat:@"%@_DECRYPT_MDC_ERROR_TITLE", prefix];
+		messageKey = [NSString stringWithFormat:@"%@_DECRYPT_MDC_ERROR_MESSAGE", prefix];
+
 		title = GMLocalizedString(titleKey);
 		message = GMLocalizedString(messageKey);
 	}
@@ -2919,10 +2952,21 @@ NSString * const kMimePartAllowPGPProcessingKey = @"MimePartAllowPGPProcessingKe
 - (BOOL)mightContainPGPData {
     __block BOOL mightContainPGPData = NO;
     __block BOOL mightContainSMIMEData = NO;
+    __block BOOL mightBeSMIMESigned = NO;
     
     NSArray *pgpExtensions = @[@"pgp", @"gpg", @"asc", @"sig"];
     NSArray *smimeExtensions = @[@"p7m", @"p7s", @"p7c", @"p7z"];
     [(MimePart_GPGMail *)[self topPart] enumerateSubpartsWithBlock:^(MCMimePart *mimePart) {
+        // Bug #973: PGP Data within a S/MIME signed message is not decrypted properly
+        // At the moment, if any S/MIME data is detected in a message, GPGMail will stop processing
+        // any PGP data which might be contained as well.
+        // Unfortunately there are now messages around which are S/MIME signed, but contain PGP-Partitioned data
+        // as well. In that case, GPGMail will process any found PGP data and ignore the S/MIME signature.
+        // Of course some fuckwits have to use x-pkcs7-signature instead of pkcs7-signature.
+        if([mimePart isType:@"multipart" subtype:@"signed"] && ([[[mimePart bodyParameterForKey:@"protocol"] lowercaseString] isEqualToString:@"application/pkcs7-signature"] || [[[mimePart bodyParameterForKey:@"protocol"] lowercaseString] isEqualToString:@"application/x-pkcs7-signature"])) {
+            mightBeSMIMESigned = YES;
+            return;
+        }
         // Check for S/MIME hints.
         if(([mimePart isType:@"multipart" subtype:@"signed"] && [[[mimePart bodyParameterForKey:@"protocol"] lowercaseString] isEqualToString:@"application/pkcs7-signature"]) ||
            [smimeExtensions containsObject:[[[mimePart bodyParameterForKey:@"filename"] lowercaseString] pathExtension]] ||
@@ -2991,7 +3035,11 @@ NSString * const kMimePartAllowPGPProcessingKey = @"MimePartAllowPGPProcessingKe
         if(![mimePart isAttachment]) {
             NSData *partBodyData = [mimePart decodedData];
             
-            if(partBodyData) {
+			// Bug #972: Due to the use of base64 encoding, GPGMail does not recognize PGP Data in inline encrypted messages
+			//           from gpg4o
+			// In order to fix this issue, GPGMail will search the decodedData for inline PGP markers, if content-transfer-encoding
+			// is base64.
+			if(partBodyData && ![[[mimePart contentTransferEncoding] lowercaseString] isEqualToString:@"base64"]) {
                 partBodyData = [mimePart encodedBodyData];
             }
             if(partBodyData && [partBodyData mightContainPGPEncryptedDataOrSignatures]) {
@@ -3000,7 +3048,10 @@ NSString * const kMimePartAllowPGPProcessingKey = @"MimePartAllowPGPProcessingKe
         }
     }];
     
-    return mightContainPGPData && !mightContainSMIMEData;
+    // If the message contains PGP data *and* is S/MIME signed it's treated as if it
+    // only contained PGP data. Before it was treated as if it *didn't* contain any PGP data
+    // at all. Have a look at #973 for details.
+    return mightContainPGPData && (!mightContainSMIMEData || mightBeSMIMESigned);
 }
 
 - (MCMessageBody *)MAMessageBody {
