@@ -508,7 +508,9 @@
                      @"selectors": @{
                              @"added": @[
                                      @"_decode",
-                                     @"messageBody"]
+                                     @"messageBody",
+                                     @"htmlStringForMimePart:attachment:",
+                                     @"decodeApplicationPkcs7"]
                              }
                      },
 //             @"MailApp": @{
@@ -544,6 +546,56 @@
                      @"selectors": @[
                              @"makePreferenceTabViewItems"
                              ]
+                     },
+             @"MCMessageBody": @{
+                     @"selectors": @[
+                             @"isEncrypted",
+                             @"setIsEncrypted:"]
+                     },
+             @"ConversationMember": @{
+                    @"selectors": @[
+                            @"setWebDocument:"
+                      ]
+                     },
+             @"MUIWebDocument": @{
+                     @"selectors":
+                     @[
+                     @"setBlockRemoteContent:",
+                     @"setHasBlockedRemoteContent:",
+                     @"hasBlockedRemoteContent",
+                     @"setIsEncrypted:"
+                     ]
+                     },
+             @"MUIWKWebViewController": @{
+                     @"selectors": @[
+                             @"setMessageHasBlockedRemoteContent",
+                             @"reloadDocument",
+                             @"webView:decidePolicyForNavigationAction:decisionHandler:",
+                             @"logInjectedWebBundleMessage:",
+                             @"logWebConsoleMessage:"
+                             ]
+                     },
+             @"MUIWKWebViewConfigurationManager": @{
+                     @"selectors": @[
+                             @"init"]
+                     },
+             @"LoadRemoteContentBannerViewController": @{
+                     @"selectors": @[
+                             @"wantsDisplay",
+                             @"setWantsDisplay:",
+                             @"updateBannerContents"]
+                     },
+             @"JunkMailBannerViewController": @{
+                     @"selectors": @[
+                             @"updateBannerContents"
+                             ]
+                     },
+             @"CertificateBannerViewController": @{
+                     @"selectors": @{
+                             @"added": @[
+                                     @"updateBannerContents"
+                                     ]
+                             }
                      }
      };
 }
@@ -617,8 +669,9 @@
 		if(hook[@"selectors"]) {
 			for(NSString *action in hook[@"selectors"]) {
 				for(id selector in hook[@"selectors"][action]) {
-					if([action isEqualToString:@"added"])
-						[(NSMutableArray *)hooks[class] addObject:selector];
+                    if([action isEqualToString:@"added"]) {
+                        hooks[class] = [[hooks[class] arrayByAddingObject:selector] mutableCopy];
+                    }
                     else if([action isEqualToString:@"removed"]) {
                         NSMutableArray *tempHooks = [hooks[class] mutableCopy];
                         [tempHooks removeObject:selector];

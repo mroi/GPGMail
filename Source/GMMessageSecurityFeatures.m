@@ -18,6 +18,7 @@
 #import "MimeBody+GPGMail.h"
 
 #import "GMMessageSecurityFeatures.h"
+#import "GMMessageProtectionStatus.h"
 
 @interface GMMessageSecurityFeatures (MimePartNotImplemented)
 
@@ -38,16 +39,18 @@
     return [super init];
 }
 
-+ (GMMessageSecurityFeatures *)securityFeaturesFromTopLevelMimePart:(MCMimePart *)topLevelMimePart {
++ (GMMessageSecurityFeatures *)securityFeaturesFromMessageProtectionStatus:(GMMessageProtectionStatus *)messageProtectionStatus topLevelMimePart:(MCMimePart *)topLevelMimePart {
     GMMessageSecurityFeatures *securityFeatures = [self new];
-    [securityFeatures collectSecurityFeaturesStartingWithMimePart:topLevelMimePart];
+    [securityFeatures collectSecurityFeaturesFromMessageProtectionStatus:messageProtectionStatus topLevelMimePart:topLevelMimePart];
     return securityFeatures;
 }
 
++ (GMMessageSecurityFeatures *)securityFeaturesFromTopLevelMimePart:(MCMimePart *)topLevelMimePart {
+    return [[self class] securityFeaturesFromMessageProtectionStatus:[(MimePart_GPGMail *)topLevelMimePart GMMessageProtectionStatus] topLevelMimePart:topLevelMimePart];
+}
+
 + (GMMessageSecurityFeatures *)securityFeaturesFromMimeBody:(id)mimeBody {
-    GMMessageSecurityFeatures *securityFeatures = [self new];
-    [securityFeatures collectSecurityFeaturesStartingWithMimePart:[mimeBody topLevelPart]];
-    return securityFeatures;
+    return [[self class] securityFeaturesFromTopLevelMimePart:[mimeBody topLevelPart]];
 }
 
 - (void)setPGPEncrypted:(BOOL)isPGPEncrypted {
@@ -191,60 +194,82 @@
     [self setIvar:@"PGPVerified" value:@(isVerified)];
 }
 
-- (void)collectSecurityFeaturesStartingWithMimePart:(GM_CAST_CLASS(MimePart *, id))topPart {
-    __block BOOL isEncrypted = NO;
-    __block BOOL isSigned = NO;
-    __block BOOL isPartlyEncrypted = NO;
-    __block BOOL isPartlySigned = NO;
+- (void)collectSecurityFeaturesFromMessageProtectionStatus:(GMMessageProtectionStatus *)messageProtectionStatus topLevelMimePart:(MCMimePart *)topLevelMimePart {
+    BOOL isEncrypted = NO;
+    BOOL isSigned = NO;
+    BOOL isPartlyEncrypted = NO;
+    BOOL isPartlySigned = NO;
     NSMutableArray *errors = [NSMutableArray array];
     NSMutableArray *signatures = [NSMutableArray array];
     NSMutableArray *pgpAttachments = [NSMutableArray array];
-    __block BOOL isDecrypted = NO;
-    __block BOOL isVerified = NO;
     
     //MCMimeBody *mimeBody = [topPart mimeBody];
-    MCMimePart *decryptedMimePart = [(MimePart_GPGMail *)topPart decryptedTopLevelMimePart];
-    //id decryptedBody = [topPart decryptedMimeBody];
-    // If there's a decrypted message body, its top level part possibly holds information
-    // about signatures and errors.
-    // Theoretically it could contain encrypted inline data, signed inline data
-    // and attachments, but for the time, that's out of scope.
-    // This information is added to the message.
-    //
-    // If there's no decrypted message body, either the message contained
-    // PGP inline data or failed to decrypt. In either case, the top part
-    // passed in contains all the information.
-    //MimePart *informationPart = decryptedBody == nil ? topPart : [decryptedBody topLevelPart];
-    BOOL isPGPMimeEncrypted = [topPart isPGPMimeEncrypted];
-    [topPart enumerateSubpartsWithBlock:^(GM_CAST_CLASS(MimePart *, id) currentPart) {
-        // Only set the flags for non attachment parts to support
-        // plain messages with encrypted/signed attachments.
-        // Otherwise those would display as signed/encrypted as well.
-        // application/pgp is a special case since Mail.app identifies it as an attachment, while its
-        // truly a text/plain part (legacy pgp format)
-        BOOL isPGPMimeVersionMarkerPart = [currentPart isPGPMimeEncryptedAttachment] && isPGPMimeEncrypted;
-        if([currentPart isAttachment] && ![currentPart isType:@"application" subtype:@"pgp"] &&
-           !isPGPMimeVersionMarkerPart && ![currentPart isPGPMimeSignatureAttachment]) {
-            if([currentPart PGPAttachment]) {
-                [pgpAttachments addObject:currentPart];
+    MCMimePart *decryptedMimePart = [(MimePart_GPGMail *)topLevelMimePart decryptedTopLevelMimePart];
+    GMMessageProtectionStatus *decryptedMessageProtectionStatus = [(MimePart_GPGMail *)decryptedMimePart GMMessageProtectionStatus];
+
+    isPartlySigned = messageProtectionStatus.partsOfMessageAreSigned;
+    isPartlyEncrypted = messageProtectionStatus.partsOfMessageAreEncrypted;
+    isEncrypted = messageProtectionStatus.completeMessageIsEncrypted || isPartlyEncrypted;
+    isSigned = messageProtectionStatus.completeMessageIsSigned || isPartlySigned;
+
+    if(decryptedMimePart) {
+        isSigned = decryptedMessageProtectionStatus.completeMessageIsSigned;
+        // The encrypted part is fully signed, but it's still just a part of the entire
+        // message.
+        if(isPartlyEncrypted) {
+            isPartlySigned = YES;
+        }
+    }
+
+    NSArray *protectedParts = [messageProtectionStatus.encryptedParts arrayByAddingObjectsFromArray:messageProtectionStatus.signedParts];
+    for(MimePart_GPGMail *protectedPart in protectedParts) {
+        if(protectedPart.PGPError) {
+            [errors addObject:protectedPart.PGPError];
+        }
+        if(protectedPart.PGPSigned) {
+            if([protectedPart.PGPSignatures count]) {
+                BOOL inSignatures = NO;
+                for(GPGSignature *signature in signatures) {
+                    if([[protectedPart.PGPSignatures[0] fingerprint] isEqualToString:[signature fingerprint]]) {
+                        inSignatures = YES;
+                    }
+                }
+                if(!inSignatures) {
+                    [signatures addObject:protectedPart.PGPSignatures[0]];
+                }
             }
         }
-        else {
-            isEncrypted |= [currentPart PGPEncrypted];
-            isSigned |= [currentPart PGPSigned];
-            isPartlySigned |= [currentPart PGPPartlySigned];
-            isPartlyEncrypted |= [currentPart PGPPartlyEncrypted];
-            if([currentPart PGPError])
-                [errors addObject:[currentPart PGPError]];
-            if([[currentPart PGPSignatures] count])
-                [signatures addObjectsFromArray:[currentPart PGPSignatures]];
-            isDecrypted |= [currentPart PGPDecrypted];
-            // encrypted & signed & no error = verified.
-            // not encrypted & signed & no error = verified.
-            isVerified |= [currentPart PGPSigned];
+    }
+
+    if(decryptedMimePart) {
+        NSArray *decryptedProtectedParts = decryptedMessageProtectionStatus.signedParts;
+        for(MimePart_GPGMail *protectedPart in decryptedProtectedParts) {
+            if(protectedPart.PGPError) {
+                [errors addObject:protectedPart.PGPError];
+            }
+            if(protectedPart.PGPSigned) {
+                if([protectedPart.PGPSignatures count]) {
+                    BOOL inSignatures = NO;
+                    for(GPGSignature *signature in signatures) {
+                        if([[protectedPart.PGPSignatures[0] fingerprint] isEqualToString:[signature fingerprint]]) {
+                            inSignatures = YES;
+                        }
+                    }
+                    if(!inSignatures) {
+                        [signatures addObject:protectedPart.PGPSignatures[0]];
+                    }
+                }
+            }
+        }
+    }
+
+    [(MimePart_GPGMail *)topLevelMimePart enumerateSubpartsWithBlock:^(MCMimePart *currentPart) {
+        MimePart_GPGMail *protectedPart = (MimePart_GPGMail *)currentPart;
+        if(protectedPart.PGPAttachment) {
+            [pgpAttachments addObject:protectedPart];
         }
     }];
-    
+
     // This is a normal message, out of here, otherwise
     // this might break a lot of stuff.
     if(!isSigned && !isEncrypted && ![pgpAttachments count] && ![errors count])
@@ -259,33 +284,13 @@
     // Should work better.
     GMMessageSecurityFeatures *decryptedMimeBodySecurityFeatures = [(MimePart_GPGMail *)decryptedMimePart securityFeatures];
     
-    self.PGPEncrypted = isEncrypted || [decryptedMimeBodySecurityFeatures PGPEncrypted];
-    self.PGPSigned = isSigned || [decryptedMimeBodySecurityFeatures PGPSigned];
-    self.PGPPartlyEncrypted = isPartlyEncrypted || [decryptedMimeBodySecurityFeatures PGPPartlyEncrypted];
-    self.PGPPartlySigned = isPartlySigned || [decryptedMimeBodySecurityFeatures PGPPartlySigned];
-    [signatures addObjectsFromArray:[decryptedMimeBodySecurityFeatures PGPSignatures]];
+    self.PGPEncrypted = isEncrypted;
+    self.PGPSigned = isSigned;
+    self.PGPPartlyEncrypted = isPartlyEncrypted;
+    self.PGPPartlySigned = isPartlySigned;
     self.PGPSignatures = signatures;
-    [errors addObjectsFromArray:[decryptedMimeBodySecurityFeatures PGPErrors]];
     self.PGPErrors = errors;
-    [pgpAttachments addObjectsFromArray:[decryptedMimeBodySecurityFeatures PGPAttachments]];
-    self.PGPDecrypted = isDecrypted;
-    self.PGPVerified = isVerified;
-    
-    // TODO: If still necessary, this must be done in Message or MimeBody.
-    //[self fakeMessageFlagsIsEncrypted:self.PGPEncrypted isSigned:self.PGPSigned];
-//    if(decryptedMessage) {
-//        [(Message_GPGMail *)decryptedMessage fakeMessageFlagsIsEncrypted:self.PGPEncrypted isSigned:self.PGPSigned];
-//    }
-    //    // The problem is, Mail.app would correctly apply the rules, if we didn't
-//    // deactivate the snippet generation. But since we do, because it's kind of
-//    // a pain in the ass, it doesn't.
-//    // So we re-evaluate the message rules here and then they should be applied correctly.
-//    // ATTENTION: We have to make sure that the user actively selected this message,
-//    //			  otherwise, the body data is not yet available, and will 'cause the evaluation rules
-//    //			  to wreak havoc.
-//    if(!self.isSMIMEEncrypted && !self.isSMIMESigned)
-//        [self applyMatchingRulesIfNecessary];
-    
+
     // Only for test purpose, after the correct error to be displayed should be constructed.
     GM_CAST_CLASS(MFError *, id) error = nil;
     if([errors count])
@@ -305,23 +310,6 @@
     else {
         self.PGPMainError = nil;
     }
-    
-//    DebugLog(@"%@ Decrypted Message [%@]:\n\tisEncrypted: %@, isSigned: %@,\n\tisPartlyEncrypted: %@, isPartlySigned: %@\n\tsignatures: %@\n\terrors: %@",
-//             [decryptedBody GMMessage], [(MCMessage *)[decryptedBody GMMessage] subject], [decryptedMimeBodySecurityFeatures PGPEncrypted] ? @"YES" : @"NO", [decryptedMimeBodySecurityFeatures PGPSigned] ? @"YES" : @"NO",
-//             [decryptedMimeBodySecurityFeatures PGPPartlyEncrypted] ? @"YES" : @"NO", [decryptedMimeBodySecurityFeatures PGPPartlySigned] ? @"YES" : @"NO", [decryptedMimeBodySecurityFeatures PGPSignatures], [decryptedMimeBodySecurityFeatures PGPErrors]);
-//
-//    DebugLog(@"%@ Message [%@]:\n\tisEncrypted: %@, isSigned: %@,\n\tisPartlyEncrypted: %@, isPartlySigned: %@\n\tsignatures: %@\n\terrors: %@\n\tattachments: %@",
-//             [(MimeBody_GPGMail *)mimeBody GMMessage], [[(MimeBody_GPGMail *)mimeBody GMMessage] subject], self.PGPEncrypted ? @"YES" : @"NO", self.PGPSigned ? @"YES" : @"NO",
-//             self.PGPPartlyEncrypted ? @"YES" : @"NO", self.PGPPartlySigned ? @"YES" : @"NO", self.PGPSignatures, self.PGPErrors, self.PGPAttachments);
-    
-    // Fix the number of attachments, this time for real!
-    // Uncomment once completely implemented.
-    // TODO: If this is still necessary, move this to mimeBody or message.
-//    [[self dataSourceProxy] setNumberOfAttachments:(unsigned int)numberOfAttachments isSigned:self.isSigned isEncrypted:self.isEncrypted forMessage:self];
-//    if(decryptedMessage)
-//        [[(Message_GPGMail *)decryptedMessage dataSourceProxy] setNumberOfAttachments:(unsigned int)numberOfAttachments isSigned:self.isSigned isEncrypted:self.isEncrypted forMessage:decryptedMessage];
-//    // Set PGP Info collected so this information is not overwritten.
-//    self.PGPInfoCollected = YES;
 }
 
 - (NSError *)errorSummaryForPGPAttachments:(NSArray *)attachments {
