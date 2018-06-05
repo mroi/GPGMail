@@ -27,6 +27,7 @@
 //#import <sys/shm.h>
 #import <fcntl.h>
 #import "NSBundle+Sandbox.h"
+#import "GPGStatusLine.h"
 
 
 @class GPGController;
@@ -50,7 +51,7 @@ static NSLock *gpgTaskLock;
 
 @synthesize isRunning, batchMode, getAttributeData, delegate, userInfo, exitcode, errData, statusData, attributeData, cancelled,
             progressInfo, statusDict, taskHelper = taskHelper, timeout, environmentVariables=_environmentVariables, passphrase, nonBlocking;
-@synthesize outStream;
+@synthesize outStream, statusArray;
 
 
 
@@ -148,6 +149,7 @@ static NSLock *gpgTaskLock;
 		batchMode = batch;
 		errorCodes = [[NSMutableArray alloc] init];
 		statusDict = [[NSMutableDictionary alloc] init];
+		statusArray = [[NSMutableArray alloc] init];
 	}
 	return self;	
 }
@@ -177,6 +179,7 @@ static NSLock *gpgTaskLock;
 	[inData release];
     [errorCodes release];
 	[statusDict release];
+	[statusArray release];
 	[_environmentVariables release];
 	
     if(taskHelper)
@@ -357,7 +360,7 @@ static NSLock *gpgTaskLock;
 
 - (NSData *)processStatusWithKeyword:(NSString *)keyword value:(NSString *)value {
     
-    NSArray *parts = value.length == 0 ? @[] : [value componentsSeparatedByString:@" "];
+    NSArray <NSString *> *parts = value.length == 0 ? @[] : [value componentsSeparatedByString:@" "];
     NSInteger statusCode = [GPGTaskHelper.statusCodes[keyword] integerValue];
     // No status code available, we're out of here.
     if(!statusCode)
@@ -392,15 +395,25 @@ static NSLock *gpgTaskLock;
 		case GPG_STATUS_DECRYPTION_FAILED:
 			if (self.errorCode == GPGErrorNoError) {
 				self.errorCode = GPGErrorDecryptionFailed;
+			} else {
+				// Add GPGErrorDecryptionFailed to the list of error codes.
+				int oldValue = self.errorCode;
+				self.errorCode = GPGErrorDecryptionFailed;
+				self.errorCode = oldValue;
 			}
 			break;
 		case GPG_STATUS_BADMDC:
 			self.errorCode = GPGErrorBadMDC;
 			break;
 		case GPG_STATUS_DECRYPTION_INFO:
-			if (parts.count >= 1 && [parts[0] isEqualToString:@"0"]) {
-				// No MDC was used.
-				self.errorCode = GPGErrorNoMDC;
+			// First field: MDC. Always 0 when AEAD is used.
+			// Second field: Symmetric algorithm.
+			// Third field: AEAD algorithm.
+			if (parts.count >= 1 && parts[0].integerValue == 0) {
+				if (parts.count < 3 || parts[2].integerValue == 0) {
+					// No MDC was used.
+					self.errorCode = GPGErrorNoMDC;
+				}
 			}
 			break;
     }
@@ -427,6 +440,11 @@ static NSLock *gpgTaskLock;
 	} else {
 		[statusDict setObject:[NSNumber numberWithBool:YES] forKey:keyword];
 	}
+	
+	// Fill statusArray
+	[statusArray addObject:[GPGStatusLine statusLineWithKeyword:keyword code:statusCode parts:parts]];
+	
+	
 	
 	// If the status is either GET_HIDDEN, GET_LINE or GET_BOOL
     // the GPG Controller is asked for a value to be passed
@@ -466,6 +484,13 @@ static NSLock *gpgTaskLock;
         else
             errorCode = GPGErrorNoError;
     }
+}
+- (NSArray *)errorCodes {
+	NSMutableArray *filteredCodes = [NSMutableArray arrayWithCapacity:errorCodes.count];
+	for (NSNumber *code in errorCodes) {
+		[filteredCodes addObject:@(code.intValue & 0xFFFF)];
+	}
+	return filteredCodes;
 }
 
 - (void)cancel {
