@@ -31,10 +31,13 @@
 #import <Libmacgpg/Libmacgpg.h>
 
 #import "MCMimePart.h"
+#import "GMContentPartsIsolator.h"
 
 @class MimeBody;
 @class MCMessage;
 @class GMMessageSecurityFeatures;
+@class MCAttachment;
+@class GMMessageProtectionStatus;
 
 #define PGP_ATTACHMENT_EXTENSION @"pgp"
 #define PGP_PART_MARKER_START @"::gpgmail-start-pgp-part::"
@@ -67,7 +70,7 @@ enum {
 
 @class MFMimeDecodeContext, _NSDataMessageStoreMessage;
 
-@interface MimePart_GPGMail : NSObject
+@interface MimePart_GPGMail : NSObject<GMContentPartsIsolatorDelegate>
 
 @property (assign) BOOL PGPEncrypted;
 @property (assign) BOOL PGPPartlyEncrypted;
@@ -390,6 +393,14 @@ enum {
 
 - (BOOL)mightContainPGPMIMESignedData;
 - (BOOL)mightContainPGPData;
+
+- (MCAttachment *)GMEncryptedPartAsMessageAttachment;
+- (GMMessageProtectionStatus *)GMMessageProtectionStatus;
+
+- (BOOL)GMIsEncryptedPGPMIMETree;
+
+- (NSString *)contentPartsIsolator:(GMContentPartsIsolator *)isolator alternativeContentForIsolatedPart:(GMIsolatedContentPart *)isolatedPart messageBody:(MCMessageBody *)messageBody;
+- (BOOL)isContentThatNeedsIsolationAvailableForContentPartsIsolator:(GMContentPartsIsolator *)isolator;
 
 @end
 

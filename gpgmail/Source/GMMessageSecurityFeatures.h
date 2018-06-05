@@ -10,11 +10,14 @@
 
 #import "MCMimeBody.h"
 
+@class GMMessageProtectionStatus;
+
 // TODO: Should probably be called security properties. 
 @interface GMMessageSecurityFeatures : NSObject
 
 + (GMMessageSecurityFeatures *)securityFeaturesFromMimeBody:(GM_CAST_CLASS(MimePart *, id))mimeBody;
 + (GMMessageSecurityFeatures *)securityFeaturesFromTopLevelMimePart:(MCMimePart *)topLevelMimePart;
++ (GMMessageSecurityFeatures *)securityFeaturesFromMessageProtectionStatus:(GMMessageProtectionStatus *)messageProtectionStatus topLevelMimePart:(MCMimePart *)topLevelMimePart;
 
 @property (assign) BOOL PGPInfoCollected;
 @property (assign) BOOL PGPEncrypted;

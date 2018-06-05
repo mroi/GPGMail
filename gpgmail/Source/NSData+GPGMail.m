@@ -81,6 +81,8 @@
     NSString *signatureRegex = [NSString stringWithFormat:@"(?sm)(^%@\\r?\\n(.*?)\\r?\n%@)",
                                 PGP_SIGNED_MESSAGE_BEGIN, PGP_MESSAGE_SIGNATURE_END];
     NSRange match = NSMakeRange(NSNotFound, 0);
+    if([self length] == 0)
+        return match;
     @try {
 		RKRegex *sigRKRegex = [RKRegex regexWithRegexString:signatureRegex options:RKCompileNoOptions];
 		match = [self rangeOfRegex:sigRKRegex inRange:range capture:0];
@@ -96,6 +98,8 @@
     NSString *signatureRegex = [NSString stringWithFormat:@"(?sm)(%@.*?%@)", 
                                 PGP_MESSAGE_SIGNATURE_BEGIN, PGP_MESSAGE_SIGNATURE_END];
     NSRange match = NSMakeRange(NSNotFound, 0);
+    if([self length] == 0)
+        return match;
     @try {
 		RKRegex *sigRKRegex = [RKRegex regexWithRegexString:signatureRegex options:RKCompileNoOptions];
 		match = [self rangeOfRegex:sigRKRegex];
@@ -146,6 +150,8 @@
     NSString *signatureRegex = [NSString stringWithFormat:@"(?sm)(%@.*?%@)",
                                 PGP_MESSAGE_PUBLIC_KEY_BEGIN, PGP_MESSAGE_PUBLIC_KEY_END];
     NSRange match = NSMakeRange(NSNotFound, 0);
+    if([self length] == 0)
+        return match;
     @try {
 		RKRegex *sigRKRegex = [RKRegex regexWithRegexString:signatureRegex options:RKCompileNoOptions];
 		match = [self rangeOfRegex:sigRKRegex];
@@ -216,6 +222,45 @@
     }
     
     return hasSignature;
+}
+
+- (BOOL)hasPGPSignatureDataPackets {
+    return [self hasSignaturePacketsWithSignaturePacketsExpected:NO];
+}
+
+- (BOOL)hasPGPEncryptionDataPackets {
+    NSData *packetData = [self copy];
+    NSArray *packets = nil;
+    @try {
+        packets = [GPGPacket packetsWithData:packetData];
+    }
+    @catch(NSException *exception) {
+        return NO;
+    }
+
+    if(![packets count]) {
+        return NO;
+    }
+
+    BOOL hasEncryptedData = NO;
+
+    for(GPGPacket *packet in packets) {
+        switch(packet.tag) {
+            case GPGPublicKeyEncryptedSessionKeyPacketTag:
+            case GPGSymmetricEncryptedSessionKeyPacketTag:
+                hasEncryptedData = YES;
+                break;
+
+            default:
+                hasEncryptedData = NO;
+                break;
+        }
+        if(hasEncryptedData) {
+            break;
+        }
+    }
+
+    return hasEncryptedData;
 }
 
 - (BOOL)containsPGPKeyPackets {

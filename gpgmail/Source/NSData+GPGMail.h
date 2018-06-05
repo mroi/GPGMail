@@ -103,4 +103,9 @@
  */
 - (BOOL)hasSignaturePacketsWithSignaturePacketsExpected:(BOOL)signaturePacketsExpected;
 - (BOOL)containsPGPKeyPackets;
+
+- (BOOL)hasPGPSignatureDataPackets;
+- (BOOL)hasPGPEncryptionDataPackets;
+
+
 @end

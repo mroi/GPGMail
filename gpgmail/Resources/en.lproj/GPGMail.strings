@@ -247,6 +247,10 @@ NO_DEFAULTS_MESSAGE = "GPGMail is not working as expected.\n\nPlease download an
 "MESSAGE_BANNER_PGP_DECRYPT_MDC_ERROR_TITLE" = "Decryption of the message was aborted";
 "MESSAGE_BANNER_PGP_DECRYPT_MDC_ERROR_MESSAGE" = "The modification detection code (MDC) for this encrypted message is missing or has been modified.\n\nThis could mean that an attacker has been trying to modify the contents within the encrypted message.\n\nPlease have the message re-sent to you and tell the sender, that their encrypted message didn't include a modification detection code.";
 
+"NAVIGATION_ACTION_FROM_ENCRYPTED_MESSAGE_TITLE" = "Attention: Opening this website could leak the contents of this message";
+"NAVIGATION_ACTION_FROM_ENCRYPTED_MESSAGE_MESSAGE" = "Due to a problem in the implementation of S/MIME encryption, it is possible for an attacker to modify a message without your knowledge.\n\nYou are about to open the following website:\n\n%@\n\nAre you sure you want to continue?";
+"NAVIGATION_ACTION_FROM_ENCRYPTED_MESSAGE_BUTTON_YES" = "Yes";
+"NAVIGATION_ACTION_FROM_ENCRYPTED_MESSAGE_BUTTON_CANCEL" = "Cancel";
 
 /* Accessibility */
 ACCESSIBILITY_SECURITY_METHOD_POPUP_LABEL = "Security method: %@";

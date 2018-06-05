@@ -54,6 +54,12 @@
         [error setIvar:@"ParseErrorIsPGPError" value:@(YES)];
         [webDocument setSmimeError:error];
     }
+    if([(Message_GPGMail *)message securityFeatures]) {
+        [webDocument setIvar:@"GMMessageSecurityFeatures" value:[(Message_GPGMail *)message securityFeatures]];
+        if([(Message_GPGMail *)message securityFeatures].PGPEncrypted) {
+            [webDocument setIsEncrypted:YES];
+        }
+    }
     [self MASetWebDocument:webDocument];
 }
 
