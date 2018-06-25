@@ -184,6 +184,9 @@ extern NSString *gpgErrorIdentifier; // This identifier is used to set and find 
 
 @property (readonly) NSOperationQueue *messageBodyDataLoadingQueue;
 @property (readonly) NSCache *messageBodyDataLoadingCache;
+
+@property (readonly) BOOL allowDecryptionOfPotentiallyDangerousMessagesWithoutMDC;
+
 @end
 
 @interface GPGMailBundle (NoImplementation)

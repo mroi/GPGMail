@@ -860,13 +860,23 @@ NSString * const kMimePartAllowPGPProcessingKey = @"MimePartAllowPGPProcessingKe
     // the signed data.
     NSData *decryptedData = [self GMDecryptedDataForEncryptedAttachment];
     attachmentData = decryptedData ? decryptedData : attachmentData;
+    // Bug #990: Re-add support for embedded filename
+    //
+    // Even if a embedded filename is available, GPGMail didn't use
+    // it, and always used the filename with the pgp extension stripped
+    // if decrypting the attachment succeeded.
     if(decryptedData) {
-        for(NSString *ext in pgpDataExtensions) {
-            if([[filename pathExtension] isEqualToStringIgnoringCase:ext]) {
-                filename = [filename substringWithRange:NSMakeRange(0, [filename length] - ([extension length] + 1))];
-                break;
-            }
+        if(self.PGPEmbeddedFilename && [self.PGPEmbeddedFilename length]) {
+            filename = self.PGPEmbeddedFilename;
         }
+        else {
+			for(NSString *ext in pgpDataExtensions) {
+				if([[filename pathExtension] isEqualToStringIgnoringCase:ext]) {
+					filename = [filename substringWithRange:NSMakeRange(0, [filename length] - ([extension length] + 1))];
+					break;
+				}
+			}
+		}
     }
     MCAttachment *attachment = [[MCAttachment alloc] initWithMimePart:self];
     [attachment setFilename:filename];
@@ -1063,6 +1073,7 @@ NSString * const kMimePartAllowPGPProcessingKey = @"MimePartAllowPGPProcessingKe
 
 	
 	GPGController *gpgc = [[GPGController alloc] init];
+    gpgc.delegate = self;
 	NSData *decryptedData = nil;
 	
 	if (!decryptKey || [gpgc isPassphraseForKeyInCache:decryptKey]) { //
@@ -1088,10 +1099,6 @@ NSString * const kMimePartAllowPGPProcessingKey = @"MimePartAllowPGPProcessingKe
         }
         return nil;
     }
-    NSError *error = [self errorFromGPGOperation:GPG_OPERATION_DECRYPTION controller:gpgc];
-	
-	// Sometimes decryption okay is issued even though a NODATA error occured.
-	BOOL success = gpgc.decryptionOkay && !error;
 	
     // Bug #980: If the message doesn't contain a MDC or contains a modified MDC,
     //           GPGMail currently believes that the message is non-clear-signed and
@@ -1103,6 +1110,37 @@ NSString * const kMimePartAllowPGPProcessingKey = @"MimePartAllowPGPProcessingKe
     // encrypted. In addition a check is added, to see if BEGIN_DECRYPTION wasn't issued either.
     BOOL nonClearSigned = ![[gpgc.statusDict objectForKey:@"BEGIN_DECRYPTION"] boolValue] && !gpgc.decryptionOkay &&
                           [decryptedData length] != 0 && [encryptedData hasPGPSignatureDataPackets];
+
+	NSError *error = [self errorFromGPGOperation:GPG_OPERATION_DECRYPTION controller:gpgc];
+	
+	// Sometimes decryption okay is issued even though a NODATA error occured.
+	BOOL success = gpgc.decryptionOkay && !error;
+	
+    if(gpgc.filename) {
+        self.PGPEmbeddedFilename = gpgc.filename;
+    }
+
+    // Bug #982: Allow messages which don't include an MDC
+    //
+    // Some users have reported that after Libmacgpg has been patched,
+    // they can now no longer open their old messages. It turns out that
+    // quite a few users are still using old keys which don't support MDCs.
+    // In order to accomodate those users, a defaults key has been introduced
+    // which if true allows to decrypt messages without MDC.
+    // If a message has an AEAD (position 3), MDC will always be 0, so account for that.
+    NSArray *decryptionInfo = [gpgc.statusDict[@"DECRYPTION_INFO"] count] > 0 && [gpgc.statusDict[@"DECRYPTION_INFO"][0] count] > 0 ? gpgc.statusDict[@"DECRYPTION_INFO"][0] : nil;
+    BOOL hasAEAD = [decryptionInfo count] > 2 && [decryptionInfo[2] integerValue] > 0;
+    BOOL noMDCStatus = [decryptionInfo count] > 0 && [decryptionInfo[0] integerValue] == 0 && !hasAEAD;
+    BOOL hasNoMDCButNoMDCIsAllowed = noMDCStatus && [self gpgControllerShouldDecryptWithoutMDC:gpgc];
+    if(hasNoMDCButNoMDCIsAllowed && !nonClearSigned && [decryptedData length]) {
+        NSLog(@"[GPGMail] is missing MDC but missing MDC is allowed");
+        success = YES;
+        // 1035 represents an encryption error. Signature errors should not
+        // be reset.
+        if(error.code == 1035) {
+            error = nil;
+        }
+    }
 
 	// Let's reset the error if the message is not clear-signed,
 	// since error will be general error.
@@ -1131,16 +1169,9 @@ NSString * const kMimePartAllowPGPProcessingKey = @"MimePartAllowPGPProcessingKe
 		self.PGPVerified = !(success && error);
 	}
 	
-	// Set attachment filename if needed.
-	NSString *filename = gpgc.filename;
-	if (!filename && self.PGPDecrypted) {
-		filename = [MAIL_SELF(self) dispositionParameterForKey:@"filename"];
-		if (filename) {
-			filename = [[filename lastPathComponent] stringByDeletingPGPExtension];
-		}
-	}
-	if (filename) {
-		[MAIL_SELF(self) setDispositionParameter:filename forKey:@"filename"];
+    // Unset the filename if the attachment failed to decrypt.
+    if(!self.PGPDecrypted) {
+        self.PGPEmbeddedFilename = nil;
 	}
 
     // Last, store the error itself.
@@ -1150,6 +1181,17 @@ NSString * const kMimePartAllowPGPProcessingKey = @"MimePartAllowPGPProcessingKe
         return nil;
     
     return decryptedData;
+}
+
+- (BOOL)gpgControllerShouldDecryptWithoutMDC:(GPGController *)gpgc {
+    // Implement this method to allow decryption of messages without
+    // an MDC to allow users with old keys to still open their old
+    // emails.
+    //
+    // This feature can be enabled using:
+    //
+    // `defaults write org.gpgtools.gpgmail AllowDecryptionOfPotentiallyDangerousMessagesWithoutMDC -bool YES`
+    return [[GPGMailBundle sharedInstance] allowDecryptionOfPotentiallyDangerousMessagesWithoutMDC];
 }
 
 #pragma mark PGP Error Helpers
@@ -1848,7 +1890,7 @@ NSString * const kMimePartAllowPGPProcessingKey = @"MimePartAllowPGPProcessingKe
 - (void)MAVerifySignature {
     // Check if message should be processed (-[Message shouldBePGPProcessed])
     // otherwise out of here!
-    if(![(MimePart_GPGMail *)[self topPart] shouldBePGPProcessed]) {
+    if(![(MimePart_GPGMail *)self shouldBePGPProcessed]) {
         return [self MAVerifySignature];
     }
     // If this is a non GPG signed message, let's call the original method
@@ -2128,6 +2170,13 @@ NSString * const kMimePartAllowPGPProcessingKey = @"MimePartAllowPGPProcessingKe
     return [self getIvar:@"PGPVerifiedData"];
 }
 
+- (void)setPGPEmbeddedFilename:(NSString *)filename {
+    [self setIvar:@"MimePartPGPEmbeddedFilename" value:filename];
+}
+
+- (NSString *)PGPEmbeddedFilename {
+    return [self getIvar:@"MimePartPGPEmbeddedFilename"];
+}
 
 #pragma mark other stuff to test Xcode code folding.
 

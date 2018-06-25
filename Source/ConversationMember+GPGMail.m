@@ -101,7 +101,7 @@
     // for encrypted messages at all, we don't have to care about its faulty behavior,
     // but simply make sure, it is not displayed for encrypted messages.
     GMMessageSecurityFeatures *securityFeatures = [(Message_GPGMail *)[MAIL_SELF originalMessage] securityFeatures];
-    BOOL isEncrypted = securityFeatures.PGPEncrypted || securityFeatures.PGPPartlyEncrypted;
+    BOOL isEncrypted = [webDocument isEncrypted] || securityFeatures.PGPEncrypted || securityFeatures.PGPPartlyEncrypted;
 
     if(isEncrypted) {
         [webDocument setBlockRemoteContent:YES];
