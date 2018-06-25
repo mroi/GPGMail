@@ -9,9 +9,9 @@ stripped down version, which just inludes
 * the [Libmacgpg](https://github.com/GPGTools/Libmacgpg) library, and
 * the [pinentry](https://github.com/GPGTools/pinentry) tool.
 
-I use the `gnupg` command from [Fink](http://finkproject.org), so I don’t need anything 
-else. No auto-updating, no key managment UI. Just the things needed to get nice GPG 
-integration in Apple Mail.
+I use the `gnupg` command from [Nix](https://nixos.org), so I don’t need anything else. No 
+auto-updating, no key managment UI. Just the things needed to get nice GPG integration in 
+Apple Mail.
 
 I modified the components to get a self-contained plugin that fits my setup. This may not be for 
 you. I strongly urge you to consider using [the original GPGTools](https://gpgtools.org) instead 
