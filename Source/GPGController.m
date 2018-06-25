@@ -23,6 +23,7 @@
 #import "GPGKeyserver.h"
 #import "GPGTaskHelper.h"
 #import "GPGWatcher.h"
+#import "GPGTask_Private.h"
 #import <sys/stat.h>
 #if defined(__MAC_OS_X_VERSION_MAX_ALLOWED) && __MAC_OS_X_VERSION_MAX_ALLOWED >= 1080
 #import "GPGTaskHelperXPC.h"
@@ -62,7 +63,7 @@ static NSString * const keysOnServerCacheKey = @"KeysOnServerCache";
 
 @implementation GPGController
 @synthesize delegate, keyserver, keyserverTimeout, proxyServer, async, userInfo, useArmor, useTextMode, printVersion, useDefaultComments,
-trustAllKeys, signatures, lastSignature, gpgHome, passphrase, verbose, autoKeyRetrieve, lastReturnValue, error, undoManager, hashAlgorithm,
+trustAllKeys, signatures, lastSignature, gpgHome, passphrase, autoKeyRetrieve, lastReturnValue, error, undoManager, hashAlgorithm,
 timeout, filename, forceFilename, pinentryInfo=_pinentryInfo, allowNonSelfsignedUid, allowWeakDigestAlgos;
 
 NSString *gpgVersion = nil;
@@ -134,10 +135,10 @@ BOOL gpgConfigReaded = NO;
 
 
 
-- (NSArray *)comments {
+- (NSArray <NSString *> *)comments {
 	return [[comments copy] autorelease];
 }
-- (NSArray *)signerKeys {
+- (NSArray <NSObject <KeyFingerprint> *> *)signerKeys {
 	return [[signerKeys copy] autorelease];
 }
 - (void)setComment:(NSString *)comment {
@@ -177,7 +178,10 @@ BOOL gpgConfigReaded = NO;
 	[self didChangeValueForKey:@"signerKeys"];
 }
 - (BOOL)decryptionOkay {
-	return [[gpgTask.statusDict objectForKey:@"DECRYPTION_OKAY"] boolValue];
+	return error == nil && decrypted;
+}
+- (BOOL)wasSigned {
+	return self.signatures.count > 0;
 }
 - (NSDictionary *)statusDict {
 	return gpgTask.statusDict;
@@ -230,15 +234,9 @@ BOOL gpgConfigReaded = NO;
 		GPGDebugLog(@"textmode: %@", value);
 		useTextMode = [value boolValue];
 	}
-	if ((value = [options valueInGPGConfForKey:@"keyserver-options"])) {
-		GPGDebugLog(@"keyserver-options: %@", value);
-		if ([value respondsToSelector:@selector(containsObject:)]) {
-			if ([value containsObject:@"no-auto-key-retrieve"]) {
-				autoKeyRetrieve = NO;
-			} else if ([value containsObject:@"auto-key-retrieve"]) {
-				autoKeyRetrieve = YES;
-			}
-		}
+	if ((value = [options valueInGPGConfForKey:@"auto-key-retrieve"])) {
+		GPGDebugLog(@"auto-key-retrieve: %@", value);
+		autoKeyRetrieve = [value boolValue];
 	}
 	
 	return self;
@@ -422,42 +420,65 @@ BOOL gpgConfigReaded = NO;
 		__block BOOL failed = NO;
 		__block NSString *errorDecription = nil;
 		__block GPGErrorCode errorCode = 0;
-		NSArray *errorCodes = gpgTask.errorCodes;
+		NSArray <NSNumber *> *errorCodes = gpgTask.errorCodes;
 
 		// Check the error codes and some specific status codes to detect errors or possible attacks.
 		if (gpgTask.errorCode == GPGErrorCancelled) {
 			failed = YES;
 			errorCode = GPGErrorCancelled;
 			errorDecription = @"Decryption cancelled!";
-		} else if ([errorCodes containsObject:@(GPGErrorNoMDC)]) {
-			failed = YES;
-			errorCode = GPGErrorNoMDC;
-			errorDecription = @"Decryption failed: No MDC!";
-		} else if ([errorCodes containsObject:@(GPGErrorBadMDC)]) {
+		}
+			
+		if (!failed && [errorCodes containsObject:@(GPGErrorBadMDC)]) {
 			failed = YES;
 			errorCode = GPGErrorBadMDC;
 			errorDecription = @"Decryption failed: Bad MDC!";
-		} else if ([errorCodes containsObject:@(GPGErrorDecryptionFailed)]) {
+		}
+		if (!failed && [errorCodes containsObject:@(GPGErrorBadData)]) {
 			failed = YES;
-			errorCode = GPGErrorDecryptionFailed;
-			errorDecription = @"Decryption failed!";
-		} else if (gpgTask.statusDict[@"NODATA"]) {
+			errorCode = GPGErrorBadData;
+			errorDecription = @"Decryption failed: Bad Data!";
+		}
+		if (!failed && [errorCodes containsObject:@(GPGErrorDecryptionFailed)]) {
+			// Ignore a failed decryption because of NoMDC.
+			BOOL hasNoMDC = NO;
+			for (NSNumber *errorNumber in errorCodes) {
+				if (errorNumber.intValue == GPGErrorNoMDC) {
+					hasNoMDC = YES;
+				} else if (errorNumber.intValue != GPGErrorDecryptionFailed) {
+					// The decryption failed because of any other reason than NoMDC.
+					failed = YES;
+					errorCode = errorNumber.intValue;
+					errorDecription = @"Decryption failed!";
+				}
+			}
+			
+			if (!hasNoMDC && !failed) {
+				// The decryption failed because of an unknwown reason.
+				failed = YES;
+				errorCode = GPGErrorDecryptionFailed;
+				errorDecription = @"Decryption failed!";
+			}
+		}
+		if (!failed && gpgTask.statusDict[@"NODATA"]) {
 			failed = YES;
 			errorCode = GPGErrorNoData;
 			errorDecription = @"Decryption failed: No Data!";
-		} else if (gpgTask.statusDict[@"FAILURE"]) {
+		}
+		if (!failed && gpgTask.statusDict[@"FAILURE"]) {
 			failed = YES;
 			// Unknown error.
 			errorDecription = @"Decryption failed: Other Failure!";
-		} else {
+		}
+		if (!failed) {
 			// Check if there is an unencrypted plaintext in an encrypted message.
 			// Normally the plaintext should be in an encrypted packet, inside of the encrypted message.
 			
-			__block BOOL inDecryptedPacket = NO;
-			__block BOOL hasUnencryptedPlaintext = NO;
-			__block BOOL hasDecryptedPacket = NO;
+			BOOL inDecryptedPacket = NO;
+			BOOL hasUnencryptedPlaintext = NO;
+			BOOL hasDecryptedPacket = NO;
 
-			[gpgTask.statusArray enumerateObjectsUsingBlock:^(GPGStatusLine * _Nonnull status, __unused NSUInteger idx, BOOL * _Nonnull stop) {
+			for (GPGStatusLine *status in gpgTask.statusArray) {
 				switch (status.code) {
 					case GPG_STATUS_BEGIN_DECRYPTION:
 						inDecryptedPacket = YES;
@@ -472,7 +493,7 @@ BOOL gpgConfigReaded = NO;
 						}
 						break;
 				}
-			}];
+			}
 			
 			if (hasUnencryptedPlaintext && hasDecryptedPacket) {
 				failed = YES;
@@ -480,6 +501,19 @@ BOOL gpgConfigReaded = NO;
 				errorDecription = @"Decryption failed: Unencrypted Plaintext!";
 			}
 		}
+		if (!failed && [errorCodes containsObject:@(GPGErrorNoMDC)]) {
+			if (![delegate respondsToSelector:@selector(gpgControllerShouldDecryptWithoutMDC:)] || ![delegate gpgControllerShouldDecryptWithoutMDC:self]) {
+				failed = YES;
+				errorCode = GPGErrorNoMDC;
+				errorDecription = @"Decryption failed: No MDC!";
+			} else {
+				[gpgTask unsetErrorCode:GPGErrorNoMDC];
+			}
+		}
+
+		
+		
+		
 		
 		if (failed) {
 			if (!errorDecription) {
@@ -487,13 +521,17 @@ BOOL gpgConfigReaded = NO;
 			}
 			[output seekToBeginning];
 			@throw [GPGException exceptionWithReason:localizedLibmacgpgString(errorDecription) errorCode:errorCode gpgTask:gpgTask];
+		} else {
+			if (gpgTask.statusDict[@"END_DECRYPTION"]) {
+				decrypted = YES;
+			}
 		}
 	} @catch (NSException *e) {
 		[self handleException:e];
 	}
 }
 
-- (NSArray *)verifySignature:(NSData *)signatureData originalData:(NSData *)originalData {
+- (NSArray <GPGSignature *> *)verifySignature:(NSData *)signatureData originalData:(NSData *)originalData {
 	if (async && !asyncStarted) {
 		asyncStarted = YES;
 		[asyncProxy verifySignature:signatureData originalData:originalData];
@@ -507,10 +545,10 @@ BOOL gpgConfigReaded = NO;
     return [self verifySignatureOf:signatureInput originalData:originalInput];
 }
 
-- (NSArray *)verifySignatureOf:(GPGStream *)signatureInput originalData:(GPGStream *)originalInput {
+- (NSArray <GPGSignature *> *)verifySignatureOf:(GPGStream *)signatureInput originalData:(GPGStream *)originalInput {
 #warning There's a good chance verifySignature will modify the keys if auto-retrieve-keys is set. In that case it might make sense, that we send the notification ourselves with the potential key which might get imported. We do have the fingerprint, and there's no need to rebuild the whole keyring only to update one key.
 	
-	NSArray *retVal;
+	NSArray <GPGSignature *> *retVal;
 	@try {
 		[self operationDidStart];
 
@@ -531,9 +569,16 @@ BOOL gpgConfigReaded = NO;
 		NSString *fifoPath = nil;
 		if (originalInput) {
 			
+			
+			NSString *tempDir = [NSTemporaryDirectory() stringByAppendingPathComponent:@"org.gpgtools.libmacgpg"];
+			NSError *theError = nil;
+			if (![[NSFileManager defaultManager] createDirectoryAtPath:tempDir withIntermediateDirectories:YES attributes:nil error:&theError]) {
+				[NSException raise:NSGenericException format:@"createDirectory failed: %@", theError.localizedDescription];
+			}
+
 			NSString *guid = [NSProcessInfo processInfo].globallyUniqueString ;
 			NSString *fifoName = [NSString stringWithFormat:@"gpgtmp_%@.fifo", guid];
-			fifoPath = [NSTemporaryDirectory() stringByAppendingPathComponent:fifoName];
+			fifoPath = [tempDir stringByAppendingPathComponent:fifoName];
 			
 			if (mkfifo(fifoPath.UTF8String, 0600) != 0) {
 				[NSException raise:NSGenericException format:@"mkfifo failed: %s", strerror(errno)];
@@ -594,7 +639,7 @@ BOOL gpgConfigReaded = NO;
 	return retVal;
 }
 
-- (NSArray *)verifySignedData:(NSData *)signedData {
+- (NSArray <GPGSignature *> *)verifySignedData:(NSData *)signedData {
 	return [self verifySignature:signedData originalData:nil];
 }
 
@@ -1021,7 +1066,7 @@ BOOL gpgConfigReaded = NO;
 }
 
 
-- (NSArray *)algorithmPreferencesForKey:(GPGKey *)key {
+- (NSArray <NSDictionary *> *)algorithmPreferencesForKey:(GPGKey *)key {
 	self.gpgTask = [GPGTask gpgTask];
 	[self addArgumentsForOptions];
 	[gpgTask addArgument:@"--edit-key"];
@@ -1380,8 +1425,8 @@ BOOL gpgConfigReaded = NO;
 			if ([gpgTask start] != 0) {
 				@throw [GPGException exceptionWithReason:localizedLibmacgpgString(@"Export failed!") gpgTask:gpgTask];
 			}
-			NSMutableData *concatExportedData = [NSMutableData dataWithData:exportedData];
-			[concatExportedData appendData:[gpgTask outData]];
+			NSMutableData *concatExportedData = [NSMutableData dataWithData:[gpgTask outData]];
+			[concatExportedData appendData:exportedData];
             exportedData = concatExportedData;
 		}
 	} @catch (NSException *e) {
@@ -1457,7 +1502,7 @@ BOOL gpgConfigReaded = NO;
 	[self operationDidFinishWithReturnValue:nil];	
 }
 
-- (void)signUserIDs:(NSArray *)userIDs signerKey:(NSObject <KeyFingerprint> *)signerKey local:(BOOL)local daysToExpire:(int)daysToExpire {
+- (void)signUserIDs:(NSArray <GPGUserID *> *)userIDs signerKey:(NSObject <KeyFingerprint> *)signerKey local:(BOOL)local daysToExpire:(int)daysToExpire {
 	if (async && !asyncStarted) {
 		asyncStarted = YES;
 		[asyncProxy signUserIDs:userIDs signerKey:signerKey local:local daysToExpire:daysToExpire];
@@ -2079,8 +2124,8 @@ BOOL gpgConfigReaded = NO;
 	[self operationDidFinishWithReturnValue:nil];
 }
 
-- (NSArray *)searchKeysOnServer:(NSString *)pattern {
-	NSArray *keys = nil;
+- (NSArray <GPGRemoteKey *> *)searchKeysOnServer:(NSString *)pattern {
+	NSArray <GPGRemoteKey *> *keys = nil;
 	if (async && !asyncStarted) {
 		asyncStarted = YES;
 		[asyncProxy searchKeysOnServer:pattern];
@@ -2201,7 +2246,7 @@ BOOL gpgConfigReaded = NO;
 }
 
 
-- (void)keysExistOnServer:(NSArray *)keys callback:(void (^)(NSArray *existingKeys, NSArray *nonExistingKeys))callback {
+- (void)keysExistOnServer:(NSArray <GPGKey *> *)keys callback:(void (^)(NSArray <GPGKey *> *existingKeys, NSArray <GPGKey *> *nonExistingKeys))callback {
 	
 	// Check if GPGKeyserver should be used.
 	// GPGKeyserver is faster than gpg, but only supports http(s) requests.
@@ -2339,238 +2384,6 @@ BOOL gpgConfigReaded = NO;
 	dispatch_group_leave(dispatchGroup);
 
 }
-
-
-
-/*- (NSString *)refreshKeysFromServer:(NSObject <EnumerationList> *)keys { //DEPRECATED!
-	return [self receiveKeysFromServer:keys];
-}
-
-- (NSString *)receiveKeysFromServer:(NSObject <EnumerationList> *)keys {
-	if (async && !asyncStarted) {
-		asyncStarted = YES;
-		[asyncProxy receiveKeysFromServer:keys];
-		return nil;
-	}
-	NSString *retVal = nil;
-	@try {
-		[self operationDidStart];
-		if ([keys count] == 0) {
-			[NSException raise:NSInvalidArgumentException format:@"Empty key list!"];
-		}
-		
-		
-		__block NSException *exception = nil;
-		__block int32_t serversRunning = keys.count;
-		NSCondition *condition = [NSCondition new];
-		[condition lock];
-		
-		NSMutableData *keysToImport = [NSMutableData data];
-		NSLock *dataLock = [NSLock new];
-		
-		gpg_ks_finishedHandler handler = ^(GPGKeyserver *s) {
-			if (s.exception) {
-				exception = s.exception;
-			} else {
-				NSData *unArmored = [GPGPacket unArmor:s.receivedData];
-				if (unArmored) {
-					[dataLock lock];
-					[keysToImport appendData:unArmored];
-					[dataLock unlock];
-				}
-			}
-			
-			OSAtomicDecrement32Barrier(&serversRunning);
-			if (serversRunning == 0) {
-				[condition signal];
-			}
-		};
-		
-		for (NSString *key in keys) {
-			GPGKeyserver *server = [[GPGKeyserver alloc] initWithFinishedHandler:handler];
-			server.timeout = self.keyserverTimeout;
-			if (self.keyserver) {
-				server.keyserver = self.keyserver;
-			}
-			[gpgKeyservers addObject:server];
-			[server getKey:key.description];
-			[server release];
-		}
-		
-		while (serversRunning > 0) {
-			[condition wait];
-		}
-		
-		[condition unlock];
-		[condition release];
-		condition = nil;
-		
-		
-		[gpgKeyservers removeAllObjects];
-		
-		if (exception && keysToImport.length == 0) {
-			[self handleException:exception];
-		} else {
-			retVal = [self importFromData:keysToImport fullImport:NO];
-		}
-		
-	} @catch (NSException *e) {
-		[self handleException:e];
-	} @finally {
-		[self cleanAfterOperation];
-	}
-	
-	[self operationDidFinishWithReturnValue:retVal];
-	return retVal;
-}
-
-- (void)sendKeysToServer:(NSObject <EnumerationList> *)keys {
-	if (async && !asyncStarted) {
-		asyncStarted = YES;
-		[asyncProxy sendKeysToServer:keys];
-		return;
-	}
-	@try {
-		[self operationDidStart];
-		
-		if ([keys count] == 0) {
-			[NSException raise:NSInvalidArgumentException format:@"Empty key list!"];
-		}
-		
-		BOOL oldArmor = self.useArmor;
-		self.useArmor = YES;
-		NSData *exportedKeys = [self exportKeys:keys allowSecret:NO fullExport:NO];
-		self.useArmor = oldArmor;
-		
-		if (exportedKeys) {
-			NSString *armoredKeys = exportedKeys.gpgString;
-						
-			__block BOOL running = YES;
-			NSCondition *condition = [NSCondition new];
-			[condition lock];
-			
-			
-			GPGKeyserver *server = [[GPGKeyserver alloc] initWithFinishedHandler:^(GPGKeyserver *s) {
-				running = NO;
-				[condition signal];
-			}];
-			server.timeout = self.keyserverTimeout;
-			if (self.keyserver) {
-				server.keyserver = self.keyserver;
-			}
-			[gpgKeyservers addObject:server];
-			
-			[server uploadKeys:armoredKeys];
-			
-			
-			while (running) {
-				[condition wait];
-			}
-			
-			[condition unlock];
-			[condition release];
-			condition = nil;
-			
-			[gpgKeyservers removeObject:server];
-			
-			if (server.exception) {
-				[self handleException:server.exception];
-			}
-			
-			[server release];
-		}		
-	} @catch (NSException *e) {
-		[self handleException:e];
-	} @finally {
-		[self cleanAfterOperation];
-	}
-	[self operationDidFinishWithReturnValue:nil];	
-}
-
-- (NSArray *)searchKeysOnServer:(NSString *)pattern {	
-	if (async && !asyncStarted) {
-		asyncStarted = YES;
-		[asyncProxy searchKeysOnServer:pattern];
-		return nil;
-	}
-	
-	NSArray *keys = nil;
-	
-	@try {
-		[self operationDidStart];
-		
-		pattern = [pattern stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceAndNewlineCharacterSet]];
-		NSCharacterSet *noHexCharSet = [[NSCharacterSet characterSetWithCharactersInString:@"0123456789ABCDEFabcdef"] invertedSet];
-		NSString *stringToCheck = nil;
-		
-		switch ([pattern length]) {
-			case 8:
-			case 16:
-			case 32:
-			case 40:
-				stringToCheck = pattern;
-				break;
-			case 9:
-			case 17:
-			case 33:
-			case 41:
-				if ([pattern hasPrefix:@"0"]) {
-					stringToCheck = [pattern substringFromIndex:1];
-				}
-				break;
-		}
-		
-		
-		if (stringToCheck && [stringToCheck rangeOfCharacterFromSet:noHexCharSet].length == 0) {
-			pattern = [@"0x" stringByAppendingString:stringToCheck];
-		}
-
-		
-		__block BOOL running = YES;
-		NSCondition *condition = [NSCondition new];
-		[condition lock];
-				
-		
-		GPGKeyserver *server = [[GPGKeyserver alloc] initWithFinishedHandler:^(GPGKeyserver *s) {
-			running = NO;
-			[condition signal];
-		}];
-		server.timeout = self.keyserverTimeout;
-		if (self.keyserver) {
-			server.keyserver = self.keyserver;
-		}
-		[gpgKeyservers addObject:server];
-		
-		[server searchKey:pattern];
-		
-		
-		while (running) {
-			[condition wait];
-		}
-		
-		[condition unlock];
-		[condition release];
-		condition = nil;
-		
-		[gpgKeyservers removeObject:server];
-		
-		if (server.exception) {
-			[self handleException:server.exception];
-		} else {
-			keys = [GPGRemoteKey keysWithListing:[server.receivedData gpgString]];
-		}
-		
-		[server release];
-	} @catch (NSException *e) {
-		[self handleException:e];
-	} @finally {
-		[self cleanAfterOperation];
-	}
-	
-	[self operationDidFinishWithReturnValue:keys];
-	
-	return keys;
-}*/
 
 
 
@@ -2965,6 +2778,7 @@ BOOL gpgConfigReaded = NO;
 		self.gpgTask = nil;
 		[error release];
 		error = nil;
+		decrypted = NO;
 		if ([delegate respondsToSelector:@selector(gpgControllerOperationDidStart:)]) {
 			[delegate gpgControllerOperationDidStart:self];
 		}		
@@ -3112,8 +2926,6 @@ BOOL gpgConfigReaded = NO;
 	
 	[keyserverOptions appendFormat:@"timeout=%lu", (unsigned long)keyserverTimeout];
 	
-	[keyserverOptions appendString:autoKeyRetrieve ? @",auto-key-retrieve" : @",no-auto-key-retrieve"];
-	
 	NSString *proxy = proxyServer ? proxyServer : [[GPGOptions sharedOptions] httpProxy];
 	if ([proxy length] > 0) {
 		if ([proxy rangeOfString:@"://"].length == 0) {
@@ -3140,6 +2952,7 @@ BOOL gpgConfigReaded = NO;
 	[gpgTask addArgument:useArmor ? @"--armor" : @"--no-armor"];
 	[gpgTask addArgument:useTextMode ? @"--textmode" : @"--no-textmode"];
 	[gpgTask addArgument:printVersion ? @"--emit-version" : @"--no-emit-version"];
+	[gpgTask addArgument:autoKeyRetrieve ? @"--auto-key-retrieve" : @"--no-auto-key-retrieve"];
 	if (trustAllKeys) {
 		[gpgTask addArgument:@"--trust-model"];
 		[gpgTask addArgument:@"always"];

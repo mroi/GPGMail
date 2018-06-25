@@ -28,21 +28,15 @@
 #import <fcntl.h>
 #import "NSBundle+Sandbox.h"
 #import "GPGStatusLine.h"
+#import <sys/stat.h>
+#import "GPGTask_Private.h"
+
+
+NSString * const GPGStatusFilePlaceholder = @"~%$STATUS_FILE_PATH$%~";
+NSString * const GPGAttributeFilePlaceholder = @"~%$ATTRIBUTE_FILE_PATH$%~";
 
 
 @class GPGController;
-
-@interface GPGTask ()
-
-@property (nonatomic, retain) NSData *errData;
-@property (nonatomic, retain) NSData *statusData;
-@property (nonatomic, retain) NSData *attributeData;
-@property (nonatomic) int errorCode;
-
-- (void)unsetErrorCode:(int)value;
-
-@end
-
 
 @implementation GPGTask
 
@@ -204,11 +198,12 @@ static NSLock *gpgTaskLock;
 		[gpgTaskLock lock];
 	}
 	
+	
     // Default arguments which every call to GPG needs.
     NSMutableArray *defaultArguments = [NSMutableArray arrayWithObjects:
                                         @"--no-greeting", @"--no-tty", @"--with-colons", @"--fixed-list-mode",
 										@"--utf8-strings", @"--display-charset", @"utf-8", @"--enable-special-filenames",
-                                        @"--yes", @"--status-fd", @"2", nil];
+                                        @"--yes", @"--status-file", GPGStatusFilePlaceholder, @"--no-verbose", nil];
 
 	
 	if (progressInfo && [delegate respondsToSelector:@selector(gpgTask:progressed:total:)]) {
@@ -230,7 +225,7 @@ static NSLock *gpgTaskLock;
 	
     // If the attribute data is required, add the attribute-fd.
 	if (getAttributeData) {
-        [defaultArguments addObjectsFromArray:[NSArray arrayWithObjects:@"--attribute-fd", @"2", nil]];
+        [defaultArguments addObjectsFromArray:[NSArray arrayWithObjects:@"--attribute-file", GPGAttributeFilePlaceholder, nil]];
 	}
  
 	
