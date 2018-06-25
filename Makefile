@@ -26,8 +26,12 @@ install: all
 	rsync -rlcv --delete \
 		pinentry/macosx/pinentry-mac.app $(RESOURCE_DIR)/
 	uuid=`defaults read /Applications/Mail.app/Contents/Info PluginCompatibilityUUID` ; \
-		fgrep -q $$uuid $(PLUGIN_DIR)/GPGMail.mailbundle/Contents/Info.plist || \
-		defaults write $(PLUGIN_DIR)/GPGMail.mailbundle/Contents/Info Supported`sw_vers -productVersion | cut -d '.' -f 1,2`PluginCompatibilityUUIDs -array-add $$uuid
+		fgrep -q $$uuid $(PLUGIN_DIR)/GPGMail.mailbundle/Contents/Info.plist || { \
+			cp $(PLUGIN_DIR)/GPGMail.mailbundle/Contents/Info.plist . ; \
+			defaults write $(PWD)/Info Supported`sw_vers -productVersion | cut -d '.' -f 1,2`PluginCompatibilityUUIDs -array-add $$uuid ; \
+			plutil -convert xml1 -o $(PLUGIN_DIR)/GPGMail.mailbundle/Contents/Info.plist Info.plist ; \
+			rm Info.plist ; \
+		}
 	codesign -s "`id -F`" $(RESOURCE_DIR)/pinentry-mac.app
 	codesign -s "`id -F`" $(RESOURCE_DIR)/org.gpgtools.Libmacgpg.xpc -i org.gpgtools.Libmacgpg.xpc
 	codesign -s "`id -F`" $(FRAMEWORK_DIR)/Libmacgpg.framework
