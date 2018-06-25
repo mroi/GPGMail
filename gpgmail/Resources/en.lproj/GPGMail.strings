@@ -252,6 +252,10 @@ NO_DEFAULTS_MESSAGE = "GPGMail is not working as expected.\n\nPlease download an
 "NAVIGATION_ACTION_FROM_ENCRYPTED_MESSAGE_BUTTON_YES" = "Yes";
 "NAVIGATION_ACTION_FROM_ENCRYPTED_MESSAGE_BUTTON_CANCEL" = "Cancel";
 
+"MESSAGE_BANNER_PGP_ATTACHMENT_DECRYPT_MDC_ERROR_TITLE" = "Decryption of the attachment was aborted";
+"MESSAGE_BANNER_PGP_ATTACHMENT_DECRYPT_MDC_ERROR_MESSAGE" = "The modification detection code (MDC) for this encrypted attachment is missing or has been modified.\n\nThis could mean that an attacker has been trying to modify the contents within the encrypted attachment.\n\nPlease have the attachment re-sent to you and tell the sender, that their encrypted attachment didn't include a modification detection code.";
+
+
 /* Accessibility */
 ACCESSIBILITY_SECURITY_METHOD_POPUP_LABEL = "Security method: %@";
 ACCESSIBILITY_SIGN_ON_IMAGE = "Sign";

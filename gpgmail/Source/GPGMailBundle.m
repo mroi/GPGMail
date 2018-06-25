@@ -259,6 +259,8 @@ NSString *GPGMailKeyringUpdatedNotification = @"GPGMailKeyringUpdatedNotificatio
 NSString *gpgErrorIdentifier = @"^~::gpgmail-error-code::~^";
 static NSString * const kExpiredCheckKey = @"__gme3__";
 
+NSString * const kGMAllowDecryptionOfDangerousMessagesMissingMDCKey = @"GMAllowDecryptionOfDangerousMessagesMissingMDC";
+
 int GPGMailLoggingLevel = 0;
 static BOOL gpgMailWorks = NO;
 
@@ -388,6 +390,8 @@ static BOOL gpgMailWorks = NO;
         // Initiate the Message Rules Applier.
         _messageRulesApplier = [[GMMessageRulesApplier alloc] init];
         
+        [self setAllowDecryptionOfPotentiallyDangerousMessagesWithoutMDC:[[[GPGOptions sharedOptions] valueForKey:@"AllowDecryptionOfPotentiallyDangerousMessagesWithoutMDC"] boolValue]];
+        
         if([GPGMailBundle isElCapitan])
             [self runBetaHasExpiredCheck];
         
@@ -407,6 +411,14 @@ static BOOL gpgMailWorks = NO;
 	}
     
 	return self;
+}
+
+- (void)setAllowDecryptionOfPotentiallyDangerousMessagesWithoutMDC:(BOOL)allow {
+    [self setIvar:kGMAllowDecryptionOfDangerousMessagesMissingMDCKey value:@(allow)];
+}
+
+- (BOOL)allowDecryptionOfPotentiallyDangerousMessagesWithoutMDC {
+    return [[self getIvar:kGMAllowDecryptionOfDangerousMessagesMissingMDCKey] boolValue];
 }
 
 + (BOOL)betaExpired {
