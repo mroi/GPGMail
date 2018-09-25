@@ -44,8 +44,8 @@
 			return maybeLocalize(@"GPG_ElgamalEncryptOnlyAlgorithm");
 		case GPG_DSAAlgorithm:
 			return maybeLocalize(@"GPG_DSAAlgorithm");
-		case GPG_EllipticCurveAlgorithm:
-			return maybeLocalize(@"GPG_EllipticCurveAlgorithm");
+		case GPG_ECDHAlgorithm:
+			return maybeLocalize(@"GPG_ECDHAlgorithm");
 		case GPG_ECDSAAlgorithm:
 			return maybeLocalize(@"GPG_ECDSAAlgorithm");
 		case GPG_ElgamalAlgorithm:
@@ -218,7 +218,23 @@
 	
 	return [[[NSString alloc] initWithData:buffer encoding:NSUTF8StringEncoding] autorelease];
 }
+@end
 
+
+@implementation GPGNoBreakFingerprintTransformer
+- (id)transformedValue:(id)value {
+	NSString *transformed = [super transformedValue:value];
+	transformed = [transformed stringByReplacingOccurrencesOfString:@" " withString:@"\xC2\xA0"];
+	return transformed;
+}
++ (id)sharedInstance {
+	static dispatch_once_t onceToken = 0;
+	__strong static id _sharedInstance = nil;
+	dispatch_once(&onceToken, ^{
+		_sharedInstance = [[self alloc] init];
+	});
+	return _sharedInstance;
+}
 @end
 
 
