@@ -145,12 +145,12 @@
 "MESSAGE_VIEW_PGP_PART" = "Bagian PGP";
 
 /* GPGMail Preferences strings. */
-"GPG_STATUS_NO_ERROR_TITLE" = "GPGMail siap.";
-"GPG_STATUS_NO_ERROR_TOOLTIP" = "Instalasi MacGPG Anda bekerja tanpa galat.";
-"GPG_STATUS_NOT_FOUND_TITLE" = "MacGPG tidak terpasang. Periksalah instalasi Anda.";
-"GPG_STATUS_NOT_FOUND_TOOLTIP" = "Harap unduh pemasang GPG Suite dari http://www.gpgtools.org untuk memasang semua GPG Suite.";
-"GPG_STATUS_OTHER_ERROR_TITLE" = "Harap periksa instalasi dan konfigurasi Anda.";
-"GPG_STATUS_NOT_FOUND_TOOLTIP" = "Harap unduh pemasang GPG Suite dari http://www.gpgtools.org untuk memasang semua GPG Suite.";
+"GPG_STATUS_NO_ERROR_TITLE" = "GPGMail ready";
+"GPG_STATUS_NOT_FOUND_TITLE" = "MacGPG not found, reinstall GPG Suite";
+"GPG_STATUS_NOT_FOUND_TOOLTIP" = "Click indicator bubble for further information";
+"GPG_STATUS_OTHER_ERROR_TITLE" = "Problems found, click indicator bubble for more info";
+"GPG_STATUS_OTHER_ERROR_TOOLTIP" = "Click indicator bubble for further information";
+
 "DISABLE_ENCRYPT_DRAFTS_TITLE" = "Peringatan: Mematikan opsi ini mungkin mengarah ke kebocoran informasi sensitif ketika menyusun suatu pesan";
 "DISABLE_ENCRYPT_DRAFTS_MESSAGE" = "Bila opsi \"Simpan draf pada server\" difungsikan bagi akun Anda, macOS Mail secara otomatis menyimpan draf Anda pada server surel Anda ketika Anda sedang menyusun pesan.\nDengan menonaktifkan \"Enkripsikan draf\", draf Anda akan disimpan dalam teks polos (tidak terenkripsi) sehingga siapapun yang punya akses ke server surel dapat membaca mereka.\n\nBila Anda tetap memfungsikan \"Enkripsikan draf\", draf Anda akan dienkripsi sebelum mereka disimpan pada server surel dan hanya Anda yang akan dapat membaca mereka.\n\nApakah Anda masih ingin menonaktifkan \"Enkripsikan draf\"?";
 "DISABLE_ENCRYPT_DRAFTS_CONFIRM" = "Matikan Enkripsi";
@@ -244,6 +244,16 @@ NO_DEFAULTS_MESSAGE = "GPGMail tidak bekerja seperti yang diharapkan.\n\nHarap u
 "UNENCRYPTED_FORWARD_OF_ENCRYPTED_MESSAGE_BUTTON_SEND_ANYWAY" = "Teruskan Saja";
 "UNENCRYPTED_FORWARD_OF_ENCRYPTED_MESSAGE_BUTTON_CANCEL" = "Batal";
 
+"MESSAGE_BANNER_PGP_DECRYPT_MDC_ERROR_TITLE" = "Decryption of the message was aborted";
+"MESSAGE_BANNER_PGP_DECRYPT_MDC_ERROR_MESSAGE" = "The modification detection code (MDC) for this encrypted message is missing or has been modified.\n\nThis could mean that an attacker has been trying to modify the contents within the encrypted message.\n\nPlease have the message re-sent to you and tell the sender, that their encrypted message didn't include a modification detection code.";
+
+"NAVIGATION_ACTION_FROM_ENCRYPTED_MESSAGE_TITLE" = "Attention: Opening this website could leak the contents of this message";
+"NAVIGATION_ACTION_FROM_ENCRYPTED_MESSAGE_MESSAGE" = "Due to a problem in the implementation of S/MIME encryption, it is possible for an attacker to modify a message without your knowledge.\n\nYou are about to open the following website:\n\n%@\n\nAre you sure you want to continue?";
+"NAVIGATION_ACTION_FROM_ENCRYPTED_MESSAGE_BUTTON_YES" = "Yes";
+"NAVIGATION_ACTION_FROM_ENCRYPTED_MESSAGE_BUTTON_CANCEL" = "Batal";
+
+"MESSAGE_BANNER_PGP_ATTACHMENT_DECRYPT_MDC_ERROR_TITLE" = "Decryption of the attachment was aborted";
+"MESSAGE_BANNER_PGP_ATTACHMENT_DECRYPT_MDC_ERROR_MESSAGE" = "The modification detection code (MDC) for this encrypted attachment is missing or has been modified.\n\nThis could mean that an attacker has been trying to modify the contents within the encrypted attachment.\n\nPlease have the attachment re-sent to you and tell the sender, that their encrypted attachment didn't include a modification detection code.";
 
 
 /* Accessibility */

@@ -37,7 +37,7 @@
 
 @property (copy, readonly) NSString *content;
 @property (weak, readonly) MCMimePart *mimePart;
-@property (weak, readonly) NSString *isolationMarkup;
+@property (copy, readonly) NSString *isolationMarkup;
 
 @end
 
@@ -51,6 +51,7 @@
 - (void)isolateAttachmentContent:(NSString *)attachmentContent mimePart:(MCMimePart *)mimePart;
 - (NSString *)isolatedContentForDecodedContent:(id)decodedContent;
 - (BOOL)needsProtectedContentIsolation;
+- (BOOL)containsIsolatedMimePart:(MCMimePart *)mimePart;
 
 @end
 

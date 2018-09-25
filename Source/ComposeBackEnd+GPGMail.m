@@ -189,8 +189,6 @@ NSString * const kLibraryMimeBodyReturnCompleteBodyDataForComposeBackendKey = @"
             // Cancel saving to prevent the default error message.
             //[self setIvar:@"cancelSaving" value:(id)kCFBooleanTrue];
             
-            [(ComposeViewController *)[(ComposeBackEnd *)self delegate] _setUserSavedMessageAndPostNotification:NO];
-            
             // In case an error occured due to the user cancelling out the pinentry request, no error is displayed.
             if(!signingCancelled) {
                 // The error message should be set on the current activity monitor, so we

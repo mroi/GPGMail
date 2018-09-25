@@ -1,4 +1,3 @@
-/* GPGMailBundle.m created by dave on Thu 29-Jun-2000 */
 /* GPGMailBundle.m completely re-created by Lukas Pitschl (@lukele) on Thu 13-Jun-2013 */
 /*
  * Copyright (c) 2000-2016, GPGTools Project Team <gpgtools-devel@lists.gpgtools.org>
@@ -31,6 +30,7 @@
 #import <mach-o/dyld.h>
 #import <dlfcn.h>
 #import <Libmacgpg/Libmacgpg.h>
+#import <Libmacgpg/GPGTaskHelperXPC.h>
 #import <objc/message.h>
 #import <objc/runtime.h>
 #import "CCLog.h"
@@ -98,6 +98,7 @@
 @interface LoadRemoteContentBannerViewController_GPGMail : NSObject
 @end
 
+
 @implementation LoadRemoteContentBannerViewController_GPGMail
 
 - (BOOL)MAWantsDisplay {
@@ -109,6 +110,19 @@
         return NO;
     }
     return wantsDisplay;
+}
+
+- (void)MA_hasBlockedRemoteContentDidChange:(BOOL)arg1 {
+    if([(MUIWebDocument *)[(LoadRemoteContentBannerViewController *)self webDocument] isEncrypted]) {
+        if([self respondsToSelector:@selector(loadRemoteContentButton)]) {
+            NSButton *loadRemoteContentButton = [(LoadRemoteContentBannerViewController *)self loadRemoteContentButton];
+            [loadRemoteContentButton setHidden:YES];
+            [loadRemoteContentButton setEnabled:NO];
+        }
+    }
+    else {
+        [self MA_hasBlockedRemoteContentDidChange:arg1];
+    }
 }
 
 @end
@@ -131,6 +145,9 @@
 }
 
 @end
+
+
+
 
 @interface MUIWKWebViewController_GPGMail : NSObject
 
@@ -241,12 +258,71 @@ decisionHandler:(void (^)(WKNavigationActionPolicy))decisionHandler {
 
 @end
 
+
+@interface MessageViewer_GPGMail : NSObject
+
+@end
+
+@implementation MessageViewer_GPGMail
+
++ (void)MA_mailApplicationDidFinishLaunching:(id)object {
+    [self MA_mailApplicationDidFinishLaunching:object];
+    
+    [[GPGMailBundle sharedInstance] checkSupportContractAndStartWizardIfNecessary];
+}
+
+@end
+
+@interface MCMessageHeaders_GPGMail : NSObject
+
+@end
+
+@implementation MCMessageHeaders_GPGMail
+
+- (NSArray *)MAHeadersForKey:(NSString *)key {
+    NSArray *headers = [self MAHeadersForKey:key];
+    if([key isEqualToString:@"subject"]) {
+        // Bug #1001: Message might appear as signed even though it isn't by abusing the subject
+        //
+        // By using UTF-8 characters and new lines in a subject, it is possible for an attacker
+        // to trick an unsuspecting user into believing that a message is signed, even though
+        // it is not.
+        //
+        // Now macOS Mail is even particularly stupid and allows more than one Subject header
+        // and concatenates them splitted by new lines...
+        //
+        // To fix this, GPGMail only allows a single line subject.
+        NSString *subject = [headers count] ? headers[0] : nil;
+        if(![subject length]) {
+            return headers;
+        }
+        NSRange range = NSMakeRange(0, [subject length]);
+        __block NSString *firstSubjectLine = nil;
+        [subject enumerateSubstringsInRange:range
+                                   options:NSStringEnumerationByParagraphs
+                                usingBlock:^(NSString * _Nullable paragraph, NSRange paragraphRange, NSRange enclosingRange, BOOL * _Nonnull stop) {
+                                    firstSubjectLine = paragraph;
+                                    *stop = YES;
+                                }];
+        if(![firstSubjectLine length]) {
+            return headers;
+        }
+        return @[firstSubjectLine];
+    }
+    return headers;
+}
+
+@end
+
+#import "GMSupportPlanAssistantWindowController.h"
+
 NSString * const kGMED = @"1$5$3$7:4:7-3-6§0§0";
 
 @interface GPGMailBundle ()
 
 @property GPGErrorCode gpgStatus;
 @property (nonatomic, strong) GMKeyManager *keyManager;
+@property (nonatomic, strong) NSDictionary *activationInfo;
 
 @end
 
@@ -320,11 +396,6 @@ static BOOL gpgMailWorks = NO;
 		return;
 	}
     
-    // Start the beta expired check.
-    if([GPGMailBundle isHighSierra] && [self betaExpired]) {
-        return;
-    }
-    
     /* Check the validity of the code signature.
      * Disable for the time being, since Info.plist is part of the code signature
      * and if a new version of OS X is released, and the UUID is added, this check
@@ -397,9 +468,6 @@ static BOOL gpgMailWorks = NO;
         
         [self setAllowDecryptionOfPotentiallyDangerousMessagesWithoutMDC:[[[GPGOptions sharedOptions] valueForKey:@"AllowDecryptionOfPotentiallyDangerousMessagesWithoutMDC"] boolValue]];
         
-        if([GPGMailBundle isElCapitan])
-            [self runBetaHasExpiredCheck];
-        
         // Start the GPG checker.
         [self startGPGChecker];
         
@@ -413,6 +481,7 @@ static BOOL gpgMailWorks = NO;
 
         // Inject the plugin code.
         [GMCodeInjector injectUsingMethodPrefix:GPGMailSwizzledMethodPrefix];
+
 	}
     
 	return self;
@@ -426,103 +495,9 @@ static BOOL gpgMailWorks = NO;
     return [[self getIvar:kGMAllowDecryptionOfDangerousMessagesMissingMDCKey] boolValue];
 }
 
-+ (BOOL)betaExpired {
-    NSDictionary *gme = [[NSUserDefaults standardUserDefaults] dictionaryForKey:kExpiredCheckKey];
-    NSString *build = [GPGMailBundle bundleBuildNumber];
-    
-    NSArray *cs = @[@"$",@"§",@"!", @"-", @"_", @"?", @"=", @")", @":"];
-    NSMutableString *de = [kGMED mutableCopy];
-    for(NSString *c in cs) {
-        [de replaceOccurrencesOfString:c withString:@"" options:NSCaseInsensitiveSearch range:NSMakeRange(0, [de length])];
-    }
-    NSInteger cut = [de integerValue];
-    NSDate *d = [NSDate dateWithTimeIntervalSince1970:cut];
-    if([d compare:[NSDate date]] == NSOrderedAscending) {
-        return YES;
-    }
-    
-    if(!gme || !gme[build])
-        return NO;
-    
-    NSArray *e = gme[build];
-    if([e count] != 2)
-        return NO;
-    
-    if([e[0] boolValue])
-        return YES;
-    
-    return NO;
-}
-        
-- (void)runBetaHasExpiredCheck {
-    NSDictionary *gme = [[NSUserDefaults standardUserDefaults] dictionaryForKey:kExpiredCheckKey];
-    BOOL shouldCheck = NO;
-    if(!gme) {
-        shouldCheck = YES;
-        gme = @{};
-    }
-    NSString *build = [GPGMailBundle bundleBuildNumber];
-    if(gme && !gme[build])
-        shouldCheck = YES;
-    
-    if([gme[build] isKindOfClass:[NSArray class]]) {
-        NSArray *e = gme[build];
-        NSCalendar *c = [NSCalendar currentCalendar];
-        NSDateComponents *dateComponent = [[NSDateComponents alloc] init];
-        dateComponent.day = 2;
-        
-        NSDate *d = [NSDate dateWithTimeIntervalSince1970:[e[1] doubleValue]];
-        NSDate *w = [c dateByAddingComponents:dateComponent toDate:d options:NSCalendarWrapComponents];
-        
-        NSDate *t = [NSDate date];
-        NSComparisonResult r = [t compare:w];
-        if(r == NSOrderedDescending || r == NSOrderedSame) {
-            shouldCheck = YES;
-        }
-        else
-            shouldCheck = NO;
-    }
-    if(shouldCheck) {
-        NSURL *url = [NSURL URLWithString:@"https://gpgtools.org/api/beta-check"];
-        NSDictionary *info = @{@"build-number": build, @"version": [GPGMailBundle bundleVersion]};
-        
-        NSData *json = [NSJSONSerialization dataWithJSONObject:info options:0 error:nil];
-        NSMutableURLRequest *request = [NSMutableURLRequest requestWithURL:url];
-        [request setValue:@"application/json" forHTTPHeaderField:@"Accept"];
-        [request setValue:@"application/json" forHTTPHeaderField:@"Content-Type"];
-        [request setValue:[NSString stringWithFormat:@"%lu", (unsigned long)[json length]] forHTTPHeaderField:@"Content-Length"];
-
-        request.HTTPMethod = @"POST";
-        request.HTTPBody = json;
-        
-        NSURLSessionDataTask *task = [[NSURLSession sharedSession] dataTaskWithRequest:request completionHandler:^(NSData *data, NSURLResponse *response, NSError *error) {
-            // We can simply ignore errors. If an error occurs, the check will be performed the next
-            // time Mail.app is launched.
-            if(!error) {
-                id result = [NSJSONSerialization JSONObjectWithData:data options:NSJSONReadingMutableContainers error:nil];
-                BOOL expired = [(NSNumber *)[result valueForKey:@"expired"] boolValue];
-                NSMutableDictionary *gmen = [gme mutableCopy];
-                NSArray *e = @[@(expired), @([[NSDate date] timeIntervalSince1970])];
-                [gmen setObject:e forKey:build];
-                [[NSUserDefaults standardUserDefaults] setValue:gmen forKey:kExpiredCheckKey];
-                // Display warning dialog if the beta has expired.
-                if(expired) {
-                    dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(8 * NSEC_PER_SEC)),
-                        dispatch_get_main_queue(), ^{
-                            NSString *message = @"Please download the newest version from\nhttps://gpgtools.org\n\nGPGMail will continue working until you quit Mail.app";
-                            NSRunAlertPanel(@"Your GPGMail beta has expired", @"%@", nil, nil, nil, message);
-                        }
-                    );
-                }
-            }
-        }];
-        [task resume];
-    }
-}
-
 - (void)dealloc {
     if (_checkGPGTimer) {
-        dispatch_release(_checkGPGTimer);
+        //dispatch_release(_checkGPGTimer);
     }
 }
 
@@ -855,6 +830,96 @@ static BOOL gpgMailWorks = NO;
     mailError = [NSError errorWithDomain:errorDomain code:code userInfo:extendedUserInfo];
     
     return mailError;
+}
+             
+#pragma mark Active Contract Helpers
+
+- (NSDictionary *)contractInformation {
+    if(!_activationInfo) {
+        NSDictionary *activationInfo = [self fetchContractInformation];
+        _activationInfo = activationInfo;
+    }
+    
+    return _activationInfo;
+}
+
+- (NSDictionary *)fetchContractInformation {
+    GPGTaskHelperXPC *xpc = [[GPGTaskHelperXPC alloc] init];
+    NSDictionary __autoreleasing *activationInfo = nil;
+    BOOL hasSupportContract = [xpc validSupportContractAvailableForProduct:@"GPGMail" activationInfo:&activationInfo];
+    NSLog(@"[GPGMail %@]: Support contract is valid? %@", [(GPGMailBundle *)[GPGMailBundle sharedInstance] version], hasSupportContract ? @"YES" : @"NO");
+    NSLog(@"[GPGMail %@]: Activation info: %@", [(GPGMailBundle *)[GPGMailBundle sharedInstance] version], activationInfo);
+    return activationInfo;
+}
+
+- (BOOL)hasActiveContract {
+    NSDictionary *contractInformation = [self contractInformation];
+    return [contractInformation[@"Active"] boolValue];
+}
+
+- (NSNumber *)remainingTrialDays {
+    NSDictionary *contractInformation = [self contractInformation];
+    if(!contractInformation[@"ActivationRemainingTrialDays"]) {
+        return @(30);
+    }
+    return contractInformation[@"ActivationRemainingTrialDays"];
+}
+
+- (void)startSupportContractWizard {
+    GMSupportPlanAssistantViewController *supportPlanAssistantViewController = [[GMSupportPlanAssistantViewController alloc] initWithNibName:@"GMSupportPlanAssistantView" bundle:[GPGMailBundle bundle]];
+    supportPlanAssistantViewController.delegate = self;
+    
+    GMSupportPlanAssistantWindowController *supportPlanAssistantWindowController = [[GMSupportPlanAssistantWindowController alloc] initWithSupportPlanActivationInformation:[self contractInformation]];
+    supportPlanAssistantWindowController.delegate = self;
+    supportPlanAssistantWindowController.contentViewController = supportPlanAssistantViewController;
+    
+    [[[NSApplication sharedApplication] windows][0] beginSheet:[supportPlanAssistantWindowController window]
+                                              completionHandler:^(NSModalResponse returnCode) {}];
+
+    [self setIvar:@"Window" value:supportPlanAssistantWindowController];
+    [self setIvar:@"View" value:supportPlanAssistantViewController];
+}
+
+- (void)checkSupportContractAndStartWizardIfNecessary {
+    if(![self hasActiveContract]) {
+        [self startSupportContractWizard];
+    }
+}
+             
+#pragma mark -
+
+- (void)supportPlanAssistant:(NSWindowController *)windowController email:(NSString *)email activationCode:(NSString *)activationCode {
+    dispatch_async(dispatch_get_global_queue(QOS_CLASS_USER_INITIATED, 0), ^{
+        GPGTaskHelperXPC *xpc = [[GPGTaskHelperXPC alloc] init];
+        NSError __autoreleasing *error = nil;
+        BOOL isActivated = [xpc activateSupportContractWithEmail:email activationCode:activationCode error:&error];
+        NSError *finalError = error;
+        dispatch_async(dispatch_get_main_queue(), ^{
+            if(isActivated) {
+                [(GMSupportPlanAssistantWindowController *)windowController activationDidCompleteWithSuccess];
+                NSMutableDictionary *activationInfo = [NSMutableDictionary dictionaryWithDictionary:_activationInfo];
+                [activationInfo setObject:@(YES) forKey:@"Active"];
+                _activationInfo = (NSDictionary *)activationInfo;
+            }
+            else {
+                [(GMSupportPlanAssistantWindowController *)windowController activationDidFailWithError:finalError];
+            }
+        });
+    });
+}
+
+- (void)supportPlanAssistantShouldStartTrial:(NSWindowController *)windowController {
+    if(![[NSUserDefaults standardUserDefaults] dictionaryForKey:@"__gme3_t_d"]) {
+        [[NSUserDefaults standardUserDefaults] setValue:[NSDate date] forKey:@"__gme3_t_d"];
+    }
+    dispatch_async(dispatch_get_global_queue(QOS_CLASS_USER_INITIATED, 0), ^{
+        GPGTaskHelperXPC *xpc = [[GPGTaskHelperXPC alloc] init];
+        [xpc startTrial];
+    });
+}
+
+- (void)closeSupportPlanAssistant:(NSWindowController *)windowController {
+    [[[NSApplication sharedApplication] windows][0] endSheet:[windowController window]];
 }
 
 

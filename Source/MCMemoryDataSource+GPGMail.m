@@ -32,6 +32,7 @@
 #import "MCMessage.h"
 #import "NSObject+LPDynamicIvars.h"
 #import "MimePart+GPGMail.h"
+#import "GPGMailBundle.h"
 
 extern NSString * const kLibraryMimeBodyReturnCompleteBodyDataForComposeBackendKey;
 extern NSString * const kLibraryMimeBodyReturnCompleteBodyDataForMessageKey;
@@ -73,7 +74,9 @@ extern NSString * const kMessageSecurityFeaturesKey;
             if(!useTemporaryMimePart) {
                 temporaryMimePart = *topLevelMimePart;
             }
-            [temporaryMimePart setIvar:kMimePartAllowPGPProcessingKey value:@(YES)];
+            if([[GPGMailBundle sharedInstance] hasActiveContract] || [[[GPGMailBundle sharedInstance] remainingTrialDays] integerValue] > 0) {
+                [temporaryMimePart setIvar:kMimePartAllowPGPProcessingKey value:@(YES)];
+            }
             MCMessageBody *messageBody = [temporaryMimePart messageBody];
             [currentMessage setIvar:kMessageSecurityFeaturesKey value:[(MimePart_GPGMail *)temporaryMimePart securityFeatures]];
             *body = messageBody;

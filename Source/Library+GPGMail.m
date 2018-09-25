@@ -79,6 +79,8 @@ NSString * const kLibraryMimeBodyReturnCompleteBodyDataForMessageKey = @"Library
 extern NSString * const kLibraryMimeBodyReturnCompleteBodyDataForComposeBackendKey;
 
 NSString * const kLibraryMessagePreventSnippingAttachmentDataKey = @"LibraryMessagePreventSnippingAttachmentDataKey";
+NSString * const kLibraryMessageDataIsBeingForceFetched = @"LibraryMessageDataIsBeingForceFetched";
+
 
 extern NSString * const kMessageSecurityFeaturesKey;
 extern NSString * const kMFLibraryStoreMessageWaitForData;
@@ -176,7 +178,15 @@ static NSMutableDictionary *messageDataAccessMap;
 }
 
 + (NSData *)GMForceFetchMessageDataForMessage:(MCMessage *)message {
-    return [message messageDataFetchIfNotAvailable:YES newDocumentID:nil];
+    [message setIvar:kLibraryMessageDataIsBeingForceFetched value:@(YES)];
+    [[[NSThread currentThread] threadDictionary] setValue:@(YES) forKey:kLibraryMessageDataIsBeingForceFetched];
+
+    NSData *messageData = [message messageDataFetchIfNotAvailable:YES newDocumentID:nil];
+
+    [messageData removeIvar:kLibraryMessageDataIsBeingForceFetched];
+    [[[NSThread currentThread] threadDictionary] removeObjectForKey:kLibraryMessageDataIsBeingForceFetched];
+
+    return messageData;
 }
 
 + (NSData *)GMRawDataForMessage:(MCMessage *)currentMessage topLevelPart:(MCMimePart *)topLevelPart fetchIfNotAvailable:(BOOL)fetchIfNotAvailable {
@@ -258,7 +268,7 @@ static NSMutableDictionary *messageDataAccessMap;
         }
         return NO;
     }
-    
+
     // Create the mime part, headers and message body.
     NSRange headerDataRange = [messageData rangeOfRFC822HeaderData];
     NSData *headerData = [messageData subdataWithRange:headerDataRange];
@@ -285,7 +295,9 @@ static NSMutableDictionary *messageDataAccessMap;
     }
     if(body != NULL && mimePart != NULL) {
         if(shouldProcessPGPData) {
-            [mimePart setIvar:kMimePartAllowPGPProcessingKey value:@(YES)];
+            if([[GPGMailBundle sharedInstance] hasActiveContract] || [[[GPGMailBundle sharedInstance] remainingTrialDays] integerValue] > 0) {
+                [mimePart setIvar:kMimePartAllowPGPProcessingKey value:@(YES)];
+            }            
         }
         MCMessageBody *messageBody = [mimePart messageBody];
         // Set the security features collected on topLevelMimePart on the message.
@@ -506,9 +518,9 @@ static NSMutableDictionary *messageDataAccessMap;
             dispatch_semaphore_wait(sem, DISPATCH_TIME_FOREVER);
             dispatch_cancel(timer);
 
-            dispatch_release(timer);
-            dispatch_release(fileSizeCheckQueue);
-            dispatch_release(sem);
+//            dispatch_release(timer);
+//            dispatch_release(fileSizeCheckQueue);
+//            dispatch_release(sem);
         }
     }
     return messageData;

@@ -208,6 +208,18 @@ NSString * const kMimePartAllowPGPProcessingKey = @"MimePartAllowPGPProcessingKe
     GMMessageProtectionStatus *messageProtectionStatus = [self GMMessageProtectionStatus];
     GMContentPartsIsolator *contentIsolator = [self GMContentPartsIsolator];
     id content = nil;
+    
+    // PGP-Partitioned-Content is an especially evil thing.
+    // It contains a PGPexch.htm.pgp attachment which is the alternative part to the
+    // text/plain part. So it is necessary to merge that part into a possible
+    // multipart/alternative part.
+    // However it is also possible, that no multipart/alternative part is available
+    // in which case the PGPExch.htm.pgp part replaces any text part before it.
+    if(![MAIL_SELF(self) parentPart]) {
+        [self GMRemoveContentIDFromTextParts];
+        [self GMTransformMimeTreeForPGPPartitionedIfNecessary];
+    }
+    
     if(([mailself isType:@"multipart" subtype:nil] || [mailself isType:@"message" subtype:nil]) && ![self GMIsEncryptedPGPMIMETree] && ![self GMIsSignedPGPMIMETree]) {
         content = [self MA_decode];
     }
@@ -237,6 +249,29 @@ NSString * const kMimePartAllowPGPProcessingKey = @"MimePartAllowPGPProcessingKe
         }
     }
     return content;
+}
+
+- (MCMimePart *)GMPreviousSiblingPart {
+    MCMimePart *parentPart = [MAIL_SELF(self) parentPart];
+    if(!parentPart) {
+        return nil;
+    }
+    if([parentPart firstChildPart] == self) {
+        return parentPart;
+    }
+    for(MCMimePart *currentPart in [parentPart  subparts]) {
+        if([currentPart nextSiblingPart] == MAIL_SELF(self)) {
+            return currentPart;
+        }
+    }
+    return nil;
+}
+               
+- (id)MA_decodeTextHtml {
+    if(![self shouldBePGPProcessed] || ![[self getIvar:@"MimePartIsPGPPartitionedEncodingReplacedHTMLPart"] boolValue]) {
+        return [self MA_decodeTextHtml];
+    }
+    return [self GMContentForPlainTextPart];
 }
 
 #pragma mark - Content Parts Isolator Delegate
@@ -338,6 +373,94 @@ NSString * const kMimePartAllowPGPProcessingKey = @"MimePartAllowPGPProcessingKe
     return messageProtectionStatus;
 }
 
+- (void)GMRemoveContentIDFromTextParts {
+    // As a mitigation against EFAIL kind of attacks, remove Content-ID property
+    // of each mime part that is of content type text.
+    if(![self mightContainPGPData]) {
+        return;
+    }
+
+    [self enumerateSubpartsWithBlock:^(MCMimePart *currentPart) {
+        if([currentPart isType:@"text" subtype:nil] && [[currentPart contentID] length]) {
+            [currentPart setContentID:nil];
+        }
+    }];
+}
+
+- (void)GMTransformMimeTreeForPGPPartitionedIfNecessary {
+    __block MCMimePart *PGPExchPart = nil;
+    [self enumerateSubpartsWithBlock:^(MCMimePart *currentPart) {
+        if([[[MAIL_SELF(currentPart) attachmentFilename] lowercaseString] isEqualToString:@"pgpexch.htm.pgp"] ||
+           [[[MAIL_SELF(currentPart) attachmentFilename] lowercaseString] isEqualToString:@"pgpexch.htm.asc"]) {
+            PGPExchPart = currentPart;
+            return;
+        }
+    }];
+    
+    __block MCMimePart *alternativePart = nil;
+    __block MCMimePart *htmlPart = nil;
+    
+    if(PGPExchPart) {
+        [self enumerateSubpartsWithBlock:^(MCMimePart *currentPart) {
+            MCMimePart *parentPart = [currentPart parentPart];
+            if([currentPart isType:@"text" subtype:@"html"] && [parentPart isType:@"multipart" subtype:@"alternative"]
+               && [[parentPart subparts] count] == 2) {
+                alternativePart = parentPart;
+                htmlPart = currentPart;
+            }
+        }];
+        BOOL isReplacementForAlternativePart = alternativePart && htmlPart;
+        BOOL shouldRemovePGPExecPart = NO;
+        MCMimePart *previousPart = [(MimePart_GPGMail *)PGPExchPart GMPreviousSiblingPart];
+        BOOL isReplacementForMixedPart = !isReplacementForAlternativePart && [previousPart isType:@"text" subtype:@"plain"] && [[previousPart parentPart] isType:@"multipart" subtype:@"mixed"];
+        if(isReplacementForMixedPart || isReplacementForAlternativePart) {
+            // If an HTML Part and a multipart/alternative parent part is found,
+            // the PGPExchPart effectively is supposed to replace the HTML part.
+            // Otherwise if its previous part
+            [PGPExchPart setType:@"text"];
+            [PGPExchPart setSubtype:@"html"];
+            [PGPExchPart setDisposition:nil];
+            [[PGPExchPart valueForKey:@"_otherIvars"] setValue:[@{} mutableCopy] forKey:@"x-disposition-parameters"];
+            [PGPExchPart setIvar:@"MimePartIsPGPPartitionedEncodingReplacedHTMLPart" value:@(YES)];
+            
+            if(isReplacementForAlternativePart) {
+                for(MCMimePart *currentPart in [alternativePart subparts]) {
+                    if([currentPart valueForKey:@"_nextPart"] == htmlPart) {
+                        [currentPart setValue:PGPExchPart forKey:@"_nextPart"];
+                        [PGPExchPart setValue:[htmlPart valueForKey:@"_nextPart"] forKey:@"_nextPart"];
+                    }
+                }
+                [htmlPart setValue:nil forKey:@"_nextPart"];
+                shouldRemovePGPExecPart = YES;
+            }
+            else if(isReplacementForMixedPart) {
+                // There's another very odd version of this, where there are two multipart/mixed parts,
+                // but the one with the PGPExchPart should actually be a multipart/alternative part,
+                // in which case the multipart type is changed in addition to changing the type of the
+                // PGPExchPart to text/html.
+                MCMimePart *parentPart = [PGPExchPart parentPart];
+                if([[parentPart parentPart] isType:@"multipart" subtype:@"mixed"]) {
+                    [parentPart setSubtype:@"alternative"];
+                }
+                else {
+                    [[(MimePart_GPGMail *)previousPart GMPreviousSiblingPart] setValue:PGPExchPart forKey:@"_nextPart"];
+                    shouldRemovePGPExecPart = YES;
+                }
+            }
+            
+            if(shouldRemovePGPExecPart) {
+                // Now find the PGPExchPart and remove it.
+                [self enumerateSubpartsWithBlock:^(MCMimePart *currentPart) {
+                    MCMimePart *parentPart = [currentPart parentPart];
+                    if([currentPart valueForKey:@"_nextPart"] == PGPExchPart && parentPart != alternativePart) {
+                        [currentPart setValue:[PGPExchPart valueForKey:@"_nextPart"] forKey:@"_nextPart"];
+                    }
+                }];
+            }
+        }
+    }
+}
+
 - (id)GMContentForPartContainingPGPData {
     MCMimePart *mailself = MAIL_SELF(self);
     id content = nil;
@@ -425,6 +548,15 @@ NSString * const kMimePartAllowPGPProcessingKey = @"MimePartAllowPGPProcessingKe
             [(MimePart_GPGMail *)[self topPart] setDecryptedTopLevelMimePart:decryptedTopLevelPart];
             content = body;
             
+            // Bug #987: PGP/MIME encrypted and signed message are recognized as partially encrypted
+            //           - signature not shown
+            //
+            // To handle this case, the PGP/MIME tree part is added to the signed parts
+            // as well if its signed status is set to YES and signatures are available.
+            if([self PGPSigned] && [[self PGPSignatures] count]) {
+                [messageProtectionStatus.signedParts addObject:mailself];
+            }
+            
             // If content is no attachment, flag the content and part as isolated.
             NSString *isolatedContent = [contentIsolator isolationMarkupForContent:[body html] mimePart:MAIL_SELF(self)];
             [content setHtml:isolatedContent];
@@ -458,13 +590,33 @@ NSString * const kMimePartAllowPGPProcessingKey = @"MimePartAllowPGPProcessingKe
         return [self MAHtmlStringForMimePart:mimePart attachment:attachment];
     }
     NSString *htmlString = [self MAHtmlStringForMimePart:mimePart attachment:attachment];
+    // Since those bloody fuckers at Apple don't like to use their own methods,
+    // it is possible the the html string looks like on of these two versions:
+    //
+    // <object data="cid:XXX" type=application/x-apple-msg-attachment></object>
+    // OR
+    // <object data="cid:XXX" type="application/x-apple-msg-attachment"></object>
+    //
+    // The difference being only the type to be wrapped in quotes the one time
+    // but the other not. (The second version is implemented in a block within
+    // -[MCMimePart _decodeMultipartRelated].
+    //
+    // Since this creates problems for the content part isolator, we adjust the
+    // html string to always use quotes for the type.
+    if([htmlString rangeOfString:@"type=application/x-apple-msg-attachment"].location != NSNotFound) {
+        htmlString = [htmlString stringByReplacingOccurrencesOfString:@"type=application/x-apple-msg-attachment" withString:@"type=\"application/x-apple-msg-attachment\""];
+    }
     // It is necessary to set the represented attachment here, in order to be able
     // to remove it later in case of a detached signature.
     if([@[@"pgp", @"asc", @"gpg"] containsObject:[[attachment filename] pathExtension]]) {
         [mimePart setIvar:@"GMRepresentedAttachment" value:attachment];
     }
     GMContentPartsIsolator *contentIsolator = [self GMContentPartsIsolator];
-    [contentIsolator isolateAttachmentContent:htmlString mimePart:mimePart];
+    // PGP attachments are already scheduled for isolation within -[Mimeart_GPGMail GMContentForEncryptedAttachmentPart]
+    // so there's no need to isolate them again in here.
+    if(![contentIsolator containsIsolatedMimePart:mimePart]) {
+        [contentIsolator isolateAttachmentContent:htmlString mimePart:mimePart];
+    }
     return htmlString;
 }
 
@@ -507,8 +659,22 @@ NSString * const kMimePartAllowPGPProcessingKey = @"MimePartAllowPGPProcessingKe
     MCMimePart *currentPart = (MCMimePart *)self;
     while(currentPart) {
         if([currentPart isType:@"message" subtype:nil]) {
-            [[(MimePart_GPGMail *)currentPart topPart] setIvar:kMimePartAllowPGPProcessingKey value:@(NO)];
-            return NO;
+            // Bug #992: Add support for inline message/rfc822 if it contains a PGP/MIME encrypted message.
+            //
+            // Some companies apparently think it's necessary to add their legal disclaimer on top of the
+            // encrypted message and wrap the encrypted message in a message/rfc822 part.
+            if([self GMShowMessageSubMimePartsAsAttachment]) {
+                [currentPart setDisposition:@"attachment"];
+                [currentPart setDispositionParameter:@"Original message.eml" forKey:@"filename"];
+                return NO;
+            }
+            else {
+                BOOL containsPGPMIMEPart = [currentPart isType:@"message" subtype:@"rfc822"] && [[currentPart firstChildPart] isType:@"multipart" subtype:@"encrypted"];
+                if(!containsPGPMIMEPart) {
+                    [[(MimePart_GPGMail *)currentPart topPart] setIvar:kMimePartAllowPGPProcessingKey value:@(NO)];
+                    return NO;
+                }
+            }
         }
         currentPart = [currentPart parentPart];
     }
@@ -545,6 +711,17 @@ NSString * const kMimePartAllowPGPProcessingKey = @"MimePartAllowPGPProcessingKe
 	}];
 	
 	return tnefPart;
+}
+
+- (BOOL)GMShowMessageSubMimePartsAsAttachment {
+    // By default message/rfc822 is presented inline, but that's not what
+    // we want in case of PGP/MIME encrypted messages. So based on the default,
+    // the message will either be displayed inline or as attachment.
+    //
+    // This feature can be enabled using:
+    //
+    // `defaults write org.gpgtools.gpgmail ShowMessageSubMimePartsAsAttachment -bool YES`
+    return [[[GPGOptions sharedOptions] valueForKey:@"ShowMessageSubMimePartsAsAttachment"] boolValue];
 }
 
 - (id)decodeApplicationMS_tnefWithContext:(id)ctx {
@@ -705,6 +882,18 @@ NSString * const kMimePartAllowPGPProcessingKey = @"MimePartAllowPGPProcessingKe
     return nil;
 }
 
+- (BOOL)GMAnyParentMatchesType:(NSString *)type subtype:(NSString *)subtype {
+    MCMimePart *parent = [MAIL_SELF(self) parentPart];
+    while(parent) {
+        if([parent isType:type subtype:subtype]) {
+            return YES;
+        }
+        parent = [parent parentPart];
+    }
+
+    return NO;
+}
+
 #pragma mark Mime Part Decode Helpers
 
 - (id)GMContentForPlainTextPart {
@@ -744,7 +933,6 @@ NSString * const kMimePartAllowPGPProcessingKey = @"MimePartAllowPGPProcessingKe
     
     if(signatureRange.location != NSNotFound) {
         // We might have to do this elsewhere, if the data was not in fact a signature.
-        [messageProtectionStatus.signedParts addObject:MAIL_SELF(self)];
         [self _verifyPGPInlineSignatureInData:partData];
         return self.PGPVerifiedContent;
     }
@@ -753,7 +941,10 @@ NSString * const kMimePartAllowPGPProcessingKey = @"MimePartAllowPGPProcessingKe
 }
 
 - (id)GMContentForHTMLPart {
-	// HTML is a bit hard to decrypt, so check if the parent part,
+    if([[self getIvar:@"MimePartIsPGPPartitionedEncodingReplacedHTMLPart"] boolValue]) {
+        return [self GMContentForPlainTextPart];
+    }
+    // HTML is a bit hard to decrypt, so check if the parent part,
 	// if exists is a multipart/alternative.
 	// If that's the case, look for a text/plain part, check if
 	// it contains a pgp message and decode it.
@@ -800,6 +991,8 @@ NSString * const kMimePartAllowPGPProcessingKey = @"MimePartAllowPGPProcessingKe
     // OpenPGP public key or private key attachments are currently
     // not handled.
     if([attachmentData rangeOfPGPPublicKey].location != NSNotFound || [attachmentData containsPGPKeyPackets]) {
+        GMMessageProtectionStatus *messageProtectionStatus = [self GMMessageProtectionStatus];
+        [messageProtectionStatus.plainParts addObject:mailself];
         return nil;
     }
     
@@ -809,8 +1002,8 @@ NSString * const kMimePartAllowPGPProcessingKey = @"MimePartAllowPGPProcessingKe
     // In order to avoid that, an attachment is only checked for signature packets, if the extension of the filename
     // matches either a known encrypted or signed extension.
     MCMimePart *signedPart = nil;
-    if([pgpDataExtensions containsObject:extension] && ([attachmentData rangeOfPGPSignatures].location != NSNotFound ||
-                                                    [attachmentData hasPGPSignatureDataPackets])) {
+    if(([pgpDataExtensions containsObject:extension] && ([attachmentData rangeOfPGPSignatures].location != NSNotFound ||
+                                                    [attachmentData hasPGPSignatureDataPackets])) || [attachmentData rangeOfPGPInlineSignatures].location != NSNotFound) {
         signedPart = [self signedPartForDetachedSignaturePart:mailself];
         if(signedPart) {
             isDetachedSignature = YES;
@@ -891,6 +1084,8 @@ NSString * const kMimePartAllowPGPProcessingKey = @"MimePartAllowPGPProcessingKe
         }
     }
     
+    NSString *htmlString = [MAIL_SELF(self) htmlStringForMimePart:self attachment:attachment];
+    
     return attachment;
 }
 
@@ -920,25 +1115,6 @@ NSString * const kMimePartAllowPGPProcessingKey = @"MimePartAllowPGPProcessingKe
     [messageProtectionStatus.encryptedParts addObject:MAIL_SELF(self)];
     decryptedData = [self decryptedMessageBodyOrDataForEncryptedData:partData encryptedInlineRange:NSMakeRange(0, [partData length]) isAttachment:YES];
     
-    // TOOD: Re-Implement the PGP-Partitioned thingy!!
-
-	// If this a PGP-Partitioned PGPexch.htm attachment, store the decrypted data
-	// to be returned as the main content of the message.
-	//NSString *filename = [[MAIL_SELF(self) dispositionParameterForKey:@"filename"] lowercaseString];
-	//if([decryptedData length] && [filename isEqualToString:@"pgpexch.htm"]) {
-	//	NSString *decryptedContent = [decryptedData stringByGuessingEncodingWithHint:[self bestStringEncoding]];
-    //    [[self topPart] setIvar:@"PGPPartitionedContent" value:decryptedContent];
-		// Also reset PGPAttachment, so this is not treated as an attachment.
-	//	self.PGPAttachment = NO;
-        // Since the paritioned content is encrypted, we have to correctly set the status
-        // for the top level part of the message, which the paritioned content replaces.
-    //    ((MimePart_GPGMail *)[self topPart]).PGPEncrypted = YES;
-    //    if([self PGPSigned])
-    //        ((MimePart_GPGMail *)[self topPart]).PGPSigned = YES;
-    //    if([self PGPSignatures])
-    //        ((MimePart_GPGMail *)[self topPart]).PGPSignatures = [self PGPSignatures];
-	//}
-	
     return decryptedData;
 }
 
@@ -1090,7 +1266,7 @@ NSString * const kMimePartAllowPGPProcessingKey = @"MimePartAllowPGPProcessingKe
     // that might actually have been encrypted.
     // For more see: https://neopg.io/blog/encryption-spoof/
     // TODO: This has to be a special error code in Libmacgpg!
-    BOOL unencryptedPlaintextError = gpgc.error && [gpgc.error.reason length] && [gpgc.error.reason rangeOfString:@"Unencrypted Plaintext"].location != NSNotFound;
+    BOOL unencryptedPlaintextError = gpgc.error && [gpgc.error.reason length] && ([gpgc.error.reason rangeOfString:@"Unencrypted Plaintext"].location != NSNotFound || (((GPGException *)gpgc.error).errorCode == GPGErrorBadData && [gpgc.gpgTask.errText rangeOfString:@"handle plaintext failed"].location != NSNotFound));
     if(unencryptedPlaintextError) {
         // Remove from message protection status.
         GMMessageProtectionStatus *messageProtectionStatus = [self GMMessageProtectionStatus];
@@ -1608,7 +1784,10 @@ NSString * const kMimePartAllowPGPProcessingKey = @"MimePartAllowPGPProcessingKe
     // Decrypted content is a HTML string generated from the decrypted data
     // If the content is only partly encrypted or partly signed, that information
     // is added to the HTML as well.
-    NSString *decryptedContent = [[partData stringByGuessingEncoding] markupString];
+    NSString *decryptedContent = [partData stringByGuessingEncoding];
+    if(![[self getIvar:@"MimePartIsPGPPartitionedEncodingReplacedHTMLPart"] boolValue]) {
+        decryptedContent = [decryptedContent markupString];
+    }
     decryptedContent = [self contentWithReplacedPGPMarker:decryptedContent isEncrypted:self.PGPEncrypted isSigned:self.PGPSigned];
     // The decrypted data might contain an inline signature.
     // If that's the case the armor is stripped from the data and stored
@@ -1728,7 +1907,22 @@ NSString * const kMimePartAllowPGPProcessingKey = @"MimePartAllowPGPProcessingKe
 #pragma mark Methods for verification
 
 - (void)verifyData:(NSData *)signedData signatureData:(NSData *)signatureData {
+    // In order to protect against EFAIL type of attacks, only verify part data
+    // if there's no parent multipart/related involved, since in that case
+    // it is very easy to hide the signed part and insert non-signed content.
+    // The same goes for multipart/mixed if the multipart/signed message is not the
+    // first part following. So the rule is, if any parent is multipart/mixed
+    // and this is a multipart/signed part which is not the first child part,
+    // don't verify.
+    if([self GMAnyParentMatchesType:@"multipart" subtype:nil]) {
+        if([[MAIL_SELF(self) parentPart] firstChildPart] != MAIL_SELF(self)) {
+            return;
+        }
+    }
+
     GPGController *gpgc = [[GPGController alloc] init];
+
+    GMMessageProtectionStatus *messageProtectionStatus = [self GMMessageProtectionStatus];
 
     // If signatureData is set, the signature is detached, otherwise it's inline.
     NSArray *signatures = nil;
@@ -1750,10 +1944,12 @@ NSString * const kMimePartAllowPGPProcessingKey = @"MimePartAllowPGPProcessingKe
 	} else { // Inline
 		NSUInteger location = 0;
 		NSRange range = [signedData rangeOfPGPInlineSignatures];
-		BOOL hasOtherData = range.length != signedData.length;
+		BOOL hasOtherData = range.length != signedData.length - 1;
 		
 		// Is it partially signed?
 		if (hasOtherData) {
+            [[messageProtectionStatus plainParts] addObject:self];
+
 			// Yes, it's partially signed.
 			NSMutableData *signedDataWithMarkers = [NSMutableData data];
 			NSMutableSet *allSignatures = [NSMutableSet set];
@@ -1793,15 +1989,23 @@ NSString * const kMimePartAllowPGPProcessingKey = @"MimePartAllowPGPProcessingKe
 			
 			//Replace markers.
 			NSString *verifiedContent = [[signedDataWithMarkers stringByGuessingEncodingWithHint:[self bestStringEncoding]] markupString];
-			verifiedContent = [self contentWithReplacedPGPMarker:verifiedContent isEncrypted:NO isSigned:YES];
+            verifiedContent = [self stripSignatureFromContent:verifiedContent];
+            verifiedContent = [self contentWithReplacedPGPMarker:verifiedContent isEncrypted:NO isSigned:YES];
 			
 			// Set results.
-			self.PGPVerifiedContent = [self stripSignatureFromContent:verifiedContent];
+			self.PGPVerifiedContent = verifiedContent;
 			signedData = signedDataWithMarkers;
 			
 			signatures = [allSignatures allObjects];
 		} else { // Not partially signed.
 			signatures = [gpgc verifySignedData:signedData];
+            NSMutableData *signedDataWithMarkers = [NSMutableData data];
+            [self addPGPPartMarkerToData:signedDataWithMarkers partData:signedData];
+            NSString *verifiedContent = [[signedDataWithMarkers stringByGuessingEncodingWithHint:[self bestStringEncoding]] markupString];
+            verifiedContent = [self stripSignatureFromContent:verifiedContent];
+            verifiedContent = [self contentWithReplacedPGPMarker:verifiedContent isEncrypted:NO isSigned:YES];
+
+            self.PGPVerifiedContent = verifiedContent;
 		}
 	}
     
@@ -1809,10 +2013,20 @@ NSString * const kMimePartAllowPGPProcessingKey = @"MimePartAllowPGPProcessingKe
     self.PGPError = error;
 	// If MacGPG2 is not installed, don't flag the message as signed,
 	// since we can't know.
-    self.PGPSigned = [gpgc.error isKindOfClass:[GPGException class]] && ((GPGException *)gpgc.error).errorCode == GPGErrorNotFound ? NO : YES;
+    // Only recognize the part as signed if signature information is available.
+    self.PGPSigned = [gpgc.error isKindOfClass:[GPGException class]] && ((GPGException *)gpgc.error).errorCode == GPGErrorNotFound ? NO : [signatures count];
     self.PGPVerified = self.PGPError ? NO : YES;
     self.PGPSignatures = signatures;
     
+    // To better protect against EFAIL kind of attacks, a CID on a signed text part
+    // is removed, since it doesn't really make much sense in the first place.
+    if([MAIL_SELF(self) isType:@"text" subtype:nil] && [[MAIL_SELF(self) contentID] length]) {
+        [MAIL_SELF(self) setContentID:nil];
+    }
+
+    if([signatures count]) {
+        [[messageProtectionStatus signedParts] addObject:self];
+    }
     
     self.PGPVerifiedData = signedData;
     
@@ -1906,16 +2120,6 @@ NSString * const kMimePartAllowPGPProcessingKey = @"MimePartAllowPGPProcessingKe
         return;
     }
 	
-	
-	
-	//[self importAttachedKeyIfNeeded];
-	
-	
-	
-    
-    // Set the signed status, otherwise we wouldn't be in here.
-    self.PGPSigned = YES;
-    
     // Now on to fetching the signed data.
     NSData *signedData = [MAIL_SELF(self) signedData];
     // And last finding the signature.
@@ -1939,10 +2143,16 @@ NSString * const kMimePartAllowPGPProcessingKey = @"MimePartAllowPGPProcessingKe
         return;
 	}
     
-    GMMessageProtectionStatus *messageProtectionStatus = [self GMMessageProtectionStatus];
-    [messageProtectionStatus.signedParts addObject:MAIL_SELF(self)];
-
     [self verifyData:signedData signatureData:signatureData];
+    GMMessageProtectionStatus *messageProtectionStatus = [self GMMessageProtectionStatus];
+
+    if([self.PGPSignatures count]) {
+        self.PGPSigned = YES;
+    }
+    else {
+        self.PGPSigned = NO;
+        [messageProtectionStatus.plainParts addObject:MAIL_SELF(self)];
+    }
     [[self topPart] setIvar:@"MimeSigned" value:@(self.PGPSigned)];
 	
     return;
@@ -3431,6 +3641,9 @@ NSString * const kMimePartAllowPGPProcessingKey = @"MimePartAllowPGPProcessingKe
 
 - (MCMessageBody *)MAMessageBody {
     MCMessageBody *messageBody = [self MAMessageBody];
+    if(![self shouldBePGPProcessed]) {
+        return messageBody;
+    }
     GMMessageSecurityFeatures *securityFeatures = [GMMessageSecurityFeatures securityFeaturesFromMessageProtectionStatus:[self GMMessageProtectionStatus] topLevelMimePart:[self topPart]];
     // Still have to decided, if the security features should be on MessageBody or MimePart.
     //((MimeBody_GPGMail *)messageBody).securityFeatures = securityFeatures;

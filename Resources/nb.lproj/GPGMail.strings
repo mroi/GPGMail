@@ -145,12 +145,12 @@
 "MESSAGE_VIEW_PGP_PART" = "PGP del";
 
 /* GPGMail Preferences strings. */
-"GPG_STATUS_NO_ERROR_TITLE" = "GPGMail er klar.";
-"GPG_STATUS_NO_ERROR_TOOLTIP" = "MacGPG installasjonen din fungerer uten feil.";
-"GPG_STATUS_NOT_FOUND_TITLE" = "MacGPG er ikke installert. Sjekk installasjonen din.";
-"GPG_STATUS_NOT_FOUND_TOOLTIP" = "Vennligst last ned og installer GPG Suite på nytt fra https://www.gpgtools.org for å sikre at alle nødvendige komponenter er installert.";
-"GPG_STATUS_OTHER_ERROR_TITLE" = "Vennligst sjekk installasjonen og innstillingene.";
-"GPG_STATUS_NOT_FOUND_TOOLTIP" = "Vennligst last ned og installer GPG Suite på nytt fra https://www.gpgtools.org for å sikre at alle nødvendige komponenter er installert.";
+"GPG_STATUS_NO_ERROR_TITLE" = "GPGMail ready";
+"GPG_STATUS_NOT_FOUND_TITLE" = "MacGPG not found, reinstall GPG Suite";
+"GPG_STATUS_NOT_FOUND_TOOLTIP" = "Click indicator bubble for further information";
+"GPG_STATUS_OTHER_ERROR_TITLE" = "Problems found, click indicator bubble for more info";
+"GPG_STATUS_OTHER_ERROR_TOOLTIP" = "Click indicator bubble for further information";
+
 "DISABLE_ENCRYPT_DRAFTS_TITLE" = "Advarsel: Om du slår av denne funksjonen kan det lede til lekkasje av sensitiv informasjon når du skriver en melding";
 "DISABLE_ENCRYPT_DRAFTS_MESSAGE" = "Hvis valget \"Lagre kladder på tjerner\" er skrudd på for kontoene, vil macOS Mail automatisk lagre kladdene dine på e-posttjeneren mens du forfatter en melding.\nVed å skru av \"Krypter kladder\", vil kladdene dine bli sendt i klartekst (ikke kryptert), slik at alle med tilgang til e-posttjeneren kan lese dem.\n\nHvis du beholder \"Krypter kladder\" påskrudd, vil kladdene dine bli kryptert før de lagres på en e-posttjener og kun du vil kunne lese dem.\n\nØnsker du fremdeles å skru av \"Krypter kladder\"";
 "DISABLE_ENCRYPT_DRAFTS_CONFIRM" = "Skru av kryptering";
@@ -244,6 +244,16 @@ NO_DEFAULTS_MESSAGE = "GPGMail fungerer ikke som forventet.\n\nVennligst last ne
 "UNENCRYPTED_FORWARD_OF_ENCRYPTED_MESSAGE_BUTTON_SEND_ANYWAY" = "Videresend uansett";
 "UNENCRYPTED_FORWARD_OF_ENCRYPTED_MESSAGE_BUTTON_CANCEL" = "Avbryt";
 
+"MESSAGE_BANNER_PGP_DECRYPT_MDC_ERROR_TITLE" = "Decryption of the message was aborted";
+"MESSAGE_BANNER_PGP_DECRYPT_MDC_ERROR_MESSAGE" = "The modification detection code (MDC) for this encrypted message is missing or has been modified.\n\nThis could mean that an attacker has been trying to modify the contents within the encrypted message.\n\nPlease have the message re-sent to you and tell the sender, that their encrypted message didn't include a modification detection code.";
+
+"NAVIGATION_ACTION_FROM_ENCRYPTED_MESSAGE_TITLE" = "Attention: Opening this website could leak the contents of this message";
+"NAVIGATION_ACTION_FROM_ENCRYPTED_MESSAGE_MESSAGE" = "Due to a problem in the implementation of S/MIME encryption, it is possible for an attacker to modify a message without your knowledge.\n\nYou are about to open the following website:\n\n%@\n\nAre you sure you want to continue?";
+"NAVIGATION_ACTION_FROM_ENCRYPTED_MESSAGE_BUTTON_YES" = "Ja";
+"NAVIGATION_ACTION_FROM_ENCRYPTED_MESSAGE_BUTTON_CANCEL" = "Avbryt";
+
+"MESSAGE_BANNER_PGP_ATTACHMENT_DECRYPT_MDC_ERROR_TITLE" = "Decryption of the attachment was aborted";
+"MESSAGE_BANNER_PGP_ATTACHMENT_DECRYPT_MDC_ERROR_MESSAGE" = "The modification detection code (MDC) for this encrypted attachment is missing or has been modified.\n\nThis could mean that an attacker has been trying to modify the contents within the encrypted attachment.\n\nPlease have the attachment re-sent to you and tell the sender, that their encrypted attachment didn't include a modification detection code.";
 
 
 /* Accessibility */

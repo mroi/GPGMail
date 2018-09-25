@@ -66,12 +66,12 @@ NSString *SUScheduledCheckIntervalKey = @"SUScheduledCheckInterval";
 	[pStyle setAlignment:NSRightTextAlignment];
 
 	NSDictionary *attributes = @{NSParagraphStyleAttributeName: pStyle,
-								NSLinkAttributeName: @"http://www.gpgtools.org/",
+								NSLinkAttributeName: @"https://gpgtools.org/",
 								NSForegroundColorAttributeName: [NSColor blueColor],
 								NSFontAttributeName: [NSFont fontWithName:@"Lucida Grande" size:9],
 								NSUnderlineStyleAttributeName: @1};
 
-	return [[NSAttributedString alloc] initWithString:@"http://www.gpgtools.org" attributes:attributes];
+	return [[NSAttributedString alloc] initWithString:@"https://gpgtools.org" attributes:attributes];
 }	
 
 
@@ -86,6 +86,13 @@ NSString *SUScheduledCheckIntervalKey = @"SUScheduledCheckInterval";
 	return [[NSAttributedString alloc] initWithString:string attributes:attributes];
 }
 
+- (NSString *)registrationDescription {
+    if([[GPGMailBundle sharedInstance] hasActiveContract]) {
+        NSDictionary *contractInformation = [[GPGMailBundle  sharedInstance] fetchContractInformation];
+        return [NSString stringWithFormat:@"Registered to: %@", [contractInformation valueForKey:@"ActivationEmail"]];
+    }
+    return @"Trial Version";
+}
 
 - (NSImage *)imageForPreferenceNamed:(NSString *)aName {
 	return [NSImage imageNamed:@"GPGMail"];

@@ -145,12 +145,12 @@
 "MESSAGE_VIEW_PGP_PART" = "PGP-Teil";
 
 /* GPGMail Preferences strings. */
-"GPG_STATUS_NO_ERROR_TITLE" = "GPGMail ist bereit.";
-"GPG_STATUS_NO_ERROR_TOOLTIP" = "Ihre MacGPG Installation weist keine Fehler auf.";
-"GPG_STATUS_NOT_FOUND_TITLE" = "MacGPG ist nicht installiert. Bitte überprüfe deine Installation.";
-"GPG_STATUS_NOT_FOUND_TOOLTIP" = "Bitte lade GPG Suite von https://www.gpgtools.org herunter und installiere erneut um sicherzustellen, dass alle Komponenten auf deinem System installiert sind.";
-"GPG_STATUS_OTHER_ERROR_TITLE" = "Bitte überprüfe deine Installation und Konfiguration.";
-"GPG_STATUS_NOT_FOUND_TOOLTIP" = "Bitte lade GPG Suite von https://www.gpgtools.org herunter und installiere erneut um sicherzustellen, dass alle Komponenten auf deinem System installiert sind.";
+"GPG_STATUS_NO_ERROR_TITLE" = "GPGMail ready";
+"GPG_STATUS_NOT_FOUND_TITLE" = "MacGPG not found, reinstall GPG Suite";
+"GPG_STATUS_NOT_FOUND_TOOLTIP" = "Click indicator bubble for further information";
+"GPG_STATUS_OTHER_ERROR_TITLE" = "Problems found, click indicator bubble for more info";
+"GPG_STATUS_OTHER_ERROR_TOOLTIP" = "Click indicator bubble for further information";
+
 "DISABLE_ENCRYPT_DRAFTS_TITLE" = "Achtung: Wenn du diese Option deaktivierst, könnten sensible Informationen preisgegeben werden, während du eine Nachricht verfasst";
 "DISABLE_ENCRYPT_DRAFTS_MESSAGE" = "Wenn die Option \"Entwürfe auf Server sichern\" für deinen Account aktiviert ist, speichert macOS Mail automatisch deine Entwürfe auf dem Mail Server, während du eine Nachricht verfasst.\nWird \"Entwürfe verschlüsseln\" deaktiviert, werden deine Entwürfe im Klartext (unverschlüsselt) gespeichert. Jeder der Zugang zum Mail Server hat, wird sie lesen können.\n\nBleibt \"Entwürfe verschlüsseln\" aktiviert, werden deine Entwürfe verschlüsselt, bevor sie auf dem Mail Server gespeichert werden, so dass nur du sie lesen kannst.\n\nWillst du dennoch \"Entwürfe verschlüsseln\" deaktivieren?";
 "DISABLE_ENCRYPT_DRAFTS_CONFIRM" = "Verschlüsselung deaktivieren";
@@ -244,8 +244,17 @@ NO_DEFAULTS_MESSAGE = "GPGMail funktioniert nicht wie erwartet.\n\nLade und inst
 "UNENCRYPTED_FORWARD_OF_ENCRYPTED_MESSAGE_BUTTON_SEND_ANYWAY" = "Trotzdem weiterleiten";
 "UNENCRYPTED_FORWARD_OF_ENCRYPTED_MESSAGE_BUTTON_CANCEL" = "Abbrechen";
 
-"MESSAGE_BANNER_PGP_DECRYPT_MDC_ERROR_TITLE" = "Die Entschlüsselung dieser Nachricht wurde abgebrochen";
-"MESSAGE_BANNER_PGP_DECRYPT_MDC_ERROR_MESSAGE" = "Der Code zum Erkennen von Änderungen (MDC) dieser verschlüsselten Nachricht ist nicht vorhanden oder wurde abgeändert.\n\nDas könnte ein Zeichen dafür sein, dass der Inhalt der verschlüsselten Nachricht von einem Angreifer verändert wurde.\n\nBitte lass dir die Nachricht erneut zusenden und informiere den Absender, dass seine Nachricht keinen Code zum Erkennen von Änderungen enthielt.";
+"MESSAGE_BANNER_PGP_DECRYPT_MDC_ERROR_TITLE" = "Decryption of the message was aborted";
+"MESSAGE_BANNER_PGP_DECRYPT_MDC_ERROR_MESSAGE" = "The modification detection code (MDC) for this encrypted message is missing or has been modified.\n\nThis could mean that an attacker has been trying to modify the contents within the encrypted message.\n\nPlease have the message re-sent to you and tell the sender, that their encrypted message didn't include a modification detection code.";
+
+"NAVIGATION_ACTION_FROM_ENCRYPTED_MESSAGE_TITLE" = "Attention: Opening this website could leak the contents of this message";
+"NAVIGATION_ACTION_FROM_ENCRYPTED_MESSAGE_MESSAGE" = "Due to a problem in the implementation of S/MIME encryption, it is possible for an attacker to modify a message without your knowledge.\n\nYou are about to open the following website:\n\n%@\n\nAre you sure you want to continue?";
+"NAVIGATION_ACTION_FROM_ENCRYPTED_MESSAGE_BUTTON_YES" = "Ja";
+"NAVIGATION_ACTION_FROM_ENCRYPTED_MESSAGE_BUTTON_CANCEL" = "Abbrechen";
+
+"MESSAGE_BANNER_PGP_ATTACHMENT_DECRYPT_MDC_ERROR_TITLE" = "Decryption of the attachment was aborted";
+"MESSAGE_BANNER_PGP_ATTACHMENT_DECRYPT_MDC_ERROR_MESSAGE" = "The modification detection code (MDC) for this encrypted attachment is missing or has been modified.\n\nThis could mean that an attacker has been trying to modify the contents within the encrypted attachment.\n\nPlease have the attachment re-sent to you and tell the sender, that their encrypted attachment didn't include a modification detection code.";
+
 
 /* Accessibility */
 ACCESSIBILITY_SECURITY_METHOD_POPUP_LABEL = "Sicherheitstechnik: %@";
