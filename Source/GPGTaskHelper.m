@@ -39,6 +39,7 @@
 #import "GPGTaskHelperXPC.h"
 #endif
 #import "GPGTask.h"
+#import "GPGUTF8Argument.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -198,7 +199,7 @@ closeInput = _closeInput;
 	
 	
 	// Create fifos for status-file and attribute-file.
-	NSMutableArray *mutableArguments = self.arguments.mutableCopy;
+	NSMutableArray<NSString *> *mutableArguments = self.arguments.mutableCopy;
 	
 	NSString *tempDir = [NSTemporaryDirectory() stringByAppendingPathComponent:@"org.gpgtools.libmacgpg"];
 	NSError *error = nil;
@@ -232,6 +233,14 @@ closeInput = _closeInput;
 		// Replace the placeholder with the real path.
 		[mutableArguments replaceObjectAtIndex:index withObject:attributeFifoPath];
 	}
+	
+	// Convert all arguments to GPGUTF8Argument, so umlauts are correctly utf-8 encoded.
+	NSUInteger count = mutableArguments.count;
+	for (NSUInteger i = 0; i < count; i++) {
+		GPGUTF8Argument *argument = [GPGUTF8Argument stringWithString:mutableArguments[i]];
+		mutableArguments[i] = argument;
+	}
+	
 	
 	_task.arguments = mutableArguments;
 	[mutableArguments release];
@@ -337,15 +346,15 @@ closeInput = _closeInput;
 
 	
 	
-	
 	// Wait for all jobs to complete.
 	dispatch_group_wait(collectorGroup, DISPATCH_TIME_FOREVER);
 	
 	dispatch_release(collectorGroup);
 	dispatch_release(queue);
 
+	[_task threadSafeWaitUntilExit];
+
 	
-	[_task waitUntilExit];
 	
 	
 	if (statusFifoPath) {
@@ -745,7 +754,7 @@ closeInput = _closeInput;
     
     NSData *output = [[task.standardOutput fileHandleForReading] readDataToEndOfFile];
     
-    [task waitUntilExit];
+    [task threadSafeWaitUntilExit];
     
     [task release];
     
@@ -1073,7 +1082,7 @@ closeInput = _closeInput;
 	} else {
 		NSTask *task = [NSTask launchedTaskWithLaunchPath:path arguments:arguments];
 		if (wait) {
-			[task waitUntilExit];
+			[task threadSafeWaitUntilExit];
 			return task.terminationStatus == 0;
 		}
 	}
@@ -1082,3 +1091,15 @@ closeInput = _closeInput;
 
 
 @end
+
+@implementation NSTask (GPGThreadSafeWait)
+- (void)threadSafeWaitUntilExit {
+	dispatch_semaphore_t semaphore = dispatch_semaphore_create(0);
+	self.terminationHandler = ^(NSTask *task) {
+		dispatch_semaphore_signal(semaphore);
+	};
+	dispatch_semaphore_wait(semaphore, DISPATCH_TIME_FOREVER);
+}
+@end
+
+

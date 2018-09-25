@@ -440,18 +440,61 @@ BOOL gpgConfigReaded = NO;
 			errorDecription = @"Decryption failed: Bad Data!";
 		}
 		if (!failed && [errorCodes containsObject:@(GPGErrorDecryptionFailed)]) {
-			// Ignore a failed decryption because of NoMDC.
 			BOOL hasNoMDC = NO;
+			BOOL otherError = NO;
 			for (NSNumber *errorNumber in errorCodes) {
-				if (errorNumber.intValue == GPGErrorNoMDC) {
-					hasNoMDC = YES;
-				} else if (errorNumber.intValue != GPGErrorDecryptionFailed) {
-					// The decryption failed because of any other reason than NoMDC.
-					failed = YES;
-					errorCode = errorNumber.intValue;
-					errorDecription = @"Decryption failed!";
+				switch (errorNumber.intValue) {
+					case GPGErrorNoMDC:
+						// Ignore a failed decryption because of NoMDC at this point.
+						hasNoMDC = YES;
+						break;
+					case GPGErrorDecryptionFailed:
+						break;
+					case GPGErrorNoSecretKey:
+						failed = YES;
+						errorCode = GPGErrorNoSecretKey;
+						errorDecription = @"Decryption failed: No secret key!";
+					default: {
+						otherError = YES;
+						break;
+					}
 				}
 			}
+			
+			if (!failed && otherError) {
+				// Handle decrypt specific errors.
+				NSArray *errors = gpgTask.statusDict[@"ERROR"];
+				for (NSArray<NSString *> *parts in errors) {
+					if (parts.count < 2) {
+						continue;
+					}
+					GPGErrorCode theErrorCode = (GPGErrorCode)parts[1].integerValue & 0xFFFF;
+					NSString *errorLocation = parts[0];
+					
+					if ([errorLocation isEqualToString:@"decrypt.algorithm"]) {
+						failed = YES;
+						errorCode = theErrorCode;
+						errorDecription = @"Decryption failed: Algorithm!";
+						break;
+					} else if ([errorLocation isEqualToString:@"decrypt.keyusage"]) {
+						if (theErrorCode == GPGErrorWrongKeyUsage) {
+							failed = YES;
+							errorCode = GPGErrorWrongKeyUsage;
+							errorDecription = @"Decryption failed: Wrong key usage!";
+							break;
+						}
+					} else if ([errorLocation isEqualToString:@"pkdecrypt_failed"]) {
+						if (theErrorCode == GPGErrorBadPassphrase) {
+							failed = YES;
+							errorCode = GPGErrorBadPassphrase;
+							errorDecription = @"Decryption failed: Bad passphrase!";
+							break;
+						}
+					}
+				}
+			}
+			
+			
 			
 			if (!hasNoMDC && !failed) {
 				// The decryption failed because of an unknwown reason.
@@ -989,39 +1032,53 @@ BOOL gpgConfigReaded = NO;
 	[self operationDidFinishWithReturnValue:nil];	
 }
 
-- (void)setExpirationDateForSubkey:(NSObject <KeyFingerprint> *)subkey fromKey:(NSObject <KeyFingerprint> *)key daysToExpire:(NSInteger)daysToExpire {
+- (void)setExpirationDateForSubkey:(NSObject <KeyFingerprint> *)subkey fromKey:(NSObject <KeyFingerprint> *)key daysToExpire:(NSUInteger)daysToExpire {
+	NSDate *expirationDate = nil;
+	NSArray *subkeys = nil;
+	if (daysToExpire > 0) {
+		expirationDate = [NSDate dateWithTimeIntervalSinceNow:daysToExpire * 86400];
+	}
+	if (subkey) {
+		subkeys = @[subkey];
+	}
+	[self setExpirationDate:expirationDate forSubkeys:subkeys ofKey:key];
+}
+- (void)setExpirationDate:(NSDate *)expirationDate forSubkeys:(NSArray *)subkeys ofKey:(NSObject <KeyFingerprint> *)key {
 	if (async && !asyncStarted) {
 		asyncStarted = YES;
-		[asyncProxy setExpirationDateForSubkey:subkey fromKey:key daysToExpire:daysToExpire];
+		[asyncProxy setExpirationDate:expirationDate forSubkeys:subkeys ofKey:key];
 		return;
 	}
 	@try {
 		[self operationDidStart];
 		[self registerUndoForKey:key withName:@"Undo_ChangeExpirationDate"];
 		
-		GPGTaskOrder *order = [GPGTaskOrder orderWithYesToAll];
-		
-		if (subkey) {
-			int index = (int)[self indexOfSubkey:subkey fromKey:key];
-			if (index > 0) {
-				[order addCmd:[NSString stringWithFormat:@"key %i\n", index] prompt:@"keyedit.prompt"];
-			} else {
-				@throw [GPGException exceptionWithReason:localizedLibmacgpgString(@"Subkey not found!") userInfo:[NSDictionary dictionaryWithObjectsAndKeys:subkey, @"subkey", key, @"key", nil] errorCode:GPGErrorSubkeyNotFound gpgTask:nil];
-			}
-		}
-		
-		[order addCmd:@"expire\n" prompt:@"keyedit.prompt"];
-		[order addInt:daysToExpire prompt:@"keygen.valid"];
-		[order addCmd:@"save\n" prompt:@"keyedit.prompt"];
-		
 		
 		self.gpgTask = [GPGTask gpgTask];
 		[self addArgumentsForOptions];
-		gpgTask.userInfo = [NSDictionary dictionaryWithObject:order forKey:@"order"]; 
-		[gpgTask addArgument:@"--edit-key"];
+
+		[gpgTask addArgument:@"--quick-set-expire"];
 		[gpgTask addArgument:[key description]];
 		
-		if ([gpgTask start] != 0) {
+		if (expirationDate) {
+			NSDateFormatter *formatter = [[[NSDateFormatter alloc] init] autorelease];
+			[formatter setDateFormat:@"yyyyMMdd'T'HHmmss"];
+			
+			[gpgTask addArgument:[formatter stringFromDate:expirationDate]];
+		} else {
+			[gpgTask addArgument:@"never"];
+		}
+		
+		
+		if (subkeys.count > 0) {
+			for (GPGKey *subkey in subkeys) {
+				[gpgTask addArgument:[subkey description]];
+			}
+		}
+
+		[gpgTask start];
+		
+		if (gpgTask.errorCode) {
 			@throw [GPGException exceptionWithReason:localizedLibmacgpgString(@"Change expiration date failed!") gpgTask:gpgTask];
 		}
 		[self keyChanged:key];

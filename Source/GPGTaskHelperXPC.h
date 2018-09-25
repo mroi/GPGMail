@@ -43,7 +43,7 @@
  * By default status and progress messages from the gpg2 task are not handled
  * by GPGTaskHelperXPC, but an API is exposed to setup handlers for those messages.
  */
-#import "JailfreeProtocol.h"
+#import <Libmacgpg/JailfreeProtocol.h>
 
 @interface GPGTaskHelperXPC : NSObject <Jail> {
 	NSData *(^_processStatus)(NSString *keyword, NSString *value);
@@ -66,6 +66,9 @@
 - (NSDictionary *)loadUserDefaultsForName:(NSString *)domainName;
 - (void)setUserDefaults:(NSDictionary *)domain forName:(NSString *)domainName;
 - (BOOL)isPassphraseForKeyInGPGAgentCache:(NSString *)key;
+- (BOOL)validSupportContractAvailableForProduct:(NSString *)identifier activationInfo:(NSDictionary **)activationInfo;
+- (BOOL)activateSupportContractWithEmail:(NSString *)email activationCode:(NSString *)activationCode error:(NSError **)error;
+- (BOOL)startTrial;
 
 @property (nonatomic, copy) NSData *(^processStatus)(NSString *keyword, NSString *value);
 @property (nonatomic, copy) void (^progressHandler)(NSUInteger processedBytes, NSUInteger totalBytes);
