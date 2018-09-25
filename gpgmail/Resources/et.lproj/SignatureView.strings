@@ -7,14 +7,14 @@
  
  Defines the strings used in the signature view.
  */
-"VALIDITY_NO_TRUST" = "This signature is not to be trusted.";
-"VALIDITY_OK" = "This signature can be trusted";
+"VALIDITY_NO_TRUST" = "Seda allkirja ei saa usaldada.";
+"VALIDITY_OK" = "Seda allkirja ei saa usaldada";
 /* Signature view key status. */
 "VALIDITY_KEY_REVOKED" = "The key of this signature was revoked.";
-"VALIDITY_SIGNATURE_EXPIRED" = "This signature is expired.";
+"VALIDITY_SIGNATURE_EXPIRED" = "See allkiri on aegunud.";
 "VALIDITY_KEY_EXPIRED" = "The key of this signature is expired.";
 "VALIDITY_KEY_REVOKED" = "The key of this signature was revoked.";
 "VALIDITY_UNKNOWN_ALGORITHM" = "Signature was created with unknown algorithm.";
 "VALIDITY_NO_PUBLIC_KEY" = "The key of this signature is not in your keychain.";
 "VALIDITY_UNKNOWN_ERROR" = "Unknown signature error.";
-"VALIDITY_BAD_SIGNATURE" = "This signature is invalid.";
+"VALIDITY_BAD_SIGNATURE" = "See allkiri on vigane.";

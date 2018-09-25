@@ -145,12 +145,12 @@
 "MESSAGE_VIEW_PGP_PART" = "PGP-del";
 
 /* GPGMail Preferences strings. */
-"GPG_STATUS_NO_ERROR_TITLE" = "GPGMail är redo.";
-"GPG_STATUS_NO_ERROR_TOOLTIP" = "Din MacGPG2-installation fungerar utan fel.";
-"GPG_STATUS_NOT_FOUND_TITLE" = "MacGPG är inte installerat. Kontrollera din installation.";
-"GPG_STATUS_NOT_FOUND_TOOLTIP" = "Hämta och installera om GPG Suite från https://www.gpgtools.org för att försäkra dig om att alla komponenter är installerade.";
-"GPG_STATUS_OTHER_ERROR_TITLE" = "Kontrollera din installation och konfiguration.";
-"GPG_STATUS_NOT_FOUND_TOOLTIP" = "Hämta och installera om GPG Suite från https://www.gpgtools.org för att försäkra dig om att alla komponenter är installerade.";
+"GPG_STATUS_NO_ERROR_TITLE" = "GPGMail ready";
+"GPG_STATUS_NOT_FOUND_TITLE" = "MacGPG not found, reinstall GPG Suite";
+"GPG_STATUS_NOT_FOUND_TOOLTIP" = "Click indicator bubble for further information";
+"GPG_STATUS_OTHER_ERROR_TITLE" = "Problems found, click indicator bubble for more info";
+"GPG_STATUS_OTHER_ERROR_TOOLTIP" = "Click indicator bubble for further information";
+
 "DISABLE_ENCRYPT_DRAFTS_TITLE" = "Varning: Att avaktivera det här alternativet kan leda till att känslig information läcker ut när du skriver ett meddelande";
 "DISABLE_ENCRYPT_DRAFTS_MESSAGE" = "Om alternativet \"Spara utkast på servern\" är aktiverat för dina konton kommer macOS Mail att spara dina utkast på e-postservern automatiskt medan du skriver ett meddelande.\nGenom att avaktivera \"Kryptera utkast\" kommer dina utkast att sparas i klartext (inte krypterade) så att alla med tillgång till e-postservern kan läsa dem.\n\nOm du fortsätter ha \"Kryptera utkast\" aktiverat kommer dina utkast att krypteras innan de sparas på en e-postserver och endast du kommer att kunna läsa dem.\n\nVill du fortfarande avaktivera \"Kryptera utkast\"?";
 "DISABLE_ENCRYPT_DRAFTS_CONFIRM" = "Avaktivera kryptering";
@@ -244,6 +244,16 @@ NO_DEFAULTS_MESSAGE = "GPGMail fungerar inte som väntat. \n\nHämta och install
 "UNENCRYPTED_FORWARD_OF_ENCRYPTED_MESSAGE_BUTTON_SEND_ANYWAY" = "Vidarebefordra ändå";
 "UNENCRYPTED_FORWARD_OF_ENCRYPTED_MESSAGE_BUTTON_CANCEL" = "Avbryt";
 
+"MESSAGE_BANNER_PGP_DECRYPT_MDC_ERROR_TITLE" = "Decryption of the message was aborted";
+"MESSAGE_BANNER_PGP_DECRYPT_MDC_ERROR_MESSAGE" = "The modification detection code (MDC) for this encrypted message is missing or has been modified.\n\nThis could mean that an attacker has been trying to modify the contents within the encrypted message.\n\nPlease have the message re-sent to you and tell the sender, that their encrypted message didn't include a modification detection code.";
+
+"NAVIGATION_ACTION_FROM_ENCRYPTED_MESSAGE_TITLE" = "Attention: Opening this website could leak the contents of this message";
+"NAVIGATION_ACTION_FROM_ENCRYPTED_MESSAGE_MESSAGE" = "Due to a problem in the implementation of S/MIME encryption, it is possible for an attacker to modify a message without your knowledge.\n\nYou are about to open the following website:\n\n%@\n\nAre you sure you want to continue?";
+"NAVIGATION_ACTION_FROM_ENCRYPTED_MESSAGE_BUTTON_YES" = "Ja";
+"NAVIGATION_ACTION_FROM_ENCRYPTED_MESSAGE_BUTTON_CANCEL" = "Avbryt";
+
+"MESSAGE_BANNER_PGP_ATTACHMENT_DECRYPT_MDC_ERROR_TITLE" = "Decryption of the attachment was aborted";
+"MESSAGE_BANNER_PGP_ATTACHMENT_DECRYPT_MDC_ERROR_MESSAGE" = "The modification detection code (MDC) for this encrypted attachment is missing or has been modified.\n\nThis could mean that an attacker has been trying to modify the contents within the encrypted attachment.\n\nPlease have the attachment re-sent to you and tell the sender, that their encrypted attachment didn't include a modification detection code.";
 
 
 /* Accessibility */

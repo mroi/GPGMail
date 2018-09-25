@@ -41,6 +41,7 @@
 extern NSString * const kLibraryMimeBodyReturnCompleteBodyDataForComposeBackendKey;
 extern NSString * const kLibraryMimeBodyReturnCompleteBodyDataForMessageKey;
 extern NSString * const kLibraryMimeBodyReturnCompleteBodyDataKey;
+extern NSString * const kLibraryMessageDataIsBeingForceFetched;
 
 NSString * const kMFLibraryStoreMessageBodyContainsPGPData = @"MFLibraryStoreMessageBodyContainsPGPData";
 NSString * const kMFLibraryStoreMessageDataFetchLockMap = @"MFLibraryStoreMessageDataFetchLockMap";
@@ -82,9 +83,21 @@ NSString * const kMFLibraryStoreMessageFetchLockMap = @"MFLibraryStoreMessageFet
     // the attachment data from already downloaded attachments, or by re-downloading the complete message.
     BOOL wantsCompleteBodyData = ([[[[NSThread currentThread] threadDictionary] valueForKey:kLibraryMimeBodyReturnCompleteBodyDataKey] boolValue] &&
                                   [[[NSThread currentThread] threadDictionary] valueForKey:kLibraryMimeBodyReturnCompleteBodyDataForMessageKey] == currentMessage) || [[[[NSThread currentThread] threadDictionary] valueForKey:kLibraryMimeBodyReturnCompleteBodyDataForComposeBackendKey] boolValue];
+    BOOL messageIsBeingForceFetched = [[[[NSThread currentThread] threadDictionary] valueForKey:kLibraryMessageDataIsBeingForceFetched] boolValue] && [[currentMessage valueForKey:kLibraryMessageDataIsBeingForceFetched] boolValue];
     // If either wantsCompleteBodyData is not set, or body is NULL, so the Mail call is not interested in
     // the message body data, call the original Mail method.
-    if(!wantsCompleteBodyData || body == NULL) {
+    // Bug #977: Crash due to endless loop when fetching the raw message from server.
+    //
+    // This bug has only been observed with MS Exchange servers, but could affect
+    // other messages as well. In order to prevent the endless loop, check if the
+    // message is already being force fetched and if so, don't process further, but
+    // call into Mail's original method.
+    //
+    // The endless loop is caused when +[MFLibrary setData:forMessage:isPartial:hasCompleteText:]
+    // is called after receiving message data for a new message, and that method internally
+    // calls this method. Since no data is available yet, the message is force fetched and that
+    // in turn causes the endless loop.
+    if(!wantsCompleteBodyData || body == NULL || messageIsBeingForceFetched) {
         return [self MAGetTopLevelMimePart:topLevelMimePart headers:headers body:body forMessage:currentMessage fetchIfNotAvailable:fetchIfNotAvailable updateFlags:updateFlags allowPartial:allowPartial];
     }
     // If a message body is cached and it is not flagged as containing PGP data, the cached version is returned.

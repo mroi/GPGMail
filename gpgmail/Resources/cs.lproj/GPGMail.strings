@@ -15,7 +15,7 @@
 "MESSAGE_ERROR_ALERT_PGP_VERIFY_NOT_IN_KEYCHAIN_MESSAGE" = "Žádné další informace o PGP klíči nejsou známy, protože naní ve vaši Klíčence. Přidejte ho pomocí GPG Keychain.";
 
 "MESSAGE_BANNER_PGP_DECRYPT_SECKEY_ERROR_TITLE" = "Tajný klíč k dešifrování zprávy chybí.";
-"MESSAGE_BANNER_PGP_DECRYPT_SECKEY_ERROR_MESSAGE" = "None of the following secret keys could be found in your keychain (%@). The secret key is needed to decrypt this message. \n\nPlease check with the sender that they used your correct public key.\nCheck any backup of your keychain, and try to import the secret key from there.";
+"MESSAGE_BANNER_PGP_DECRYPT_SECKEY_ERROR_MESSAGE" = "Žádný z následujících tajných klíčů nebyl nalezen ve vaši klíčence (%@). K dešifrování této zprávy je tajný klíč nezbytný.\n\nOvěřte, prosím, u odesílatele, že použili váš správný veřejný klíč.\n\nOvěřte, jestli se ve vašich záložních kopíích nenalézá tento tajný klíč a pokuste se ho naimportovat.";
 
 "MESSAGE_BANNER_PGP_DECRYPT_SYSTEM_ERROR_TITLE" = "Dešifrování zprávy selhalo z důvodu výskytu neznámé chyby.";
 "MESSAGE_BANNER_PGP_DECRYPT_SYSTEM_ERROR_MESSAGE" = "Vyskytla se neznámá chyba při dešifrování zprávy.\n\nObraťte se prosím na https://gpgtools.tenderapp.com";
@@ -52,11 +52,11 @@
 "MESSAGE_BANNER_PGP_VERIFY_SIGNATURE_EXPIRED_ERROR_TITLE" = "Platnost podpis zprávy vypršela.";
 "MESSAGE_BANNER_PGP_VERIFY_SIGNATURE_EXPIRED_ERROR_MESSAGE" = "Platnost podpisu vypršela a nelze ověřit.\n\nZeptejte se odesilatele proč platnost jeho podpisu vypršela.";
 
-"MESSAGE_BANNER_PGP_DECRYPT_ERROR_NO_GPG_TITLE" = "MacGPG is not installed";
-"MESSAGE_BANNER_PGP_DECRYPT_ERROR_NO_GPG_MESSAGE" = "Decrypting failed because MacGPG is not installed.\n\nPlease download and re-install GPG Suite from https://gpgtools.org";
+"MESSAGE_BANNER_PGP_DECRYPT_ERROR_NO_GPG_TITLE" = "MacGPG není nainstalováno";
+"MESSAGE_BANNER_PGP_DECRYPT_ERROR_NO_GPG_MESSAGE" = "Dešifrování se nezdařilo, protože MacGPG není nainstalován.\n\nZkopírujte si jej a nainstalujte GPG Suite z tohoto umístění: https://gpgtools.org";
 
-"MESSAGE_BANNER_PGP_VERIFY_ERROR_NO_GPG_TITLE" = "MacGPG is not installed";
-"MESSAGE_BANNER_PGP_VERIFY_ERROR_NO_GPG_MESSAGE" = "Verifying failed because MacGPG is not installed.\n\nPlease download and re-install GPG Suite from https://gpgtools.org";
+"MESSAGE_BANNER_PGP_VERIFY_ERROR_NO_GPG_TITLE" = "MacGPG není nainstalováno";
+"MESSAGE_BANNER_PGP_VERIFY_ERROR_NO_GPG_MESSAGE" = "Ověření selhalo, protože MacGPG není nainstalován.\n\nZkopírujte si jej a nainstalujte GPG Suite z tohoto umístění: https://gpgtools.org";
 
 "MESSAGE_BANNER_PGP_ATTACHMENTS_DECRYPT_VERIFY_ERROR_TITLE" = "Dešifrování nebo ověření příloh %d selhalo.";
 "MESSAGE_BANNER_PGP_ATTACHMENTS_DECRYPT_VERIFY_ERROR_MESSAGE" = "Pro zobrazení podrobností klepněte prosím na ikonu přílohy v hlavičce zabezpečení zprávy.";
@@ -75,7 +75,7 @@
 
 /* Message Error Banner Attachment messages. */
 "MESSAGE_BANNER_PGP_ATTACHMENT_DECRYPT_SECKEY_ERROR_TITLE" = "Tajný klíč pro dešifrování přílohy chybí.";
-"MESSAGE_BANNER_PGP_ATTACHMENT_DECRYPT_SECKEY_ERROR_MESSAGE" = "None of the following secret keys could be found in your keychain (%@). The secret key is needed to decrypt this attachment. \n\nPlease check with the sender that they used your correct public key.\nCheck any backup of your keychain, and try to import the secret key from there.";
+"MESSAGE_BANNER_PGP_ATTACHMENT_DECRYPT_SECKEY_ERROR_MESSAGE" = "Žádný z následujících tajných klíčů nebyl nalezen ve vaši klíčence (%@). K dešifrování této přílohy je tajný klíč nezbytný.\n\nOvěřte, prosím, u odesílatele, že použili váš správný veřejný klíč.\n\nOvěřte, jestli se ve vašich záložních kopíích nenalézá tento tajný klíč a pokuste se ho naimportovat.";
 
 "MESSAGE_BANNER_PGP_ATTACHMENT_DECRYPT_SYSTEM_ERROR_TITLE" = "Dešifrování selhalo z důvodu výskytu neznámé chyby!";
 "MESSAGE_BANNER_PGP_ATTACHMENT_DECRYPT_SYSTEM_ERROR_MESSAGE" = "Vyskytla se neznámá chyba při dešifrování přílohy.\n\nObraťte se prosím na https://gpgtools.tenderapp.com";
@@ -145,14 +145,14 @@
 "MESSAGE_VIEW_PGP_PART" = "PGP část";
 
 /* GPGMail Preferences strings. */
-"GPG_STATUS_NO_ERROR_TITLE" = "GPGMail je připraven.";
-"GPG_STATUS_NO_ERROR_TOOLTIP" = "Vaše instalace MacGPG pracuje správně a bez chyb.";
-"GPG_STATUS_NOT_FOUND_TITLE" = "MacGPG is not installed. Check your installation.";
-"GPG_STATUS_NOT_FOUND_TOOLTIP" = "Zkopírujte si prosím instalítor GPG Suite z http://www.gpgtools.org a nainstalujte vše z balíku GPG Suite.";
-"GPG_STATUS_OTHER_ERROR_TITLE" = "Ověřte prosím vaši instalaci a nastavení.";
-"GPG_STATUS_NOT_FOUND_TOOLTIP" = "Zkopírujte si prosím instalítor GPG Suite z http://www.gpgtools.org a nainstalujte vše z balíku GPG Suite.";
+"GPG_STATUS_NO_ERROR_TITLE" = "GPGMail ready";
+"GPG_STATUS_NOT_FOUND_TITLE" = "MacGPG not found, reinstall GPG Suite";
+"GPG_STATUS_NOT_FOUND_TOOLTIP" = "Click indicator bubble for further information";
+"GPG_STATUS_OTHER_ERROR_TITLE" = "Problems found, click indicator bubble for more info";
+"GPG_STATUS_OTHER_ERROR_TOOLTIP" = "Click indicator bubble for further information";
+
 "DISABLE_ENCRYPT_DRAFTS_TITLE" = "Varování: Deaktivace této možnosti by mohla vést k úniku citlivých informací při psaní zprávy";
-"DISABLE_ENCRYPT_DRAFTS_MESSAGE" = "If the option \"Store drafts on server\" is enabled for your accounts, macOS Mail automatically stores your drafts on your mail server while you're composing a message.\nBy disabling \"Encrypt drafts\", your drafts will be stored in plain text (not encrypted) so that anyone with access to the mail server can read them.\n\nIf you keep \"Encrypt drafts\" enabled, your drafts will be encrypted before they are stored on a mail server and only you will be able to read them.\n\nDo you still want to disable \"Encrypt drafts\"?";
+"DISABLE_ENCRYPT_DRAFTS_MESSAGE" = "Pokud je na vašem účtě zapnuta volba „Uložit koncepty na serveru“, aplikace macOS Mail.app automaticky ukládá vaše koncepty na poštovní server během vytváření zprávy.\nZakázáním funkce „Šifrování konceptů“ budou koncepty uloženy v prostém textu (nešifrované), a může je číst každý, kdo má přístup k poštovnímu serveru.\n\nPovolením funkce „Šifrování konceptů“, budou vaše koncepty zašifrovány předtím, než budou uloženy na poštovní server a budete je moci číst pouze vy.\n\nPřesto si přejete deaktivovat funkci „Šifrování konceptů“?";
 "DISABLE_ENCRYPT_DRAFTS_CONFIRM" = "Vypnout šifrování";
 "DISABLE_ENCRYPT_DRAFTS_CANCEL" = "Zrušit";
 
@@ -164,7 +164,7 @@
 
 /* No Libmacgpg. */
 "LIBMACGPG_NOT_FOUND_TITLE" = "Knihovna Libmacgpg nebyla nalezena";
-"LIBMACGPG_NOT_FOUND_MESSAGE" = "Libmacgpg was not found on your system. Please download and install GPG Suite from https://www.gpgtools.org.";
+"LIBMACGPG_NOT_FOUND_MESSAGE" = "Komponenta Libmacgpg nebyla nalezena ve vašem systému. Zkopírujte si ji a nainstalujte GPG Suite z tohoto umístění https://www.gpgtools.org.";
 
 /* Code signature invalid */
 CODE_SIGN_ERROR_TITLE = "Někdo manipuloval s instalací GPGMail!";
@@ -231,19 +231,29 @@ NO_DEFAULTS_MESSAGE = "GPGMail nepracuje podle očekávání.\n\nProsím přeins
 "UNENCRYPTED_REPLY_TO_ENCRYPTED_MESSAGE_EXPLANATION" = "Pokud budete pokračovat, vaše odpověď se odešle nezašifrovaně. Výsledkem může být únik informací, který může vystavit riziku vás i adresáta.";
 "UNENCRYPTED_REPLY_TO_ENCRYPTED_MESSAGE_SOLUTION_REMOVE_PREVIOUS_CORRESPONDENCE" = "\n\nPokud si skutečně přejete odeslat tuto nezabezpečenou zprávu, odstraňte prosím ve vaší odpovědi před odesláním veškerý text z předchozí komunikace.";
 "UNENCRYPTED_REPLY_TO_ENCRYPTED_MESSAGE_SOLUTION_IMPORT_KEYS" = "V opačném případě, vyhledejte a naimportujte odpovídající veřejné klíče pomocí GPG Keychain, aby bylo možné odeslat odpověď šifrované.";
-"UNENCRYPTED_REPLY_TO_ENCRYPTED_MESSAGE_SOLUTION_IMPORT_KEYS_SINGULAR" = "Otherwise, search and import the corresponding public key using GPG Keychain in order to send the reply encrypted.";
+"UNENCRYPTED_REPLY_TO_ENCRYPTED_MESSAGE_SOLUTION_IMPORT_KEYS_SINGULAR" = "V opačném případě vyhledejte a naimportujte odpovídající veřejný klíč pomocí GPG Keychain, abyste mohli odpovídat pomocí šifrovaných zpráv.";
 "UNENCRYPTED_REPLY_TO_ENCRYPTED_MESSAGE_BUTTON_SEND_ANYWAY" = "Přesto odeslat";
 "UNENCRYPTED_REPLY_TO_ENCRYPTED_MESSAGE_BUTTON_CANCEL" = "Zrušit";
 
-"UNENCRYPTED_FORWARD_OF_ENCRYPTED_MESSAGE_TITLE" = "Attention: You're about to forward the decrypted version of an encrypted message";
-"UNENCRYPTED_FORWARD_OF_ENCRYPTED_MESSAGE_MISSING_KEYS_SINGULAR" = "It's not possible to encrypt the message you are about to forward, because the public key for the following recipient is missing:\n\n%@";
-"UNENCRYPTED_FORWARD_OF_ENCRYPTED_MESSAGE_MISSING_KEYS" = "It's not possible to encrypt the message you are about to forward, because public keys for the following recipients are missing:\n\n%@";
-"UNENCRYPTED_FORWARD_OF_ENCRYPTED_MESSAGE_EXPLANATION" = "If you choose to proceed, the message you are about to forward will be sent unencrypted. As a result, confidential information might be leaked, putting you and your recipients at risk.";
-"UNENCRYPTED_FORWARD_OF_ENCRYPTED_MESSAGE_SOLUTION_IMPORT_KEYS" = "Otherwise, search and import the corresponding public keys using GPG Keychain in order to forward an encrypted version of the message.";
-"UNENCRYPTED_FORWARD_OF_ENCRYPTED_MESSAGE_SOLUTION_IMPORT_KEYS_SINGULAR" = "Otherwise, search and import the corresponding public key using GPG Keychain in order to forward an encrypted version of the message.";
-"UNENCRYPTED_FORWARD_OF_ENCRYPTED_MESSAGE_BUTTON_SEND_ANYWAY" = "Forward Anyway";
+"UNENCRYPTED_FORWARD_OF_ENCRYPTED_MESSAGE_TITLE" = "Upozornění: Chystáte se odeslat dešifrovanou/nezabezpečenou verzi šifrované zprávy";
+"UNENCRYPTED_FORWARD_OF_ENCRYPTED_MESSAGE_MISSING_KEYS_SINGULAR" = "Nelze šifrovat zprávu, kterou se chystáte odeslat, protože chybí veřejný klíč pro následujícího příjemce:\n\n%@";
+"UNENCRYPTED_FORWARD_OF_ENCRYPTED_MESSAGE_MISSING_KEYS" = "Nelze šifrovat zprávu, kterou se chystáte odeslat, protože chybí veřejné klíče pro následující příjemce:\n\n%@";
+"UNENCRYPTED_FORWARD_OF_ENCRYPTED_MESSAGE_EXPLANATION" = "Pokud si přejete pokračovat, zpráva, kterou se chystáte odeslat, bude nezašifrovaná. V důsledku toho může dojít k úniku důvěrných informací, což může ohrozit nejen vás ale i příjemce zprávy.";
+"UNENCRYPTED_FORWARD_OF_ENCRYPTED_MESSAGE_SOLUTION_IMPORT_KEYS" = "V opačném případě vyhledejte a naimportujte odpovídající veřejné klíče pomocí GPG Keychain, abyste mohli odesílat šifrované zprávy.";
+"UNENCRYPTED_FORWARD_OF_ENCRYPTED_MESSAGE_SOLUTION_IMPORT_KEYS_SINGULAR" = "V opačném případě vyhledejte a naimportujte odpovídající veřejný klíč pomocí GPG Keychain, abyste mohli odeslat šifrovanou zprávu.";
+"UNENCRYPTED_FORWARD_OF_ENCRYPTED_MESSAGE_BUTTON_SEND_ANYWAY" = "Přesto odeslat";
 "UNENCRYPTED_FORWARD_OF_ENCRYPTED_MESSAGE_BUTTON_CANCEL" = "Zrušit";
 
+"MESSAGE_BANNER_PGP_DECRYPT_MDC_ERROR_TITLE" = "Decryption of the message was aborted";
+"MESSAGE_BANNER_PGP_DECRYPT_MDC_ERROR_MESSAGE" = "The modification detection code (MDC) for this encrypted message is missing or has been modified.\n\nThis could mean that an attacker has been trying to modify the contents within the encrypted message.\n\nPlease have the message re-sent to you and tell the sender, that their encrypted message didn't include a modification detection code.";
+
+"NAVIGATION_ACTION_FROM_ENCRYPTED_MESSAGE_TITLE" = "Attention: Opening this website could leak the contents of this message";
+"NAVIGATION_ACTION_FROM_ENCRYPTED_MESSAGE_MESSAGE" = "Due to a problem in the implementation of S/MIME encryption, it is possible for an attacker to modify a message without your knowledge.\n\nYou are about to open the following website:\n\n%@\n\nAre you sure you want to continue?";
+"NAVIGATION_ACTION_FROM_ENCRYPTED_MESSAGE_BUTTON_YES" = "Ano";
+"NAVIGATION_ACTION_FROM_ENCRYPTED_MESSAGE_BUTTON_CANCEL" = "Zrušit";
+
+"MESSAGE_BANNER_PGP_ATTACHMENT_DECRYPT_MDC_ERROR_TITLE" = "Decryption of the attachment was aborted";
+"MESSAGE_BANNER_PGP_ATTACHMENT_DECRYPT_MDC_ERROR_MESSAGE" = "The modification detection code (MDC) for this encrypted attachment is missing or has been modified.\n\nThis could mean that an attacker has been trying to modify the contents within the encrypted attachment.\n\nPlease have the attachment re-sent to you and tell the sender, that their encrypted attachment didn't include a modification detection code.";
 
 
 /* Accessibility */

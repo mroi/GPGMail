@@ -510,7 +510,8 @@
                                      @"_decode",
                                      @"messageBody",
                                      @"htmlStringForMimePart:attachment:",
-                                     @"decodeApplicationPkcs7"]
+                                     @"decodeApplicationPkcs7",
+                                     @"_decodeTextHtml"]
                              }
                      },
 //             @"MailApp": @{
@@ -583,7 +584,8 @@
                      @"selectors": @[
                              @"wantsDisplay",
                              @"setWantsDisplay:",
-                             @"updateBannerContents"]
+                             @"updateBannerContents",
+                             @"_hasBlockedRemoteContentDidChange:"]
                      },
              @"JunkMailBannerViewController": @{
                      @"selectors": @[
@@ -596,6 +598,15 @@
                                      @"updateBannerContents"
                                      ]
                              }
+                     },
+             @"MessageViewer": @{
+                     @"selectors": @[
+                         @"_mailApplicationDidFinishLaunching:"
+                             ]
+                     },
+             @"MCMessageHeaders": @{
+                     @"selectors": @[
+                             @"headersForKey:"]
                      }
      };
 }

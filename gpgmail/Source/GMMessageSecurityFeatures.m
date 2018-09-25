@@ -212,8 +212,15 @@
     isEncrypted = messageProtectionStatus.completeMessageIsEncrypted || isPartlyEncrypted;
     isSigned = messageProtectionStatus.completeMessageIsSigned || isPartlySigned;
 
+    // Bug #987: PGP/MIME encrypted and signed message are recognized as partially encrypted
+    //           - signature not shown
+    //
+    // Even if a decrypted mime part is available (in case of a PGP/MIME message) it is
+    // still possible that the encrypted message itself is signed. In which case
+    // the signed status of the encrypted part and the decrypted part have to be taken
+    // into consideration.
     if(decryptedMimePart) {
-        isSigned = decryptedMessageProtectionStatus.completeMessageIsSigned;
+        isSigned = isSigned || decryptedMessageProtectionStatus.completeMessageIsSigned;
         // The encrypted part is fully signed, but it's still just a part of the entire
         // message.
         if(isPartlyEncrypted) {

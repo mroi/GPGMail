@@ -41,7 +41,7 @@
     if((self = [super init])) {
         _content = [content copy];
         _mimePart = mimePart;
-        _isolationMarkup = [isolationMarkup length] ? [isolationMarkup copy] : [[self class] newIsolationMarkup];
+        _isolationMarkup = [isolationMarkup length] ? [isolationMarkup copy] : [[self class] newIsolationMarkupForContent:content];
     }
 
     return self;
@@ -59,6 +59,11 @@
 + (NSString *)newIsolationMarkup {
     NSString *isolationID = [[self class] generateIsolationID];
     return [NSString stringWithFormat:@"<%@ />", isolationID];
+}
+
++ (NSString *)newIsolationMarkupForContent:(NSString *)content {
+    NSString *isolationID = [[self class] generateIsolationID];
+    return [NSString stringWithFormat:@"<%@>%@</%@>", isolationID, content, isolationID];
 }
 
 @end
@@ -90,6 +95,15 @@
     }
 }
 
+- (BOOL)containsIsolatedMimePart:(MCMimePart *)mimePart {
+    for(GMIsolatedContentPart *part in _contentParts) {
+        if(part.mimePart == mimePart) {
+            return YES;
+        }
+    }
+    return NO;
+}
+
 - (NSString *)isolatedContentForDecodedContent:(id)decodedContent {
     _isCreatingIsolatedContent = YES;
     MCMessageBody *messageBody = [decodedContent isKindOfClass:[MCMessageBody class]] ? decodedContent : nil;
@@ -107,11 +121,43 @@
     NSString *safeContent = nil;
     NSString *unsafeContent = nil;
     NSRange unsafeContentRange = NSMakeRange(0, 0);
-
+    
+    // Bug #XXXX: Isolated parts are considered unsafe under special circumstances
+    //
+    // The old method worked under the assumption, that the order isolated parts
+    // are stored, matches the order in which they appear in the content.
+    // While that's probably true in most cases, there are some messages (see #991)
+    // where that is not the case. As a result, an attachment for example might
+    // be considered an unsafe part even though it is not.
+    //
+    // The new method works regardless of the order in which the isolated parts
+    // were added to the isolator.
+    [_contentParts sortUsingComparator:^NSComparisonResult(GMIsolatedContentPart * _Nonnull obj1, GMIsolatedContentPart * _Nonnull obj2) {
+        NSRange range1 = [content rangeOfString:obj1.isolationMarkup];
+        NSRange range2 = [content rangeOfString:obj2.isolationMarkup];
+        
+        if(range1.location == range2.location) {
+            return NSOrderedSame;
+        }
+        if(range1.location > range2.location) {
+            return NSOrderedDescending;
+        }
+        return NSOrderedAscending;
+    }];
+    
     for(GMIsolatedContentPart *isolatedPart in _contentParts) {
         NSRange isolatedPartRange = [content rangeOfString:isolatedPart.isolationMarkup];
         if(isolatedPartRange.location == NSNotFound) {
             continue;
+        }
+        // It is possible that attachments are contained within already
+        // isolated content parts, in which case, if the current location
+        // is already at a later point than where the next isolated range
+        // is found, it's no longer necessary to process any other
+        // isolated content, since a previous isolated part already covered
+        // that part.
+        if(isolatedPartRange.location < unsafeContentRange.location) {
+            break;
         }
         //NSAssert(isolatedPartRange.location != NSNotFound, @"Isolation part gone missing. What happened?");
 

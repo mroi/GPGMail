@@ -44,6 +44,7 @@
 
 
 @property (weak, readonly) NSString *copyright, *versionDescription, *gpgStatusToolTip, *gpgStatusTitle;
+@property (weak, readonly) NSString *registrationDescription;
 @property (weak, readonly) NSAttributedString *credits, *websiteLink, *buildNumberDescription;
 @property (weak, readonly) GPGMailBundle *bundle;
 @property (weak, readonly) NSImage *gpgStatusImage;
