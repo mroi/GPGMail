@@ -6,8 +6,8 @@ LAUNCH_AGENT = $(shell echo ~)/Library/LaunchAgents/org.gpgtools.Libmacgpg.xpc.p
 .PHONY: all install update clean
 
 all:
-	$(MAKE) -C libmacgpg -B XPC_INSTALLATION_DIR=$(RESOURCE_DIR)
-	$(MAKE) -C gpgmail -B GPGMail.mailbundle
+	$(MAKE) -C libmacgpg -B
+	$(MAKE) -C gpgmail -B
 
 install: all
 	-launchctl bootout gui/$$UID/org.gpgtools.Libmacgpg.xpc
@@ -36,4 +36,4 @@ update:
 
 clean:
 	$(MAKE) -C gpgmail $@
-	$(MAKE) -C libmacgpg $@ XPC_INSTALLATION_DIR=$(RESOURCE_DIR)
+	$(MAKE) -C libmacgpg $@
