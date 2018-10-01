@@ -86,6 +86,8 @@ NSString *SUScheduledCheckIntervalKey = @"SUScheduledCheckInterval";
 	return [[NSAttributedString alloc] initWithString:string attributes:attributes];
 }
 
+#if 0  // registration disabled
+
 - (NSString *)registrationDescription {
     if([[GPGMailBundle sharedInstance] hasActiveContract]) {
         NSDictionary *contractInformation = [[GPGMailBundle  sharedInstance] fetchContractInformation];
@@ -93,6 +95,8 @@ NSString *SUScheduledCheckIntervalKey = @"SUScheduledCheckInterval";
     }
     return @"Trial Version";
 }
+
+#endif
 
 - (NSImage *)imageForPreferenceNamed:(NSString *)aName {
 	return [NSImage imageNamed:@"GPGMail"];

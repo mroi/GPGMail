@@ -224,8 +224,6 @@
 			dstPath = "";
 			dstSubfolderSpec = 10;
 			files = (
-				1B0E27122153F01600BF3DC0 /* GSPaddle.framework in CopyFiles */,
-				1B0E271A2153F0DC00BF3DC0 /* Paddle.framework in CopyFiles */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -500,8 +498,6 @@
 			buildActionMask = 2147483647;
 			files = (
 				1B2F2D83214FF41300740DD3 /* Libmacgpg.framework in Frameworks */,
-				1B0E27102153EFF600BF3DC0 /* GSPaddle.framework in Frameworks */,
-				1B0E27192153F0DA00BF3DC0 /* Paddle.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

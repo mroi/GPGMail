@@ -154,6 +154,7 @@
 	reply([GPGTaskHelper isPassphraseInGPGAgentCache:key]);
 }
 
+#if 0  // contract handling disabled
 #pragma mark - Paddle Helper Methods
 
 - (void)validSupportContractAvailableForProduct:(NSString *)identifier reply:(void (^)(BOOL, NSDictionary *))reply {
@@ -209,6 +210,8 @@
     PADProduct *product = [[PADProduct alloc] initWithProductID:@"496039" productType:PADProductTypeSDKProduct configuration:productConfiguration];
     return product;
 }
+
+#endif
 
 
 #pragma mark - General Helper Methods

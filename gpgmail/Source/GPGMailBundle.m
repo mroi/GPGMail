@@ -832,6 +832,7 @@ static BOOL gpgMailWorks = NO;
     return mailError;
 }
              
+#if 0  // contract handling disabled
 #pragma mark Active Contract Helpers
 
 - (NSDictionary *)contractInformation {
@@ -922,6 +923,19 @@ static BOOL gpgMailWorks = NO;
     [[[NSApplication sharedApplication] windows][0] endSheet:[windowController window]];
 }
 
+#else
+- (NSDictionary *)fetchContractInformation {
+	return nil;
+}
+- (BOOL)hasActiveContract {
+	return YES;
+}
+- (NSNumber *)remainingTrialDays {
+	return @(30);
+}
+- (void)checkSupportContractAndStartWizardIfNecessary {
+}
+#endif
 
 @end
 
