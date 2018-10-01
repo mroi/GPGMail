@@ -1550,7 +1550,7 @@
 				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				INFOPLIST_FILE = Source/org.gpgtools.Libmacgpg.xpc/Info.plist;
-				LD_RUNPATH_SEARCH_PATHS = "$(BUILT_PRODUCTS_DIR) @loader_path/../../../..";
+				LD_RUNPATH_SEARCH_PATHS = "@loader_path/../Frameworks $(BUILT_PRODUCTS_DIR) @loader_path/../../../../../../..";
 				MACOSX_DEPLOYMENT_TARGET = 10.12;
 				MTL_ENABLE_DEBUG_INFO = YES;
 				PRODUCT_BUNDLE_IDENTIFIER = org.gpgtools.Libmacgpg.xpc;
@@ -1601,7 +1601,7 @@
 				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				INFOPLIST_FILE = Source/org.gpgtools.Libmacgpg.xpc/Info.plist;
-				LD_RUNPATH_SEARCH_PATHS = "@loader_path/../../../..";
+				LD_RUNPATH_SEARCH_PATHS = "@loader_path/../Frameworks @loader_path/../../../../../../..";
 				MACOSX_DEPLOYMENT_TARGET = 10.12;
 				MTL_ENABLE_DEBUG_INFO = NO;
 				PRODUCT_BUNDLE_IDENTIFIER = org.gpgtools.Libmacgpg.xpc;
@@ -1750,9 +1750,9 @@
 					/usr/include,
 				);
 				INFOPLIST_FILE = Resources/Info.plist;
-				INSTALL_PATH = "@loader_path/../Frameworks";
+				INSTALL_PATH = /Library/Frameworks;
 				LD_DYLIB_INSTALL_NAME = "@rpath/$(EXECUTABLE_PATH)";
-				LD_RUNPATH_SEARCH_PATHS = "@loader_path/Frameworks";
+				LD_RUNPATH_SEARCH_PATHS = /Library/Frameworks;
 				OTHER_LDFLAGS = "";
 				PRODUCT_NAME = Libmacgpg;
 				WRAPPER_EXTENSION = framework;
