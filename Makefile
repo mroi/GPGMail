@@ -11,7 +11,7 @@ all:
 
 install: all
 	-launchctl bootout gui/$$UID/org.gpgtools.Libmacgpg.xpc
-	rsync -rlcv --delete --exclude=GPGMail.mailbundle/Contents/Frameworks/Libmacgpg.framework \
+	rsync -rlcv --delete --exclude=Contents/Frameworks/Libmacgpg.framework \
 		gpgmail/build/Release/GPGMail.mailbundle "$(PLUGIN_DIR)/"
 	rsync -rlcv --delete --exclude=Resources/org.gpgtools.Libmacgpg.xpc \
 		libmacgpg/build/Release/Libmacgpg.framework "$(FRAMEWORK_DIR)/"
