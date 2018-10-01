@@ -86,17 +86,36 @@ NSString *SUScheduledCheckIntervalKey = @"SUScheduledCheckInterval";
 	return [[NSAttributedString alloc] initWithString:string attributes:attributes];
 }
 
+
 #if 0  // registration disabled
 
+- (NSString *)registrationCode {
+	if([[GPGMailBundle sharedInstance] hasActiveContract]) {
+		NSDictionary *contractInformation = [[GPGMailBundle  sharedInstance] fetchContractInformation];
+		return [NSString stringWithFormat:@"Code: %@", contractInformation[@"ActivationCode"]];
+	}
+	return @"";
+}
 - (NSString *)registrationDescription {
     if([[GPGMailBundle sharedInstance] hasActiveContract]) {
         NSDictionary *contractInformation = [[GPGMailBundle  sharedInstance] fetchContractInformation];
-        return [NSString stringWithFormat:@"Registered to: %@", [contractInformation valueForKey:@"ActivationEmail"]];
+        return [NSString stringWithFormat:@"Registered to: %@", contractInformation[@"ActivationEmail"]];
     }
     return @"Trial Version";
 }
 
+- (BOOL)isRegistered {
+	return [[GPGMailBundle sharedInstance] hasActiveContract];
+}
+- (IBAction)activateSupportPlan:(NSButton *)sender {
+	[[GPGMailBundle sharedInstance] checkSupportContractAndStartWizardIfNecessary];
+}
+- (IBAction)learnMore:(NSButton *)sender {
+	[[NSWorkspace sharedWorkspace] openURL:[NSURL URLWithString:@"https://gpgtools.org/faq"]];
+}
+
 #endif
+
 
 - (NSImage *)imageForPreferenceNamed:(NSString *)aName {
 	return [NSImage imageNamed:@"GPGMail"];
