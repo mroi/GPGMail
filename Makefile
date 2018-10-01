@@ -24,9 +24,8 @@ install: all
 			plutil -convert xml1 -o "$(PLUGIN_DIR)/GPGMail.mailbundle/Contents/Info.plist" Info.plist ; \
 			rm Info.plist ; \
 		}
-	codesign -s "`id -F`" "$(XPC_DIR)/org.gpgtools.Libmacgpg.xpc" -i org.gpgtools.Libmacgpg.xpc
-	codesign -s "`id -F`" "$(FRAMEWORK_DIR)/Libmacgpg.framework"
-	codesign -s "`id -F`" "$(PLUGIN_DIR)/GPGMail.mailbundle"
+	codesign -s "`id -F`" --deep --force "$(XPC_DIR)/org.gpgtools.Libmacgpg.xpc" -i org.gpgtools.Libmacgpg.xpc
+	codesign -s "`id -F`" --deep --force "$(PLUGIN_DIR)/GPGMail.mailbundle"
 	sed 's|/Library/Application Support/GPGTools|$(XPC_DIR)|' < libmacgpg/build/org.gpgtools.Libmacgpg.xpc.plist > "$(LAUNCH_AGENT)"
 	launchctl bootstrap gui/$$UID "$(LAUNCH_AGENT)"
 
