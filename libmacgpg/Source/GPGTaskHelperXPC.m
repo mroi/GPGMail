@@ -111,13 +111,16 @@
 	
 	BOOL healthy = NO;
 	NSString *xpcBinaryName = @"org.gpgtools.Libmacgpg.xpc";
+	NSString *xpcRelativePath = [@"XPCServices/" stringByAppendingPathComponent:xpcBinaryName];
 	NSArray *xpcBundlePaths = [NSBundle allFrameworks];
-	for (NSBundle *bundle in xpcBundlePaths)
-		if ([bundle pathForResource:xpcBinaryName ofType:@""]) {
+	for (NSBundle *bundle in xpcBundlePaths) {
+		NSString *path = [bundle.bundlePath stringByAppendingPathComponent:xpcRelativePath];
+		if ([NSFileManager.defaultManager fileExistsAtPath:path]) {
 			healthy = YES;
 			break;
 		}
-	
+	}
+
 	return healthy;
 }
 
