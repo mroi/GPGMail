@@ -1,8 +1,7 @@
-GPGTOOLS_DIR = $(shell echo ~)/Library/Application Support/GPGTools
-FRAMEWORK_DIR = $(GPGTOOLS_DIR)/GPGMail.mailbundle/Contents/Frameworks
+PLUGIN_DIR = $(shell echo ~)/Library/Mail/Bundles
+FRAMEWORK_DIR = $(shell echo ~)/Library/Components
 XPC_DIR = $(FRAMEWORK_DIR)/Libmacgpg.framework/Versions/Current/XPCServices
 LAUNCH_AGENT = $(shell echo ~)/Library/LaunchAgents/org.gpgtools.Libmacgpg.xpc.plist
-PLUGIN_DIR = $(shell echo ~)/Library/Mail/Bundles
 
 .PHONY: all install update clean
 
@@ -12,21 +11,21 @@ all:
 
 install: all
 	-launchctl bootout gui/$$UID/org.gpgtools.Libmacgpg.xpc
-	rsync -rlcv --delete --exclude=Contents/Frameworks/Libmacgpg.framework \
-		gpgmail/build/Release/GPGMail.mailbundle "$(GPGTOOLS_DIR)/"
+	rsync -rlcv --delete \
+		gpgmail/build/Release/GPGMail.mailbundle "$(PLUGIN_DIR)/"
 	rsync -rlcv --delete --exclude=Versions/B/XPCServices \
 		libmacgpg/build/Release/Libmacgpg.framework "$(FRAMEWORK_DIR)/"
 	mkdir -p "$(XPC_DIR)" ; ln -shf Versions/Current/XPCServices "$(FRAMEWORK_DIR)/Libmacgpg.framework/"
 	rsync -rlcv --delete \
 		libmacgpg/build/Release/org.gpgtools.Libmacgpg.xpc "$(XPC_DIR)/"
-	uuid=`defaults read /Applications/Mail.app/Contents/Info PluginCompatibilityUUID` ; \
-		fgrep -q $$uuid "$(GPGTOOLS_DIR)/GPGMail.mailbundle/Contents/Info.plist" || \
-		defaults write "$(GPGTOOLS_DIR)/GPGMail.mailbundle/Contents/Info" Supported`sw_vers -productVersion | cut -d '.' -f 1,2`PluginCompatibilityUUIDs -array-add $$uuid
-	codesign -s "`id -F`" --deep --force "$(GPGTOOLS_DIR)/GPGMail.mailbundle"
+	uuid=`/usr/libexec/PlistBuddy -c 'Print PluginCompatibilityUUID' /Applications/Mail.app/Contents/Info.plist` ; \
+		fgrep -q $$uuid "$(PLUGIN_DIR)/GPGMail.mailbundle/Contents/Info.plist" || \
+		/usr/libexec/PlistBuddy -c "Add :Supported`sw_vers -productVersion | cut -d '.' -f 1,2`PluginCompatibilityUUIDs: string $$uuid" \
+		"$(PLUGIN_DIR)/GPGMail.mailbundle/Contents/Info.plist"
+	codesign -s "`id -F`" --deep --force "$(PLUGIN_DIR)/GPGMail.mailbundle"
+	codesign -s "`id -F`" --deep --force "$(FRAMEWORK_DIR)/Libmacgpg.framework"
 	sed 's|/Library/Application Support/GPGTools|$(XPC_DIR)|' < libmacgpg/build/org.gpgtools.Libmacgpg.xpc.plist > "$(LAUNCH_AGENT)"
 	launchctl bootstrap gui/$$UID "$(LAUNCH_AGENT)"
-	rsync -rlcv --delete \
-		"$(GPGTOOLS_DIR)/GPGMail.mailbundle" "$(PLUGIN_DIR)/"
 
 update:
 	git subtree merge --prefix=libmacgpg --squash libmacgpg/dev

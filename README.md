@@ -12,9 +12,9 @@ I use the `gnupg` and `pinentry-mac` packages from [Nix](https://nixos.org), so 
 anything else. No auto-updating, no key managment UI. Just the things needed to get nice GPG 
 integration in Apple Mail.
 
-I modified the components to get a self-contained plugin that fits my setup. Due to macOS 
-sandboxing restrictions, two copies are installed to get both the Mail plugin and the XPC 
-service working. The plugin must be manually enabled in Apple Mail’s preferences.
+I modified the components to get a Mail plugin and an accompanying framework, which install 
+in user-writable folders within the home directory. No access to system-wide directories is 
+required. The plugin must then be manually enabled in Apple Mail’s preferences.
 
 If you don’t want the hassle of building GPGMail yourself, then this project is not for you. 
 I strongly urge you to consider using [the original GPGTools](https://gpgtools.org) instead 
