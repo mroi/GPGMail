@@ -9,7 +9,12 @@
     <objects>
         <customObject id="-2" userLabel="File's Owner" customClass="GPGMailPreferences">
             <connections>
+                <outlet property="activateButton" destination="lO8-KU-tpl" id="v7s-ft-jbC"/>
+                <outlet property="activationCodeTextField" destination="TUL-r9-9jA" id="XQI-Mk-djS"/>
+                <outlet property="learnMoreButton" destination="dW7-T8-3kz" id="S8e-zQ-NSR"/>
                 <outlet property="preferencesView" destination="9" id="23"/>
+                <outlet property="registrationDescriptionTextField" destination="aZa-FD-lCE" id="HlT-gm-Agu"/>
+                <outlet property="reportProblemButton" destination="1051" id="rXk-mJ-OYy"/>
             </connections>
         </customObject>
         <customObject id="-1" userLabel="First Responder" customClass="FirstResponder"/>
@@ -105,11 +110,6 @@
                         </buttonCell>
                         <connections>
                             <action selector="openSupport:" target="-2" id="vFI-pm-2Op"/>
-                            <binding destination="-2" name="hidden" keyPath="isRegistered" id="Ort-IV-EhX">
-                                <dictionary key="options">
-                                    <string key="NSValueTransformerName">NSNegateBoolean</string>
-                                </dictionary>
-                            </binding>
                         </connections>
                     </button>
                     <button verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="VxY-Gt-nbh">
@@ -229,9 +229,6 @@
                             <color key="textColor" name="controlTextColor" catalog="System" colorSpace="catalog"/>
                             <color key="backgroundColor" name="controlColor" catalog="System" colorSpace="catalog"/>
                         </textFieldCell>
-                        <connections>
-                            <binding destination="-2" name="value" keyPath="registrationDescription" id="qwT-FI-GIL"/>
-                        </connections>
                     </textField>
                     <textField horizontalHuggingPriority="251" verticalHuggingPriority="750" horizontalCompressionResistancePriority="250" translatesAutoresizingMaskIntoConstraints="NO" id="TUL-r9-9jA">
                         <rect key="frame" x="192" y="45" width="57" height="14"/>
@@ -243,14 +240,6 @@
                             <color key="textColor" name="controlTextColor" catalog="System" colorSpace="catalog"/>
                             <color key="backgroundColor" name="controlColor" catalog="System" colorSpace="catalog"/>
                         </textFieldCell>
-                        <connections>
-                            <binding destination="-2" name="hidden" keyPath="isRegistered" id="oAP-kE-TvS">
-                                <dictionary key="options">
-                                    <string key="NSValueTransformerName">NSNegateBoolean</string>
-                                </dictionary>
-                            </binding>
-                            <binding destination="-2" name="value" keyPath="registrationCode" id="Xdb-Vx-r1Z"/>
-                        </connections>
                     </textField>
                     <button toolTip="If you've any other question." verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="lO8-KU-tpl">
                         <rect key="frame" x="188" y="31" width="135" height="32"/>
@@ -260,7 +249,6 @@
                         </buttonCell>
                         <connections>
                             <action selector="activateSupportPlan:" target="-2" id="lNy-8a-Dfv"/>
-                            <binding destination="-2" name="hidden" keyPath="isRegistered" id="1gw-aD-bzJ"/>
                         </connections>
                     </button>
                     <button toolTip="If you've any other question." verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="dW7-T8-3kz">
@@ -271,7 +259,6 @@
                         </buttonCell>
                         <connections>
                             <action selector="learnMore:" target="-2" id="EMk-7j-EiJ"/>
-                            <binding destination="-2" name="hidden" keyPath="isRegistered" id="L2p-7c-0eE"/>
                         </connections>
                     </button>
                 </subviews>
