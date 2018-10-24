@@ -180,6 +180,8 @@ NSString *SUScheduledCheckIntervalKey = @"SUScheduledCheckInterval";
 }
 
 
+#if 0  // registration disabled
+
 - (void)willBeDisplayed {
     if([[GPGMailBundle sharedInstance] hasActiveContract]) {
         [self setState:GPGMailPreferencesSupportPlanStateActiveState];
@@ -202,6 +204,8 @@ NSString *SUScheduledCheckIntervalKey = @"SUScheduledCheckInterval";
         _registrationDescriptionTextField.stringValue = [self registrationDescription];
     }
 }
+
+#endif
 
 - (NSImage *)gpgStatusImage {
 	switch ([[GPGMailBundle sharedInstance] gpgStatus]) {

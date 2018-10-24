@@ -955,6 +955,9 @@ static BOOL gpgMailWorks = NO;
 - (BOOL)hasActiveContract {
 	return YES;
 }
+- (BOOL)hasActiveContractOrActiveTrial {
+	return YES;
+}
 - (NSNumber *)remainingTrialDays {
 	return @(30);
 }
