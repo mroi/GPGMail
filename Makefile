@@ -10,7 +10,7 @@ all:
 	$(MAKE) -C gpgmail -B
 
 install: all
-	-launchctl bootout gui/$$UID/org.gpgtools.Libmacgpg.xpc
+	-launchctl bootout gui/`id -u`/org.gpgtools.Libmacgpg.xpc
 	rsync -rlcv --delete \
 		gpgmail/build/Release/GPGMail.mailbundle "$(PLUGIN_DIR)/"
 	rsync -rlcv --delete --exclude=Versions/B/XPCServices \
@@ -25,7 +25,7 @@ install: all
 	codesign -s "`id -F`" --deep --force "$(PLUGIN_DIR)/GPGMail.mailbundle"
 	codesign -s "`id -F`" --deep --force "$(FRAMEWORK_DIR)/Libmacgpg.framework"
 	sed 's|/Library/Application Support/GPGTools|$(XPC_DIR)|' < libmacgpg/build/org.gpgtools.Libmacgpg.xpc.plist > "$(LAUNCH_AGENT)"
-	launchctl bootstrap gui/$$UID "$(LAUNCH_AGENT)"
+	launchctl bootstrap gui/`id -u` "$(LAUNCH_AGENT)"
 
 update:
 	git subtree merge --prefix=libmacgpg --squash libmacgpg/dev
