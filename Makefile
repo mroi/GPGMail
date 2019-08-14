@@ -18,7 +18,7 @@ install: all
 	mkdir -p "$(XPC_DIR)" ; ln -shf Versions/Current/XPCServices "$(FRAMEWORK_DIR)/Libmacgpg.framework/"
 	rsync -rlcv --delete \
 		libmacgpg/build/Release/org.gpgtools.Libmacgpg.xpc "$(XPC_DIR)/"
-	uuid=`/usr/libexec/PlistBuddy -c 'Print PluginCompatibilityUUID' /Applications/Mail.app/Contents/Info.plist` ; \
+	uuid=`/usr/libexec/PlistBuddy -c 'Print PluginCompatibilityUUID' /System/Applications/Mail.app/Contents/Info.plist` ; \
 		fgrep -q $$uuid "$(PLUGIN_DIR)/GPGMail.mailbundle/Contents/Info.plist" || \
 		/usr/libexec/PlistBuddy -c "Add :Supported`sw_vers -productVersion | cut -d '.' -f 1,2`PluginCompatibilityUUIDs: string $$uuid" \
 		"$(PLUGIN_DIR)/GPGMail.mailbundle/Contents/Info.plist"
