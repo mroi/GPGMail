@@ -1,9 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<document type="com.apple.InterfaceBuilder3.Cocoa.XIB" version="3.0" toolsVersion="13771" targetRuntime="MacOSX.Cocoa" propertyAccessControl="none" useAutolayout="YES">
+<document type="com.apple.InterfaceBuilder3.Cocoa.XIB" version="3.0" toolsVersion="14865.1" targetRuntime="MacOSX.Cocoa" propertyAccessControl="none" useAutolayout="YES">
     <dependencies>
         <deployment version="1090" identifier="macosx"/>
-        <plugIn identifier="com.apple.InterfaceBuilder.CocoaPlugin" version="13771"/>
-        <capability name="box content view" minToolsVersion="7.0"/>
+        <plugIn identifier="com.apple.InterfaceBuilder.CocoaPlugin" version="14865.1"/>
         <capability name="documents saved in the Xcode 8 format" minToolsVersion="8.0"/>
     </dependencies>
     <objects>
@@ -15,14 +14,14 @@
         <customObject id="-1" userLabel="First Responder" customClass="FirstResponder"/>
         <customObject id="-3" userLabel="Application" customClass="NSObject"/>
         <box boxType="oldStyle" borderType="none" titlePosition="noTitle" id="9" userLabel="Preferences Box" customClass="GMSpecialBox">
-            <rect key="frame" x="0.0" y="0.0" width="570" height="289"/>
+            <rect key="frame" x="0.0" y="0.0" width="570" height="288"/>
             <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
             <view key="contentView" id="f5q-3U-pRE">
-                <rect key="frame" x="0.0" y="0.0" width="570" height="289"/>
+                <rect key="frame" x="0.0" y="0.0" width="570" height="288"/>
                 <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                 <subviews>
                     <textField verticalHuggingPriority="750" allowsCharacterPickerTouchBarItem="YES" translatesAutoresizingMaskIntoConstraints="NO" id="727">
-                        <rect key="frame" x="192" y="225" width="78" height="17"/>
+                        <rect key="frame" x="192" y="226" width="78" height="16"/>
                         <textFieldCell key="cell" scrollable="YES" lineBreakMode="clipping" sendsActionOnEndEditing="YES" title="Composing" id="728">
                             <font key="font" metaFont="systemBold"/>
                             <color key="textColor" name="controlTextColor" catalog="System" colorSpace="catalog"/>
@@ -30,7 +29,7 @@
                         </textFieldCell>
                     </textField>
                     <textField verticalHuggingPriority="750" allowsCharacterPickerTouchBarItem="YES" translatesAutoresizingMaskIntoConstraints="NO" id="706">
-                        <rect key="frame" x="13" y="106" width="63" height="18"/>
+                        <rect key="frame" x="13" y="106" width="63" height="17"/>
                         <textFieldCell key="cell" scrollable="YES" lineBreakMode="clipping" sendsActionOnEndEditing="YES" alignment="left" title="GPGMail" id="709">
                             <font key="font" metaFont="systemBold" size="14"/>
                             <color key="textColor" name="controlTextColor" catalog="System" colorSpace="catalog"/>
@@ -38,7 +37,7 @@
                         </textFieldCell>
                     </textField>
                     <imageView translatesAutoresizingMaskIntoConstraints="NO" id="707">
-                        <rect key="frame" x="22" y="145" width="128" height="128"/>
+                        <rect key="frame" x="22" y="144" width="128" height="128"/>
                         <constraints>
                             <constraint firstAttribute="width" constant="128" id="JXS-tG-x5q"/>
                             <constraint firstAttribute="height" constant="128" id="JwZ-lb-F4y"/>
@@ -46,10 +45,10 @@
                         <imageCell key="cell" refusesFirstResponder="YES" alignment="left" imageAlignment="left" imageScaling="proportionallyDown" image="GPGMail" id="708"/>
                     </imageView>
                     <box horizontalHuggingPriority="750" boxType="separator" translatesAutoresizingMaskIntoConstraints="NO" id="732">
-                        <rect key="frame" x="172" y="16" width="5" height="257"/>
+                        <rect key="frame" x="172" y="16" width="5" height="256"/>
                     </box>
                     <button translatesAutoresizingMaskIntoConstraints="NO" id="780">
-                        <rect key="frame" x="193" y="201" width="109" height="18"/>
+                        <rect key="frame" x="193" y="202" width="109" height="18"/>
                         <buttonCell key="cell" type="check" title="Encrypt drafts" bezelStyle="regularSquare" imagePosition="left" alignment="left" state="on" inset="2" id="781">
                             <behavior key="behavior" changeContents="YES" doesNotDimImage="YES" lightByContents="YES"/>
                             <font key="font" metaFont="system"/>
@@ -64,7 +63,7 @@
                         </connections>
                     </button>
                     <button focusRingType="none" translatesAutoresizingMaskIntoConstraints="NO" id="833" customClass="NSButton_LinkCursor">
-                        <rect key="frame" x="192" y="256" width="362" height="17"/>
+                        <rect key="frame" x="192" y="256" width="362" height="16"/>
                         <buttonCell key="cell" type="bevel" title="Button" bezelStyle="regularSquare" image="NSStatusAvailable" imagePosition="left" alignment="left" focusRingType="none" inset="2" id="834">
                             <behavior key="behavior" pushIn="YES" lightByBackground="YES" lightByGray="YES"/>
                             <font key="font" metaFont="system"/>
@@ -77,7 +76,7 @@
                         </connections>
                     </button>
                     <button translatesAutoresizingMaskIntoConstraints="NO" id="VxY-Gt-nbh">
-                        <rect key="frame" x="193" y="181" width="140" height="18"/>
+                        <rect key="frame" x="193" y="182" width="140" height="18"/>
                         <buttonCell key="cell" type="check" title="Encrypt new emails" bezelStyle="regularSquare" imagePosition="left" state="on" inset="2" id="yJs-2y-8Cb">
                             <behavior key="behavior" changeContents="YES" doesNotDimImage="YES" lightByContents="YES"/>
                             <font key="font" metaFont="system"/>
@@ -87,7 +86,7 @@
                         </connections>
                     </button>
                     <button translatesAutoresizingMaskIntoConstraints="NO" id="6KF-1a-b8O">
-                        <rect key="frame" x="193" y="161" width="120" height="18"/>
+                        <rect key="frame" x="193" y="162" width="120" height="18"/>
                         <buttonCell key="cell" type="check" title="Sign new emails" bezelStyle="regularSquare" imagePosition="left" state="on" inset="2" id="2ul-d0-5ir">
                             <behavior key="behavior" changeContents="YES" doesNotDimImage="YES" lightByContents="YES"/>
                             <font key="font" metaFont="system"/>
@@ -102,7 +101,7 @@
                             <constraint firstAttribute="width" constant="151" id="ghO-yW-MaE"/>
                         </constraints>
                         <textFieldCell key="cell" controlSize="small" scrollable="YES" lineBreakMode="clipping" sendsActionOnEndEditing="YES" title="Version: xxx" id="0Th-7E-Y7P">
-                            <font key="font" metaFont="smallSystem"/>
+                            <font key="font" metaFont="message" size="11"/>
                             <color key="textColor" name="controlTextColor" catalog="System" colorSpace="catalog"/>
                             <color key="backgroundColor" name="controlColor" catalog="System" colorSpace="catalog"/>
                         </textFieldCell>
@@ -146,11 +145,12 @@
                 <constraint firstAttribute="bottom" secondItem="1051" secondAttribute="bottom" constant="16" id="D59-Ag-M6y"/>
                 <constraint firstItem="VxY-Gt-nbh" firstAttribute="top" secondItem="780" secondAttribute="bottom" constant="6" id="D6C-qo-996"/>
                 <constraint firstItem="833" firstAttribute="top" secondItem="9" secondAttribute="top" constant="16" id="ERq-Ox-xxy"/>
+                <constraint firstAttribute="bottom" relation="greaterThanOrEqual" secondItem="6KF-1a-b8O" secondAttribute="bottom" constant="16" id="JFc-Uf-bJe"/>
                 <constraint firstItem="733" firstAttribute="leading" secondItem="eCn-aC-DhM" secondAttribute="leading" id="Lc9-qC-jda"/>
                 <constraint firstItem="727" firstAttribute="leading" secondItem="780" secondAttribute="leading" constant="-1" id="PXI-Pf-xnd"/>
-                <constraint firstAttribute="bottom" relation="greaterThanOrEqual" secondItem="6KF-1a-b8O" secondAttribute="bottom" constant="16" id="S7R-35-Zg9"/>
                 <constraint firstItem="6KF-1a-b8O" firstAttribute="leading" secondItem="VxY-Gt-nbh" secondAttribute="leading" id="Snz-24-gWc"/>
                 <constraint firstItem="833" firstAttribute="leading" secondItem="732" secondAttribute="trailing" constant="17" id="WYz-Zw-ZH9"/>
+                <constraint firstAttribute="bottom" secondItem="6KF-1a-b8O" secondAttribute="bottom" priority="749" constant="164" id="aiL-QV-0jR"/>
                 <constraint firstItem="706" firstAttribute="top" secondItem="707" secondAttribute="bottom" constant="21" id="bSJ-OK-Tyx"/>
                 <constraint firstAttribute="bottom" secondItem="732" secondAttribute="bottom" constant="16" id="bl2-E1-mS1"/>
                 <constraint firstItem="eCn-aC-DhM" firstAttribute="leading" secondItem="706" secondAttribute="leading" id="d03-zM-fPM"/>
@@ -165,7 +165,7 @@
                 <constraint firstItem="1051" firstAttribute="leading" secondItem="733" secondAttribute="leading" id="wGD-Mu-BEy"/>
                 <constraint firstItem="eCn-aC-DhM" firstAttribute="top" secondItem="706" secondAttribute="bottom" constant="8" id="ylA-cN-vxv"/>
             </constraints>
-            <font key="titleFont" metaFont="titleBar" size="12"/>
+            <font key="titleFont" metaFont="label" size="12"/>
             <point key="canvasLocation" x="204" y="169"/>
         </box>
         <customObject id="fps-Fk-1cJ" customClass="GPGUpdateController"/>
