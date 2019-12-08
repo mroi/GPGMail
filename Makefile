@@ -29,7 +29,7 @@ install: all
 
 update:
 	git subtree merge --prefix=libmacgpg --squash libmacgpg/dev
-	git subtree merge --prefix=gpgmail --squash gpgmail/mojave
+	git subtree merge --prefix=gpgmail gpgmail
 
 clean:
 	$(MAKE) -C gpgmail $@
