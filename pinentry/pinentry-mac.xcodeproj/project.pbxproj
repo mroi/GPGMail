@@ -1,0 +1,478 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 46;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		1FA4293B0E716E0C0007F59B /* Icon.icns in Resources */ = {isa = PBXBuildFile; fileRef = 1FA4293A0E716E0C0007F59B /* Icon.icns */; };
+		30065823158488940033E1D3 /* AppDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = 30065822158488940033E1D3 /* AppDelegate.m */; };
+		300A90FE18B8DA2800B87295 /* PassphraseLengthFormatter.m in Sources */ = {isa = PBXBuildFile; fileRef = 300A90FD18B8DA2800B87295 /* PassphraseLengthFormatter.m */; };
+		3025AFF21361D9830038F6BA /* ShortcutHandlingFields.m in Sources */ = {isa = PBXBuildFile; fileRef = 3025AFF11361D9830038F6BA /* ShortcutHandlingFields.m */; };
+		305E262A1296948200CF5467 /* GPGDefaults.m in Sources */ = {isa = PBXBuildFile; fileRef = 305E26291296948200CF5467 /* GPGDefaults.m */; };
+		305E2C4D129734A100CF5467 /* KeychainSupport.m in Sources */ = {isa = PBXBuildFile; fileRef = 305E2C4C129734A100CF5467 /* KeychainSupport.m */; };
+		305E2D09129734E300CF5467 /* Security.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 305E2D08129734E300CF5467 /* Security.framework */; };
+		309769901B4561D900CEF4F6 /* argparse.c in Sources */ = {isa = PBXBuildFile; fileRef = 3097698E1B4561D900CEF4F6 /* argparse.c */; };
+		309769931B4561E600CEF4F6 /* password-cache.c in Sources */ = {isa = PBXBuildFile; fileRef = 309769911B4561E600CEF4F6 /* password-cache.c */; };
+		4354B56E0A29D531003EB704 /* COPYING in Resources */ = {isa = PBXBuildFile; fileRef = 4354B56D0A29D531003EB704 /* COPYING */; };
+		438EE3050A1C6E570005741F /* assuan-buffer.c in Sources */ = {isa = PBXBuildFile; fileRef = 438EE2FD0A1C6E560005741F /* assuan-buffer.c */; };
+		438EE3060A1C6E570005741F /* assuan-errors.c in Sources */ = {isa = PBXBuildFile; fileRef = 438EE2FF0A1C6E560005741F /* assuan-errors.c */; };
+		438EE3070A1C6E570005741F /* assuan-handler.c in Sources */ = {isa = PBXBuildFile; fileRef = 438EE3000A1C6E560005741F /* assuan-handler.c */; };
+		438EE3080A1C6E570005741F /* assuan-listen.c in Sources */ = {isa = PBXBuildFile; fileRef = 438EE3010A1C6E560005741F /* assuan-listen.c */; };
+		438EE3090A1C6E570005741F /* assuan-pipe-server.c in Sources */ = {isa = PBXBuildFile; fileRef = 438EE3020A1C6E560005741F /* assuan-pipe-server.c */; };
+		438EE30A0A1C6E570005741F /* assuan-util.c in Sources */ = {isa = PBXBuildFile; fileRef = 438EE3030A1C6E560005741F /* assuan-util.c */; };
+		438EE30D0A1C6E700005741F /* pinentry.c in Sources */ = {isa = PBXBuildFile; fileRef = 438EE30B0A1C6E700005741F /* pinentry.c */; };
+		438EE3130A1C6E860005741F /* secmem.c in Sources */ = {isa = PBXBuildFile; fileRef = 438EE3100A1C6E860005741F /* secmem.c */; };
+		438EE3140A1C6E860005741F /* util.c in Sources */ = {isa = PBXBuildFile; fileRef = 438EE3110A1C6E860005741F /* util.c */; };
+		438EE31B0A1C70B80005741F /* PinentryController.m in Sources */ = {isa = PBXBuildFile; fileRef = 438EE31A0A1C70B80005741F /* PinentryController.m */; };
+		448F377D1E9F0452003BAB3A /* English.lproj in Resources */ = {isa = PBXBuildFile; fileRef = 448F377A1E9F0452003BAB3A /* English.lproj */; };
+		448F377E1E9F0452003BAB3A /* German.lproj in Resources */ = {isa = PBXBuildFile; fileRef = 448F377B1E9F0452003BAB3A /* German.lproj */; };
+		448F377F1E9F0452003BAB3A /* Main.nib in Resources */ = {isa = PBXBuildFile; fileRef = 448F377C1E9F0452003BAB3A /* Main.nib */; };
+		45A0BB29150FC624005C15B2 /* pinentry-curses.c in Sources */ = {isa = PBXBuildFile; fileRef = 45A0BB27150FC624005C15B2 /* pinentry-curses.c */; };
+		8D11072D0486CEB800E47090 /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = 29B97316FDCFA39411CA2CEA /* main.m */; settings = {ATTRIBUTES = (); }; };
+		8D11072F0486CEB800E47090 /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 1058C7A1FEA54F0111CA2CBB /* Cocoa.framework */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXFileReference section */
+		1058C7A1FEA54F0111CA2CBB /* Cocoa.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Cocoa.framework; path = /System/Library/Frameworks/Cocoa.framework; sourceTree = "<absolute>"; };
+		1FA4293A0E716E0C0007F59B /* Icon.icns */ = {isa = PBXFileReference; lastKnownFileType = image.icns; name = Icon.icns; path = Resources/Icon.icns; sourceTree = "<group>"; };
+		1FA4293D0E716E1A0007F59B /* Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; name = Info.plist; path = Resources/Info.plist; sourceTree = "<group>"; };
+		29B97316FDCFA39411CA2CEA /* main.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = main.m; path = Source/main.m; sourceTree = "<group>"; };
+		30065821158488940033E1D3 /* AppDelegate.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = AppDelegate.h; path = Source/AppDelegate.h; sourceTree = "<group>"; };
+		30065822158488940033E1D3 /* AppDelegate.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = AppDelegate.m; path = Source/AppDelegate.m; sourceTree = "<group>"; };
+		300A90FC18B8DA2800B87295 /* PassphraseLengthFormatter.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = PassphraseLengthFormatter.h; path = Source/PassphraseLengthFormatter.h; sourceTree = "<group>"; };
+		300A90FD18B8DA2800B87295 /* PassphraseLengthFormatter.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = PassphraseLengthFormatter.m; path = Source/PassphraseLengthFormatter.m; sourceTree = "<group>"; };
+		3025AFF01361D9830038F6BA /* ShortcutHandlingFields.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = ShortcutHandlingFields.h; path = Source/ShortcutHandlingFields.h; sourceTree = "<group>"; };
+		3025AFF11361D9830038F6BA /* ShortcutHandlingFields.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = ShortcutHandlingFields.m; path = Source/ShortcutHandlingFields.m; sourceTree = "<group>"; };
+		305E26281296948200CF5467 /* GPGDefaults.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = GPGDefaults.h; path = Source/GPGDefaults.h; sourceTree = "<group>"; };
+		305E26291296948200CF5467 /* GPGDefaults.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = GPGDefaults.m; path = Source/GPGDefaults.m; sourceTree = "<group>"; };
+		305E2C4B129734A100CF5467 /* KeychainSupport.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = KeychainSupport.h; path = Source/KeychainSupport.h; sourceTree = "<group>"; };
+		305E2C4C129734A100CF5467 /* KeychainSupport.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = KeychainSupport.m; path = Source/KeychainSupport.m; sourceTree = "<group>"; };
+		305E2D08129734E300CF5467 /* Security.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Security.framework; path = /System/Library/Frameworks/Security.framework; sourceTree = "<absolute>"; };
+		3097698E1B4561D900CEF4F6 /* argparse.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = argparse.c; path = "Source/pinentry-0.9.4/pinentry/argparse.c"; sourceTree = "<group>"; };
+		3097698F1B4561D900CEF4F6 /* argparse.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = argparse.h; path = "Source/pinentry-0.9.4/pinentry/argparse.h"; sourceTree = "<group>"; };
+		309769911B4561E600CEF4F6 /* password-cache.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = "password-cache.c"; path = "Source/pinentry-0.9.4/pinentry/password-cache.c"; sourceTree = "<group>"; };
+		309769921B4561E600CEF4F6 /* password-cache.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = "password-cache.h"; path = "Source/pinentry-0.9.4/pinentry/password-cache.h"; sourceTree = "<group>"; };
+		4354B56D0A29D531003EB704 /* COPYING */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = text; name = COPYING; path = Resources/COPYING; sourceTree = "<group>"; };
+		438EE2FD0A1C6E560005741F /* assuan-buffer.c */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.c; name = "assuan-buffer.c"; path = "Source/pinentry-current/assuan/assuan-buffer.c"; sourceTree = "<group>"; };
+		438EE2FE0A1C6E560005741F /* assuan-defs.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = "assuan-defs.h"; path = "Source/pinentry-current/assuan/assuan-defs.h"; sourceTree = "<group>"; };
+		438EE2FF0A1C6E560005741F /* assuan-errors.c */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.c; name = "assuan-errors.c"; path = "Source/pinentry-current/assuan/assuan-errors.c"; sourceTree = "<group>"; };
+		438EE3000A1C6E560005741F /* assuan-handler.c */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.c; name = "assuan-handler.c"; path = "Source/pinentry-current/assuan/assuan-handler.c"; sourceTree = "<group>"; };
+		438EE3010A1C6E560005741F /* assuan-listen.c */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.c; name = "assuan-listen.c"; path = "Source/pinentry-current/assuan/assuan-listen.c"; sourceTree = "<group>"; };
+		438EE3020A1C6E560005741F /* assuan-pipe-server.c */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.c; name = "assuan-pipe-server.c"; path = "Source/pinentry-current/assuan/assuan-pipe-server.c"; sourceTree = "<group>"; };
+		438EE3030A1C6E560005741F /* assuan-util.c */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.c; name = "assuan-util.c"; path = "Source/pinentry-current/assuan/assuan-util.c"; sourceTree = "<group>"; };
+		438EE3040A1C6E560005741F /* assuan.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = assuan.h; path = "Source/pinentry-current/assuan/assuan.h"; sourceTree = "<group>"; };
+		438EE30B0A1C6E700005741F /* pinentry.c */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.c; name = pinentry.c; path = "Source/pinentry-current/pinentry/pinentry.c"; sourceTree = "<group>"; };
+		438EE30C0A1C6E700005741F /* pinentry.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = pinentry.h; path = "Source/pinentry-current/pinentry/pinentry.h"; sourceTree = "<group>"; };
+		438EE30E0A1C6E860005741F /* memory.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = memory.h; path = "Source/pinentry-current/secmem/memory.h"; sourceTree = "<group>"; };
+		438EE30F0A1C6E860005741F /* secmem-util.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = "secmem-util.h"; path = "Source/pinentry-current/secmem/secmem-util.h"; sourceTree = "<group>"; };
+		438EE3100A1C6E860005741F /* secmem.c */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.c; name = secmem.c; path = "Source/pinentry-current/secmem/secmem.c"; sourceTree = "<group>"; };
+		438EE3110A1C6E860005741F /* util.c */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.c; name = util.c; path = "Source/pinentry-current/secmem/util.c"; sourceTree = "<group>"; };
+		438EE3120A1C6E860005741F /* util.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = util.h; path = "Source/pinentry-current/secmem/util.h"; sourceTree = "<group>"; };
+		438EE3150A1C6EB30005741F /* config.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = config.h; path = "Source/pinentry-current/config.h"; sourceTree = "<group>"; };
+		438EE3190A1C70B80005741F /* PinentryController.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = PinentryController.h; path = Source/PinentryController.h; sourceTree = "<group>"; };
+		438EE31A0A1C70B80005741F /* PinentryController.m */ = {isa = PBXFileReference; fileEncoding = 5; lastKnownFileType = sourcecode.c.objc; name = PinentryController.m; path = Source/PinentryController.m; sourceTree = "<group>"; };
+		448F377A1E9F0452003BAB3A /* English.lproj */ = {isa = PBXFileReference; lastKnownFileType = folder; name = English.lproj; path = Resources/English.lproj; sourceTree = "<group>"; };
+		448F377B1E9F0452003BAB3A /* German.lproj */ = {isa = PBXFileReference; lastKnownFileType = folder; name = German.lproj; path = Resources/German.lproj; sourceTree = "<group>"; };
+		448F377C1E9F0452003BAB3A /* Main.nib */ = {isa = PBXFileReference; lastKnownFileType = file.bplist; name = Main.nib; path = Resources/Main.nib; sourceTree = "<group>"; };
+		45A0BB27150FC624005C15B2 /* pinentry-curses.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = "pinentry-curses.c"; path = "Source/pinentry-current/pinentry/pinentry-curses.c"; sourceTree = "<group>"; };
+		45A0BB28150FC624005C15B2 /* pinentry-curses.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = "pinentry-curses.h"; path = "Source/pinentry-current/pinentry/pinentry-curses.h"; sourceTree = "<group>"; };
+		8D1107320486CEB800E47090 /* pinentry-mac.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "pinentry-mac.app"; sourceTree = BUILT_PRODUCTS_DIR; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		8D11072E0486CEB800E47090 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				8D11072F0486CEB800E47090 /* Cocoa.framework in Frameworks */,
+				305E2D09129734E300CF5467 /* Security.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		080E96DDFE201D6D7F000001 /* Classes */ = {
+			isa = PBXGroup;
+			children = (
+				438EE3190A1C70B80005741F /* PinentryController.h */,
+				438EE31A0A1C70B80005741F /* PinentryController.m */,
+				305E26281296948200CF5467 /* GPGDefaults.h */,
+				305E26291296948200CF5467 /* GPGDefaults.m */,
+				305E2C4B129734A100CF5467 /* KeychainSupport.h */,
+				305E2C4C129734A100CF5467 /* KeychainSupport.m */,
+				3025AFF01361D9830038F6BA /* ShortcutHandlingFields.h */,
+				3025AFF11361D9830038F6BA /* ShortcutHandlingFields.m */,
+				30065821158488940033E1D3 /* AppDelegate.h */,
+				30065822158488940033E1D3 /* AppDelegate.m */,
+				300A90FC18B8DA2800B87295 /* PassphraseLengthFormatter.h */,
+				300A90FD18B8DA2800B87295 /* PassphraseLengthFormatter.m */,
+			);
+			name = Classes;
+			sourceTree = "<group>";
+		};
+		19C28FACFE9D520D11CA2CBB /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				8D1107320486CEB800E47090 /* pinentry-mac.app */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		29B97314FDCFA39411CA2CEA /* pinentry-mac */ = {
+			isa = PBXGroup;
+			children = (
+				080E96DDFE201D6D7F000001 /* Classes */,
+				29B97315FDCFA39411CA2CEA /* Other Sources */,
+				29B97317FDCFA39411CA2CEA /* Resources */,
+				29B97323FDCFA39411CA2CEA /* Frameworks */,
+				19C28FACFE9D520D11CA2CBB /* Products */,
+			);
+			name = "pinentry-mac";
+			sourceTree = "<group>";
+		};
+		29B97315FDCFA39411CA2CEA /* Other Sources */ = {
+			isa = PBXGroup;
+			children = (
+				29B97316FDCFA39411CA2CEA /* main.m */,
+				30CD3A7E129692A5005F9EA7 /* pinentry Sources */,
+			);
+			name = "Other Sources";
+			sourceTree = "<group>";
+		};
+		29B97317FDCFA39411CA2CEA /* Resources */ = {
+			isa = PBXGroup;
+			children = (
+				448F377A1E9F0452003BAB3A /* English.lproj */,
+				448F377B1E9F0452003BAB3A /* German.lproj */,
+				448F377C1E9F0452003BAB3A /* Main.nib */,
+				1FA4293A0E716E0C0007F59B /* Icon.icns */,
+				1FA4293D0E716E1A0007F59B /* Info.plist */,
+				4354B56D0A29D531003EB704 /* COPYING */,
+			);
+			name = Resources;
+			sourceTree = "<group>";
+		};
+		29B97323FDCFA39411CA2CEA /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+				1058C7A1FEA54F0111CA2CBB /* Cocoa.framework */,
+				305E2D08129734E300CF5467 /* Security.framework */,
+			);
+			name = Frameworks;
+			sourceTree = "<group>";
+		};
+		30CD3A7E129692A5005F9EA7 /* pinentry Sources */ = {
+			isa = PBXGroup;
+			children = (
+				438EE3040A1C6E560005741F /* assuan.h */,
+				438EE2FD0A1C6E560005741F /* assuan-buffer.c */,
+				438EE2FE0A1C6E560005741F /* assuan-defs.h */,
+				438EE2FF0A1C6E560005741F /* assuan-errors.c */,
+				438EE3000A1C6E560005741F /* assuan-handler.c */,
+				438EE3010A1C6E560005741F /* assuan-listen.c */,
+				438EE3020A1C6E560005741F /* assuan-pipe-server.c */,
+				438EE3030A1C6E560005741F /* assuan-util.c */,
+				438EE3150A1C6EB30005741F /* config.h */,
+				438EE30E0A1C6E860005741F /* memory.h */,
+				3097698E1B4561D900CEF4F6 /* argparse.c */,
+				3097698F1B4561D900CEF4F6 /* argparse.h */,
+				309769911B4561E600CEF4F6 /* password-cache.c */,
+				309769921B4561E600CEF4F6 /* password-cache.h */,
+				438EE30B0A1C6E700005741F /* pinentry.c */,
+				438EE30C0A1C6E700005741F /* pinentry.h */,
+				45A0BB27150FC624005C15B2 /* pinentry-curses.c */,
+				45A0BB28150FC624005C15B2 /* pinentry-curses.h */,
+				438EE3100A1C6E860005741F /* secmem.c */,
+				438EE30F0A1C6E860005741F /* secmem-util.h */,
+				438EE3110A1C6E860005741F /* util.c */,
+				438EE3120A1C6E860005741F /* util.h */,
+			);
+			name = "pinentry Sources";
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		8D1107260486CEB800E47090 /* pinentry-mac */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = C01FCF4A08A954540054247B /* Build configuration list for PBXNativeTarget "pinentry-mac" */;
+			buildPhases = (
+				30FC955F129818AE0039CEF8 /* Localize XIBs */,
+				8D1107290486CEB800E47090 /* Resources */,
+				8D11072C0486CEB800E47090 /* Sources */,
+				8D11072E0486CEB800E47090 /* Frameworks */,
+				307377841AA4B7DA0097BCDE /* Copy "How to get the source code" into Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = "pinentry-mac";
+			productInstallPath = "$(HOME)/Applications";
+			productName = "pinentry-mac";
+			productReference = 8D1107320486CEB800E47090 /* pinentry-mac.app */;
+			productType = "com.apple.product-type.application";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		29B97313FDCFA39411CA2CEA /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				LastUpgradeCheck = 0830;
+			};
+			buildConfigurationList = C01FCF4E08A954540054247B /* Build configuration list for PBXProject "pinentry-mac" */;
+			compatibilityVersion = "Xcode 3.2";
+			developmentRegion = English;
+			hasScannedForEncodings = 1;
+			knownRegions = (
+				English,
+				Japanese,
+				French,
+				German,
+			);
+			mainGroup = 29B97314FDCFA39411CA2CEA /* pinentry-mac */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				8D1107260486CEB800E47090 /* pinentry-mac */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		8D1107290486CEB800E47090 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				4354B56E0A29D531003EB704 /* COPYING in Resources */,
+				448F377F1E9F0452003BAB3A /* Main.nib in Resources */,
+				448F377D1E9F0452003BAB3A /* English.lproj in Resources */,
+				1FA4293B0E716E0C0007F59B /* Icon.icns in Resources */,
+				448F377E1E9F0452003BAB3A /* German.lproj in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXShellScriptBuildPhase section */
+		30185C6B1A98CA980025E008 /* Fill Info.plist */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputPaths = (
+			);
+			name = "Fill Info.plist";
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "if [[ -d \"$DEPLOY_RESOURCES_DIR\" ]] ;then\nsource \"$DEPLOY_RESOURCES_DIR/config/versioning.sh\"\nelse\nsource \"$SRCROOT/Version.config\"\nfi\n[[ -n \"$VERSION\" ]] || { echo \"Missing Version!\"; exit 1; }\n\n\n/usr/libexec/PlistBuddy \\\n-c \"Set CommitHash '${COMMIT_HASH:--}'\" \\\n-c \"Set BuildNumber '${BUILD_NUMBER:-0}'\" \\\n-c \"Set CFBundleVersion '${BUILD_VERSION:-0n}'\" \\\n-c \"Set CFBundleShortVersionString '$VERSION'\" \\\n\"$BUILT_PRODUCTS_DIR/$INFOPLIST_PATH\" || exit 2\n";
+			showEnvVarsInLog = 0;
+		};
+		307377841AA4B7DA0097BCDE /* Copy "How to get the source code" into Resources */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputPaths = (
+			);
+			name = "Copy \"How to get the source code\" into Resources";
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "[[ -d \"$DEPLOY_RESOURCES_DIR\" ]] || exit 0\n \n HOWTO_PATH=\"$DEPLOY_RESOURCES_DIR/resources/How to get the source code\"\n cp \"$HOWTO_PATH\" \"$BUILT_PRODUCTS_DIR/$UNLOCALIZED_RESOURCES_FOLDER_PATH/\"";
+			showEnvVarsInLog = 0;
+		};
+		30FC955F129818AE0039CEF8 /* Localize XIBs */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputPaths = (
+			);
+			name = "Localize XIBs";
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "[[ \"$LOCALIZE\" == \"NO\" ]] && exit 0\n[[ -d \"$DEPLOY_RESOURCES_DIR\" ]] || exit 0\n\nalias localizeXIB=\"$DEPLOY_RESOURCES_DIR/bin/localizeXIB\"\nignore=\"$DEPLOY_RESOURCES_DIR/config/l10n_ignored_strings.txt\"\nlangs=\"German\"\nsourceDir=Resources/English.lproj\n\nlocalizeXIB -i \"$ignore\" $sourceDir/Pinentry.xib     $langs || exit 1\n";
+			showEnvVarsInLog = 0;
+		};
+/* End PBXShellScriptBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		8D11072C0486CEB800E47090 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				8D11072D0486CEB800E47090 /* main.m in Sources */,
+				438EE3050A1C6E570005741F /* assuan-buffer.c in Sources */,
+				438EE3060A1C6E570005741F /* assuan-errors.c in Sources */,
+				438EE3070A1C6E570005741F /* assuan-handler.c in Sources */,
+				438EE3080A1C6E570005741F /* assuan-listen.c in Sources */,
+				438EE3090A1C6E570005741F /* assuan-pipe-server.c in Sources */,
+				438EE30A0A1C6E570005741F /* assuan-util.c in Sources */,
+				438EE30D0A1C6E700005741F /* pinentry.c in Sources */,
+				438EE3130A1C6E860005741F /* secmem.c in Sources */,
+				309769931B4561E600CEF4F6 /* password-cache.c in Sources */,
+				438EE3140A1C6E860005741F /* util.c in Sources */,
+				438EE31B0A1C70B80005741F /* PinentryController.m in Sources */,
+				305E262A1296948200CF5467 /* GPGDefaults.m in Sources */,
+				305E2C4D129734A100CF5467 /* KeychainSupport.m in Sources */,
+				3025AFF21361D9830038F6BA /* ShortcutHandlingFields.m in Sources */,
+				45A0BB29150FC624005C15B2 /* pinentry-curses.c in Sources */,
+				30065823158488940033E1D3 /* AppDelegate.m in Sources */,
+				309769901B4561D900CEF4F6 /* argparse.c in Sources */,
+				300A90FE18B8DA2800B87295 /* PassphraseLengthFormatter.m in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin XCBuildConfiguration section */
+		C01FCF4B08A954540054247B /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				COMBINE_HIDPI_IMAGES = YES;
+				COPY_PHASE_STRIP = NO;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_ENABLE_FIX_AND_CONTINUE = NO;
+				GCC_MODEL_TUNING = G5;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				INFOPLIST_FILE = Resources/Info.plist;
+				INSTALL_PATH = /usr/local/MacGPG2/libexec;
+				MACOSX_DEPLOYMENT_TARGET = 10.10;
+				PRODUCT_BUNDLE_IDENTIFIER = "org.gpgtools.pinentry-mac";
+				PRODUCT_NAME = "pinentry-mac";
+				WRAPPER_EXTENSION = app;
+			};
+			name = Debug;
+		};
+		C01FCF4C08A954540054247B /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				COMBINE_HIDPI_IMAGES = YES;
+				GCC_ENABLE_FIX_AND_CONTINUE = NO;
+				GCC_GENERATE_DEBUGGING_SYMBOLS = NO;
+				GCC_MODEL_TUNING = G5;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					HAVE_CONFIG_H,
+					FALLBACK_CURSES,
+				);
+				INFOPLIST_FILE = Resources/Info.plist;
+				INSTALL_PATH = /usr/local/MacGPG2/libexec;
+				MACOSX_DEPLOYMENT_TARGET = 10.10;
+				PRODUCT_BUNDLE_IDENTIFIER = "org.gpgtools.pinentry-mac";
+				PRODUCT_NAME = "pinentry-mac";
+				WRAPPER_EXTENSION = app;
+			};
+			name = Release;
+		};
+		C01FCF4F08A954540054247B /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CLANG_ANALYZER_LOCALIZABILITY_NONLOCALIZED = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				DEPLOY_RESOURCES_DIR = "$(SRCROOT)/Dependencies/DeployResources";
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					HAVE_CONFIG_H,
+					FALLBACK_CURSES,
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				MACOSX_DEPLOYMENT_TARGET = 10.10;
+				ONLY_ACTIVE_ARCH = YES;
+				OTHER_LDFLAGS = (
+					"-liconv",
+					"-lncurses",
+				);
+				PREBINDING = NO;
+				SDKROOT = macosx;
+				VALID_ARCHS = "i386 x86_64 ppc";
+			};
+			name = Debug;
+		};
+		C01FCF5008A954540054247B /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CLANG_ANALYZER_LOCALIZABILITY_NONLOCALIZED = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				DEPLOY_RESOURCES_DIR = "$(SRCROOT)/Dependencies/DeployResources";
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					HAVE_CONFIG_H,
+					FALLBACK_CURSES,
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				MACOSX_DEPLOYMENT_TARGET = 10.10;
+				OTHER_LDFLAGS = (
+					"-liconv",
+					"-lncurses",
+				);
+				PREBINDING = NO;
+				SDKROOT = macosx;
+				VALID_ARCHS = "i386 x86_64 ppc";
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		C01FCF4A08A954540054247B /* Build configuration list for PBXNativeTarget "pinentry-mac" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				C01FCF4B08A954540054247B /* Debug */,
+				C01FCF4C08A954540054247B /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		C01FCF4E08A954540054247B /* Build configuration list for PBXProject "pinentry-mac" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				C01FCF4F08A954540054247B /* Debug */,
+				C01FCF5008A954540054247B /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = 29B97313FDCFA39411CA2CEA /* Project object */;
+}
