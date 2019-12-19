@@ -15,6 +15,9 @@
  Programm erhalten haben. Falls nicht, siehe <http://www.gnu.org/licenses/>.
 */
 
+#ifdef __OBJC__
+    #import <Cocoa/Cocoa.h>
+#endif
 #import "PinentryController.h"
 #import "GPGDefaults.h"
 
