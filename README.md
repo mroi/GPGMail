@@ -5,12 +5,13 @@ This is a modified version of the [GPGMail](https://github.com/GPGTools/GPGMail)
 Apple Mail. I found that the original comes with a number of components that I do not need 
 and so cleaning up after each update became increasingly tiresome. Thus, I created my own, 
 stripped down version, which just inludes
-* the [GPGMail plugin](https://github.com/GPGTools/GPGMail) itself, and
-* the [Libmacgpg](https://github.com/GPGTools/Libmacgpg) library.
+* the [GPGMail plugin](https://github.com/GPGTools/GPGMail) itself,
+* the [Libmacgpg](https://github.com/GPGTools/Libmacgpg) library, and
+* the [pinentry](https://github.com/matthewbauer/pinentry-mac.git) tool.
 
-I use the `gnupg` and `pinentry-mac` packages from [Nix](https://nixos.org), so I don’t need 
-anything else. No auto-updating, no key managment UI. Just the things needed to get nice GPG 
-integration in Apple Mail.
+I use the `gnupg` command from [Nix](https://nixos.org), so I don’t need anything else. No 
+auto-updating, no key managment UI. Just the things needed to get nice GPG integration in 
+Apple Mail.
 
 I modified the components to get a Mail plugin and an accompanying framework, which install 
 in user-writable folders within the home directory. No access to system-wide directories is 
