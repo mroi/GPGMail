@@ -68,7 +68,7 @@
 		1B876395178602B200B24BBC /* PGPSignatureUTF8Good.txt in Resources */ = {isa = PBXBuildFile; fileRef = 1B876385178602B200B24BBC /* PGPSignatureUTF8Good.txt */; };
 		1B8763981786035300B24BBC /* NSData+GPGMailTest.m in Sources */ = {isa = PBXBuildFile; fileRef = 1B8763971786035300B24BBC /* NSData+GPGMailTest.m */; };
 		1B87639B178628FD00B24BBC /* XCTest.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 1B87639A178628FD00B24BBC /* XCTest.framework */; };
-		1B87639E17862AAA00B24BBC /* GPGMail.mailbundle in Resources */ = {isa = PBXBuildFile; fileRef = 8D5B49B6048680CD000E48DA /* GPGMail.mailbundle */; };
+		1B87639E17862AAA00B24BBC /* OpenPGP.mailbundle in Resources */ = {isa = PBXBuildFile; fileRef = 8D5B49B6048680CD000E48DA /* OpenPGP.mailbundle */; };
 		1B87639F17862BD700B24BBC /* AppKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 1B19E83F13A2AEA4002E59ED /* AppKit.framework */; };
 		1B89E21614FC40F00012D4AD /* NSWindow+GPGMail.m in Sources */ = {isa = PBXBuildFile; fileRef = 1B89E21514FC40F00012D4AD /* NSWindow+GPGMail.m */; };
 		1B8C01D513E4F12D00DB9FA4 /* GPGSignatureView.m in Sources */ = {isa = PBXBuildFile; fileRef = 1B8C01D413E4F12D00DB9FA4 /* GPGSignatureView.m */; };
@@ -583,7 +583,7 @@
 		559A80E60838ED590052F47C /* GPGMailBundle.defaults */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = GPGMailBundle.defaults; sourceTree = "<group>"; };
 		559A812E0838EEFD0052F47C /* Security.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Security.framework; path = /System/Library/Frameworks/Security.framework; sourceTree = "<absolute>"; };
 		559A81860838F3C30052F47C /* Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
-		8D5B49B6048680CD000E48DA /* GPGMail.mailbundle */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = GPGMail.mailbundle; sourceTree = BUILT_PRODUCTS_DIR; };
+		8D5B49B6048680CD000E48DA /* OpenPGP.mailbundle */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = OpenPGP.mailbundle; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -673,7 +673,7 @@
 		19C28FB8FE9D52D311CA2CBB /* Products */ = {
 			isa = PBXGroup;
 			children = (
-				8D5B49B6048680CD000E48DA /* GPGMail.mailbundle */,
+				8D5B49B6048680CD000E48DA /* OpenPGP.mailbundle */,
 				1B87635F1786020900B24BBC /* Unit Tests.xctest */,
 			);
 			name = Products;
@@ -1071,7 +1071,7 @@
 			name = GPGMail;
 			productInstallPath = "$(HOME)/Library/Bundles";
 			productName = GPGMail;
-			productReference = 8D5B49B6048680CD000E48DA /* GPGMail.mailbundle */;
+			productReference = 8D5B49B6048680CD000E48DA /* OpenPGP.mailbundle */;
 			productType = "com.apple.product-type.bundle";
 		};
 /* End PBXNativeTarget section */
@@ -1174,7 +1174,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				1B87639E17862AAA00B24BBC /* GPGMail.mailbundle in Resources */,
+				1B87639E17862AAA00B24BBC /* OpenPGP.mailbundle in Resources */,
 				1B876389178602B200B24BBC /* PGPInlineDataUTF8quoted.txt in Resources */,
 				1B87638D178602B200B24BBC /* PGPInlineSignatureUTF8quoted.txt in Resources */,
 				1B876392178602B200B24BBC /* PGPSignatureASCIIGood.txt in Resources */,
@@ -1275,7 +1275,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "install_name_tool -change \\\n\"@executable_path/../Frameworks/RegexKit.framework/Versions/A/RegexKit\" \\\n\"@loader_path/../Frameworks/RegexKit.framework/Versions/A/RegexKit\" \\\n\"$TARGET_BUILD_DIR/$FULL_PRODUCT_NAME/Contents/MacOS/GPGMail\"\n";
+			shellScript = "install_name_tool -change \\\n\"@executable_path/../Frameworks/RegexKit.framework/Versions/A/RegexKit\" \\\n\"@loader_path/../Frameworks/RegexKit.framework/Versions/A/RegexKit\" \\\n\"$TARGET_BUILD_DIR/$FULL_PRODUCT_NAME/Contents/MacOS/OpenPGP\"\n";
 			showEnvVarsInLog = 0;
 		};
 		1BC07F3517466697004263BB /* Copy Libmacgpg into the sandbox container */ = {
@@ -1793,7 +1793,7 @@
 					"-undefined",
 					dynamic_lookup,
 				);
-				PRODUCT_NAME = GPGMail;
+				PRODUCT_NAME = OpenPGP;
 				STRIP_STYLE = "non-global";
 				VALID_ARCHS = "x86_64 i386";
 				WRAPPER_EXTENSION = mailbundle;
@@ -1839,7 +1839,7 @@
 					"-undefined",
 					dynamic_lookup,
 				);
-				PRODUCT_NAME = GPGMail;
+				PRODUCT_NAME = OpenPGP;
 				SEPARATE_STRIP = NO;
 				STRIP_STYLE = "non-global";
 				VALID_ARCHS = "x86_64 i386";

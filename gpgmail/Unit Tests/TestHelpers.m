@@ -47,10 +47,10 @@
 }
 
 + (void)loadGPGMail {
-	NSString *GPGMailPath = [[NSBundle bundleForClass:[self class]] pathForResource:@"GPGMail" ofType:@"mailbundle" inDirectory:nil];
-	// First, load the frameworks otherwise GPGMailBundle won't load, since it depends on them.
+	NSString *OpenPGPPath = [[NSBundle bundleForClass:[self class]] pathForResource:@"OpenPGP" ofType:@"mailbundle" inDirectory:nil];
+	// First, load the frameworks otherwise OpenPGPBundle won't load, since it depends on them.
 	[self loadFrameworks];
-	[self loadBundleAtPath:GPGMailPath];
+	[self loadBundleAtPath:OpenPGPPath];
 	[self loadMail];
 }
 
