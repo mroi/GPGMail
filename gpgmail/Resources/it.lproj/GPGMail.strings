@@ -2,7 +2,7 @@
 "VERSION: %@" = "Versione: %@";
 
 /* PGP preferences panel name */
-"PGP_PREFERENCES" = "GPG Mail";
+"PGP_PREFERENCES" = "OpenPGP";
 
 /* Message Error Banner messages. */
 "MESSAGE_BANNER_PGP_DECRYPT_ERROR_TITLE" = "Impossibile decifrare il messaggio PGP.";
@@ -145,7 +145,7 @@
 "MESSAGE_VIEW_PGP_PART" = "Parte PGP";
 
 /* GPG Mail Preferences strings. */
-"GPG_STATUS_NO_ERROR_TITLE" = "GPG Mail è pronto.";
+"GPG_STATUS_NO_ERROR_TITLE" = "OpenPGP è pronto.";
 "GPG_STATUS_NOT_FOUND_TITLE" = "MacGPG not found, reinstall GPG Suite";
 "GPG_STATUS_NOT_FOUND_TOOLTIP" = "Click indicator bubble for further information";
 "GPG_STATUS_OTHER_ERROR_TITLE" = "Problems found, click indicator bubble for more info";
@@ -158,8 +158,8 @@
 
 
 /* Multiple GPG Mail installations. */
-"GPGMAIL_MULTIPLE_INSTALLATIONS_TITLE" = "Sono state trovate installazioni multiple di GPG Mail!";
-"GPGMAIL_MULTIPLE_INSTALLATIONS_MESSAGE" = "GPG Mail ha trovato installazioni multiple nei seguenti percorsi che porteranno ad un crash immediato.\n%@\nPrego rimuovi GPGMail.mailbundle in uno dei percorsi e riavvia Mail.\n";
+"GPGMAIL_MULTIPLE_INSTALLATIONS_TITLE" = "Sono state trovate installazioni multiple di OpenPGP!";
+"GPGMAIL_MULTIPLE_INSTALLATIONS_MESSAGE" = "OpenPGP ha trovato installazioni multiple nei seguenti percorsi che porteranno ad un crash immediato.\n%@\nPrego rimuovi OpenPGP.mailbundle in uno dei percorsi e riavvia Mail.\n";
 "GPGMAIL_MULTIPLE_INSTALLATIONS_BUTTON" = "Esci da Mail";
 
 /* No Libmacgpg. */
@@ -167,12 +167,12 @@
 "LIBMACGPG_NOT_FOUND_MESSAGE" = "Libmacgpg was not found on your system. Please download and install GPG Suite from https://www.gpgtools.org.";
 
 /* Code signature invalid */
-CODE_SIGN_ERROR_TITLE = "Qualcuno manomesso con l'installazione di GPG Mail!";
-CODE_SIGN_ERROR_MESSAGE = "To keep you safe, GPG Mail will not be loaded!\n\nPlease re-install GPG Suite from https://gpgtools.org to be sure you have an original version from us!";
+CODE_SIGN_ERROR_TITLE = "Qualcuno manomesso con l'installazione di OpenPGP!";
+CODE_SIGN_ERROR_MESSAGE = "To keep you safe, OpenPGP will not be loaded!\n\nPlease re-install GPG Suite from https://gpgtools.org to be sure you have an original version from us!";
 
 /* GPGMailGPGMailBundle.defaults can't be loaded */
-NO_DEFAULTS_TITLE = "Impossibile caricare impostazioni predefiniti GPG Mail!";
-NO_DEFAULTS_MESSAGE = "GPG Mail non funziona come previsto.\n\nSi prega di scaricare e reinstallare GPG Suite da https: //gpgtools.org\n\nSe questo problema persiste, contattaci all'indirizzo https://gpgtools.tenderapp.com/.";
+NO_DEFAULTS_TITLE = "Impossibile caricare impostazioni predefiniti OpenPGP!";
+NO_DEFAULTS_MESSAGE = "OpenPGP non funziona come previsto.\n\nSi prega di scaricare e reinstallare GPG Suite da https: //gpgtools.org\n\nSe questo problema persiste, contattaci all'indirizzo https://gpgtools.tenderapp.com/.";
 
 /* Errors while trying to sign a message. */
 "MESSAGE_SIGNING_ERROR_NO_PINENTRY_TITLE" = "Signing your message failed due to a broken pinentry!";
@@ -185,10 +185,10 @@ NO_DEFAULTS_MESSAGE = "GPG Mail non funziona come previsto.\n\nSi prega di scari
 "MESSAGE_SIGNING_ERROR_AGENT_ERROR_DESCRIPTION" = "It was not possible to talk to the GPG agent in order to request your password.\n\nTo fix this problem, re-install GPG Suite from https://gpgtools.org.";
 
 "MESSAGE_SIGNING_ERROR_UNKNOWN_ERROR_TITLE" = "La firma del messaggio non è riuscita perché si è verificato un errore sconosciuto";
-"MESSAGE_SIGNING_ERROR_UNKNOWN_ERROR_DESCRIPTION" = "Purtroppo GPG Mail non può gestire l'errore a questo punto.";
+"MESSAGE_SIGNING_ERROR_UNKNOWN_ERROR_DESCRIPTION" = "Purtroppo OpenPGP non può gestire l'errore a questo punto.";
 
 "MESSAGE_ENCRYPTION_ERROR_UNKNOWN_ERROR_TITLE" = "La crittografia del tuo messaggio non è riuscita perché si è verificato un errore sconosciuto";
-"MESSAGE_ENCRYPTION_ERROR_UNKNOWN_ERROR_DESCRIPTION" = "Purtroppo GPG Mail non può gestire l'errore a questo punto.";
+"MESSAGE_ENCRYPTION_ERROR_UNKNOWN_ERROR_DESCRIPTION" = "Purtroppo OpenPGP non può gestire l'errore a questo punto.";
 
 "MESSAGE_SIGNING_ERROR_WRONG_PASSPHRASE_TITLE" = "È stata inserita una password errata troppe volte.";
 "MESSAGE_SIGNING_ERROR_WRONG_PASSPHRASE_DESCRIPTION" = "La firma del messaggio è stata interrotta perché è stata inserita una password errata per 3 volte.";
@@ -216,7 +216,7 @@ NO_DEFAULTS_MESSAGE = "GPG Mail non funziona come previsto.\n\nSi prega di scari
 "MESSAGE_SIGNING_ERROR_PINENTRY_CRASH_TITLE" = "Signing your message failed due to a problem during the password request";
 "MESSAGE_SIGNING_ERROR_PINENTRY_CRASH_DESCRIPTION" = "pinentry, the tool responsible for asking for your password, is not working properly.\n\nTo fix this problem, please re-install GPG Suite from https://gpgtools.org.";
 
-"MESSAGE_SIGNING_ERROR_XPC_DAMAGED_TITLE" = "La firma del tuo messaggio non è riuscita a causa di un problema nell'installazione GPG Mail.";
+"MESSAGE_SIGNING_ERROR_XPC_DAMAGED_TITLE" = "La firma del tuo messaggio non è riuscita a causa di un problema nell'installazione OpenPGP.";
 "MESSAGE_SIGNING_ERROR_XPC_DAMAGED_DESCRIPTION" = "To fix this problem, please re-install GPG Suite from https://gpgtools.org.\n\nShould this problem persist, contact us at https://gpgtools.tenderapp.com/ and include the information that the xpc service is not working properly.";
 
 "MESSAGE_BANNER_PGP_DECRYPT_ERROR_PINENTRY_CRASHED_TITLE" = "Decrypting the message failed due to a broken pinentry";

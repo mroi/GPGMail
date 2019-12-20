@@ -2,7 +2,7 @@
 "VERSION: %@" = "Versi: %@";
 
 /* PGP preferences panel name */
-"PGP_PREFERENCES" = "GPG Mail";
+"PGP_PREFERENCES" = "OpenPGP";
 
 /* Message Error Banner messages. */
 "MESSAGE_BANNER_PGP_DECRYPT_ERROR_TITLE" = "Tak bisa mendekripsi pesan PGP.";
@@ -145,7 +145,7 @@
 "MESSAGE_VIEW_PGP_PART" = "Bagian PGP";
 
 /* GPG Mail Preferences strings. */
-"GPG_STATUS_NO_ERROR_TITLE" = "GPG Mail siap";
+"GPG_STATUS_NO_ERROR_TITLE" = "OpenPGP siap";
 "GPG_STATUS_NOT_FOUND_TITLE" = "Tidak ditemukan MacGPG, pasang ulang GPG Suite";
 "GPG_STATUS_NOT_FOUND_TOOLTIP" = "Klik gelembung indikator untuk informasi lebih lanjut";
 "GPG_STATUS_OTHER_ERROR_TITLE" = "Masalah ditemukan, klik gelembung indikator untuk info lebih lanjut";
@@ -158,8 +158,8 @@
 
 
 /* Multiple GPG Mail installations. */
-"GPGMAIL_MULTIPLE_INSTALLATIONS_TITLE" = "Menemukan instalasi berganda dari GPG Mail!";
-"GPGMAIL_MULTIPLE_INSTALLATIONS_MESSAGE" = "GPG Mail mendeteksi instalasi berganda dalam lokasi-lokasi berikut yang akan mengarah ke crash seketika:\n\n%@\n\nHarap hapus GPGMail.mailbundle dalam satu dari lokasi-lokasi tersebut dan mulai ulang Mail.\n";
+"GPGMAIL_MULTIPLE_INSTALLATIONS_TITLE" = "Menemukan instalasi berganda dari OpenPGP!";
+"GPGMAIL_MULTIPLE_INSTALLATIONS_MESSAGE" = "OpenPGP mendeteksi instalasi berganda dalam lokasi-lokasi berikut yang akan mengarah ke crash seketika:\n\n%@\n\nHarap hapus OpenPGP.mailbundle dalam satu dari lokasi-lokasi tersebut dan mulai ulang Mail.\n";
 "GPGMAIL_MULTIPLE_INSTALLATIONS_BUTTON" = "Keluar Mail";
 
 /* No Libmacgpg. */
@@ -167,12 +167,12 @@
 "LIBMACGPG_NOT_FOUND_MESSAGE" = "Libmacgpg tidak ditemukan pada sistem Anda. Harap unduh dan pasang GPG Suite dari https://www.gpgtools.org.";
 
 /* Code signature invalid */
-CODE_SIGN_ERROR_TITLE = "Seseorang meretas instalasi GPG Mail Anda!";
-CODE_SIGN_ERROR_MESSAGE = "Agar Anda tetap aman, GPG Mail tidak akan dimuat!\n\nHarap pasang ulang GPG Suite dari https://gpgtools.org agar yakin bahwa Anda punya versi asli dari kami!";
+CODE_SIGN_ERROR_TITLE = "Seseorang meretas instalasi OpenPGP Anda!";
+CODE_SIGN_ERROR_MESSAGE = "Agar Anda tetap aman, OpenPGP tidak akan dimuat!\n\nHarap pasang ulang GPG Suite dari https://gpgtools.org agar yakin bahwa Anda punya versi asli dari kami!";
 
 /* GPGMailGPGMailBundle.defaults can't be loaded */
-NO_DEFAULTS_TITLE = "Tidak bisa memuat parameter baku GPG Mail!";
-NO_DEFAULTS_MESSAGE = "GPG Mail tidak bekerja seperti yang diharapkan.\n\nHarap unduh dan pasang ulang GPG Suite dari https://gpgtools.org\n\nApabila masalah ini tetap ada, harap hubungi kami di https://gpgtools.tenderapp.com/.";
+NO_DEFAULTS_TITLE = "Tidak bisa memuat parameter baku OpenPGP!";
+NO_DEFAULTS_MESSAGE = "OpenPGP tidak bekerja seperti yang diharapkan.\n\nHarap unduh dan pasang ulang GPG Suite dari https://gpgtools.org\n\nApabila masalah ini tetap ada, harap hubungi kami di https://gpgtools.tenderapp.com/.";
 
 /* Errors while trying to sign a message. */
 "MESSAGE_SIGNING_ERROR_NO_PINENTRY_TITLE" = "Menandatangani pesan Anda gagal karena pinentry yang rusak!";
@@ -185,10 +185,10 @@ NO_DEFAULTS_MESSAGE = "GPG Mail tidak bekerja seperti yang diharapkan.\n\nHarap 
 "MESSAGE_SIGNING_ERROR_AGENT_ERROR_DESCRIPTION" = "Tidak mungkin berbicara dengan agen GPG untuk meminta kata sandi Anda.\n\nUntuk memperbaiki masalah ini, pasang ulang GPG Suite dari https://gpgtools.org.";
 
 "MESSAGE_SIGNING_ERROR_UNKNOWN_ERROR_TITLE" = "Penandatanganan pesan Anda gagal karena galat yang tak dikenal telah terjadi";
-"MESSAGE_SIGNING_ERROR_UNKNOWN_ERROR_DESCRIPTION" = "Sayang sekali GPG Mail tak bisa menangani galat pada titik ini.";
+"MESSAGE_SIGNING_ERROR_UNKNOWN_ERROR_DESCRIPTION" = "Sayang sekali OpenPGP tak bisa menangani galat pada titik ini.";
 
 "MESSAGE_ENCRYPTION_ERROR_UNKNOWN_ERROR_TITLE" = "Penyandian pesan Anda gagal karena kesalahan yang tak dikenal telah terjadi";
-"MESSAGE_ENCRYPTION_ERROR_UNKNOWN_ERROR_DESCRIPTION" = "Sayang sekali GPG Mail tak bisa menangani galat pada titik ini.";
+"MESSAGE_ENCRYPTION_ERROR_UNKNOWN_ERROR_DESCRIPTION" = "Sayang sekali OpenPGP tak bisa menangani galat pada titik ini.";
 
 "MESSAGE_SIGNING_ERROR_WRONG_PASSPHRASE_TITLE" = "Anda terlalu banyak memasukkan frasa sandi yang salah.";
 "MESSAGE_SIGNING_ERROR_WRONG_PASSPHRASE_DESCRIPTION" = "Penandatanganan pesan Anda digugurkan karena Anda memasukkan sandi yang salah 3 kali.";
@@ -216,7 +216,7 @@ NO_DEFAULTS_MESSAGE = "GPG Mail tidak bekerja seperti yang diharapkan.\n\nHarap 
 "MESSAGE_SIGNING_ERROR_PINENTRY_CRASH_TITLE" = "Menandatangani pesan Anda gagal karena masalah selama permintaan kata sandi";
 "MESSAGE_SIGNING_ERROR_PINENTRY_CRASH_DESCRIPTION" = "pinentry, alat yang bertanggung jawab meminta kata sandi Anda, tidak bekerja dengan benar.\n\nUntuk memperbaiki masalah ini, harap pasang ulang GPG Suite dari https://gpgtools.org.";
 
-"MESSAGE_SIGNING_ERROR_XPC_DAMAGED_TITLE" = "Menandatangani pesan Anda gagal karena masalah dalam instalasi GPG Mail Anda.";
+"MESSAGE_SIGNING_ERROR_XPC_DAMAGED_TITLE" = "Menandatangani pesan Anda gagal karena masalah dalam instalasi OpenPGP Anda.";
 "MESSAGE_SIGNING_ERROR_XPC_DAMAGED_DESCRIPTION" = "Untuk memperbaiki masalah ini, harap pasang ulang GPG Suite dari https://gpgtools.org\n\nApabila masalah ini tetap ada, harap hubungi kami di https://gpgtools.tenderapp.com/ dan sertakan informasi bahwa layanan xpc tidak bekerja dengan benar.";
 
 "MESSAGE_BANNER_PGP_DECRYPT_ERROR_PINENTRY_CRASHED_TITLE" = "Dekripsi pesan gagal karena pinentry yang rusak!";

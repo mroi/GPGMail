@@ -2,7 +2,7 @@
 "VERSION: %@" = "Versió: %@";
 
 /* PGP preferences panel name */
-"PGP_PREFERENCES" = "GPG Mail";
+"PGP_PREFERENCES" = "OpenPGP";
 
 /* Message Error Banner messages. */
 "MESSAGE_BANNER_PGP_DECRYPT_ERROR_TITLE" = "No s'ha pogut desxifrar el missatge PGP.";
@@ -145,7 +145,7 @@
 "MESSAGE_VIEW_PGP_PART" = "Part de PGP";
 
 /* GPG Mail Preferences strings. */
-"GPG_STATUS_NO_ERROR_TITLE" = "El GPG Mail està llest.";
+"GPG_STATUS_NO_ERROR_TITLE" = "El OpenPGP està llest.";
 "GPG_STATUS_NOT_FOUND_TITLE" = "MacGPG not found, reinstall GPG Suite";
 "GPG_STATUS_NOT_FOUND_TOOLTIP" = "Click indicator bubble for further information";
 "GPG_STATUS_OTHER_ERROR_TITLE" = "Problems found, click indicator bubble for more info";
@@ -158,8 +158,8 @@
 
 
 /* Multiple GPG Mail installations. */
-"GPGMAIL_MULTIPLE_INSTALLATIONS_TITLE" = "S'han trobat diverses instal·lacions del GPG Mail!";
-"GPGMAIL_MULTIPLE_INSTALLATIONS_MESSAGE" = "El GPG Mail ha detectat diverses instal·lacions en les ubicacions següents, que donarà lloc a un error de manera immediata:\n\n%@\n\nSuprimiu el GPGMail.mailbundle d'una de les ubicacions i reinicieu el Mail.";
+"GPGMAIL_MULTIPLE_INSTALLATIONS_TITLE" = "S'han trobat diverses instal·lacions del OpenPGP!";
+"GPGMAIL_MULTIPLE_INSTALLATIONS_MESSAGE" = "El OpenPGP ha detectat diverses instal·lacions en les ubicacions següents, que donarà lloc a un error de manera immediata:\n\n%@\n\nSuprimiu el OpenPGP.mailbundle d'una de les ubicacions i reinicieu el Mail.";
 "GPGMAIL_MULTIPLE_INSTALLATIONS_BUTTON" = "Tanca el Mail";
 
 /* No Libmacgpg. */
@@ -167,12 +167,12 @@
 "LIBMACGPG_NOT_FOUND_MESSAGE" = "No s'ha trobat el Libmacgpg al vostre sistema. Baixeu i instal·leu el GPG Suite des de https://www.gpgtools.org.";
 
 /* Code signature invalid */
-CODE_SIGN_ERROR_TITLE = "Algú ha manipulat la instal·lació de GPG Mail!";
-CODE_SIGN_ERROR_MESSAGE = "Per a mantenir-vos segur, el GPG Mail no es carregarà!\n\nReinstal·leu el GPG Suite des de https://gpgtools.org per assegurar-vos que teniu una versió original nostra!";
+CODE_SIGN_ERROR_TITLE = "Algú ha manipulat la instal·lació de OpenPGP!";
+CODE_SIGN_ERROR_MESSAGE = "Per a mantenir-vos segur, el OpenPGP no es carregarà!\n\nReinstal·leu el GPG Suite des de https://gpgtools.org per assegurar-vos que teniu una versió original nostra!";
 
 /* GPGMailGPGMailBundle.defaults can't be loaded */
-NO_DEFAULTS_TITLE = "No s'ha carregat la configuració predeterminada de GPG Mail!";
-NO_DEFAULTS_MESSAGE = "El GPG Mail no funciona com deuria.\n\nBaixeu i reinstal·leu GPG Suite des de https://gpgtools.org\n\nSi el problema continua, contacteu amb nosaltres a https://gpgtools.tenderapp.com/.";
+NO_DEFAULTS_TITLE = "No s'ha carregat la configuració predeterminada de OpenPGP!";
+NO_DEFAULTS_MESSAGE = "El OpenPGP no funciona com deuria.\n\nBaixeu i reinstal·leu GPG Suite des de https://gpgtools.org\n\nSi el problema continua, contacteu amb nosaltres a https://gpgtools.tenderapp.com/.";
 
 /* Errors while trying to sign a message. */
 "MESSAGE_SIGNING_ERROR_NO_PINENTRY_TITLE" = "La signatura del missatge ha fallat perquè un pinentry s'ha fet malbé!";
@@ -185,10 +185,10 @@ NO_DEFAULTS_MESSAGE = "El GPG Mail no funciona com deuria.\n\nBaixeu i reinstal�
 "MESSAGE_SIGNING_ERROR_AGENT_ERROR_DESCRIPTION" = "És impossible contactar amb l'agent GPG per a sol·licitar la contrasenya.\n\nPer a corregir el problema, reinstal·leu GPG Suite des de https://gpgtools.org.";
 
 "MESSAGE_SIGNING_ERROR_UNKNOWN_ERROR_TITLE" = "El missatge no s'ha signat perquè ha ocorregut un error desconegut";
-"MESSAGE_SIGNING_ERROR_UNKNOWN_ERROR_DESCRIPTION" = "Malauradament, el GPG Mail no pot gestionar l'error en aquest punt.";
+"MESSAGE_SIGNING_ERROR_UNKNOWN_ERROR_DESCRIPTION" = "Malauradament, el OpenPGP no pot gestionar l'error en aquest punt.";
 
 "MESSAGE_ENCRYPTION_ERROR_UNKNOWN_ERROR_TITLE" = "El xifratge del missatge ha fallat perquè hi hagut un error desconegut";
-"MESSAGE_ENCRYPTION_ERROR_UNKNOWN_ERROR_DESCRIPTION" = "Malauradament, el GPG Mail no pot gestionar l'error en aquest punt.";
+"MESSAGE_ENCRYPTION_ERROR_UNKNOWN_ERROR_DESCRIPTION" = "Malauradament, el OpenPGP no pot gestionar l'error en aquest punt.";
 
 "MESSAGE_SIGNING_ERROR_WRONG_PASSPHRASE_TITLE" = "Heu introduït incorrectament la contrasenya massa vegades.";
 "MESSAGE_SIGNING_ERROR_WRONG_PASSPHRASE_DESCRIPTION" = "La signatura del missatge s'ha avortat perquè heu introduït incorrectament la contrasenya 3 vegades.";
@@ -216,7 +216,7 @@ NO_DEFAULTS_MESSAGE = "El GPG Mail no funciona com deuria.\n\nBaixeu i reinstal�
 "MESSAGE_SIGNING_ERROR_PINENTRY_CRASH_TITLE" = "Ha fallat la signatura del missatge per un problema durant la sol·licitud de contrasenya";
 "MESSAGE_SIGNING_ERROR_PINENTRY_CRASH_DESCRIPTION" = "El pinentry, l'eina responsable de demanar la contrasenya, sembla que s'ha fet malbé.\n\nPer a corregir el problema, reinstal·leu el GPG Suite des de https://gpgtools.org.";
 
-"MESSAGE_SIGNING_ERROR_XPC_DAMAGED_TITLE" = "La signatura del missatges ha fallat perquè hi ha un problema en la instal·lació del GPG Mail.";
+"MESSAGE_SIGNING_ERROR_XPC_DAMAGED_TITLE" = "La signatura del missatges ha fallat perquè hi ha un problema en la instal·lació del OpenPGP.";
 "MESSAGE_SIGNING_ERROR_XPC_DAMAGED_DESCRIPTION" = "Per a corregir el problema, reinstal·leu el GPG Suite des de https://gpgtools.org.\n\nSi el problema persisteix, contacteu amb nosaltres a https://gpgtools.tenderapp.com/ i inclogueu la informació relacionada amb el mal funcionament del servei xpc.";
 
 "MESSAGE_BANNER_PGP_DECRYPT_ERROR_PINENTRY_CRASHED_TITLE" = "Ha fallat el desxifratge del missatge perquè un pinentry no funciona";

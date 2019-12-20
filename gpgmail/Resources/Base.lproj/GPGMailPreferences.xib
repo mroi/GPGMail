@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<document type="com.apple.InterfaceBuilder3.Cocoa.XIB" version="3.0" toolsVersion="15505" targetRuntime="MacOSX.Cocoa" propertyAccessControl="none" useAutolayout="YES">
+<document type="com.apple.InterfaceBuilder3.Cocoa.XIB" version="3.0" toolsVersion="15702" targetRuntime="MacOSX.Cocoa" propertyAccessControl="none" useAutolayout="YES">
     <dependencies>
         <deployment version="1090" identifier="macosx"/>
-        <plugIn identifier="com.apple.InterfaceBuilder.CocoaPlugin" version="15505"/>
+        <plugIn identifier="com.apple.InterfaceBuilder.CocoaPlugin" version="15702"/>
         <capability name="documents saved in the Xcode 8 format" minToolsVersion="8.0"/>
     </dependencies>
     <objects>
@@ -29,8 +29,8 @@
                         </textFieldCell>
                     </textField>
                     <textField verticalHuggingPriority="750" allowsCharacterPickerTouchBarItem="YES" translatesAutoresizingMaskIntoConstraints="NO" id="706">
-                        <rect key="frame" x="13" y="106" width="63" height="17"/>
-                        <textFieldCell key="cell" scrollable="YES" lineBreakMode="clipping" sendsActionOnEndEditing="YES" alignment="left" title="GPGMail" id="709">
+                        <rect key="frame" x="13" y="106" width="70" height="17"/>
+                        <textFieldCell key="cell" scrollable="YES" lineBreakMode="clipping" sendsActionOnEndEditing="YES" alignment="left" title="OpenPGP" id="709">
                             <font key="font" metaFont="systemBold" size="14"/>
                             <color key="textColor" name="controlTextColor" catalog="System" colorSpace="catalog"/>
                             <color key="backgroundColor" name="controlColor" catalog="System" colorSpace="catalog"/>
@@ -96,10 +96,7 @@
                         </connections>
                     </button>
                     <textField horizontalHuggingPriority="251" verticalHuggingPriority="750" allowsCharacterPickerTouchBarItem="YES" translatesAutoresizingMaskIntoConstraints="NO" id="eCn-aC-DhM">
-                        <rect key="frame" x="13" y="84" width="155" height="14"/>
-                        <constraints>
-                            <constraint firstAttribute="width" constant="151" id="ghO-yW-MaE"/>
-                        </constraints>
+                        <rect key="frame" x="13" y="84" width="68" height="14"/>
                         <textFieldCell key="cell" controlSize="small" scrollable="YES" lineBreakMode="clipping" sendsActionOnEndEditing="YES" title="Version: xxx" id="0Th-7E-Y7P">
                             <font key="font" metaFont="message" size="11"/>
                             <color key="textColor" name="controlTextColor" catalog="System" colorSpace="catalog"/>
@@ -133,6 +130,15 @@
                         </connections>
                     </button>
                 </subviews>
+                <constraints>
+                    <constraint firstAttribute="trailing" relation="greaterThanOrEqual" secondItem="780" secondAttribute="trailing" constant="20" symbolic="YES" id="5ym-0l-Rtn"/>
+                    <constraint firstAttribute="trailing" relation="greaterThanOrEqual" secondItem="727" secondAttribute="trailing" constant="20" symbolic="YES" id="Eln-A1-RH4"/>
+                    <constraint firstItem="732" firstAttribute="leading" relation="greaterThanOrEqual" secondItem="706" secondAttribute="trailing" constant="8" symbolic="YES" id="Fd5-8V-3aj"/>
+                    <constraint firstAttribute="trailing" relation="greaterThanOrEqual" secondItem="VxY-Gt-nbh" secondAttribute="trailing" constant="20" symbolic="YES" id="SrZ-kN-Nae"/>
+                    <constraint firstItem="732" firstAttribute="leading" relation="greaterThanOrEqual" secondItem="1051" secondAttribute="trailing" constant="8" symbolic="YES" id="is9-Of-fbB"/>
+                    <constraint firstAttribute="trailing" relation="greaterThanOrEqual" secondItem="6KF-1a-b8O" secondAttribute="trailing" constant="20" symbolic="YES" id="qgF-Cq-uqA"/>
+                    <constraint firstItem="732" firstAttribute="leading" relation="greaterThanOrEqual" secondItem="eCn-aC-DhM" secondAttribute="trailing" constant="8" symbolic="YES" id="vTG-hI-aYq"/>
+                </constraints>
             </view>
             <constraints>
                 <constraint firstItem="732" firstAttribute="leading" secondItem="9" secondAttribute="leading" priority="500" constant="174" id="30f-hc-MS1"/>
