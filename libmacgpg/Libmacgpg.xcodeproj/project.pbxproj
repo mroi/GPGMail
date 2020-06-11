@@ -1119,7 +1119,7 @@
 		0867D690FE84028FC02AAC07 /* Project object */ = {
 			isa = PBXProject;
 			attributes = {
-				LastUpgradeCheck = 1010;
+				LastUpgradeCheck = 1130;
 				TargetAttributes = {
 					1B2F2D6F214FF12A00740DD3 = {
 						ProvisioningStyle = Manual;
@@ -1138,6 +1138,9 @@
 					};
 					30BE73BD1B54015C001A2137 = {
 						CreatedOnToolsVersion = 6.1.1;
+					};
+					8DC2EF4F0486A6940098B216 = {
+						ProvisioningStyle = Manual;
 					};
 				};
 			};
@@ -1168,6 +1171,7 @@
 				cs,
 				da,
 				th,
+				ja,
 			);
 			mainGroup = 0867D691FE84028FC02AAC07 /* Libmacgpg */;
 			productRefGroup = 034768DFFF38A50411DB9C8B /* Products */;
@@ -1719,6 +1723,7 @@
 				CLANG_WARN_EMPTY_BODY = YES;
 				CLANG_WARN_OBJC_IMPLICIT_ATOMIC_PROPERTIES = YES;
 				CLANG_WARN_SUSPICIOUS_IMPLICIT_CONVERSION = YES;
+				CODE_SIGN_STYLE = Manual;
 				COMBINE_HIDPI_IMAGES = YES;
 				COPY_PHASE_STRIP = NO;
 				DEVELOPMENT_TEAM = "";
@@ -1746,6 +1751,7 @@
 				LD_RUNPATH_SEARCH_PATHS = "@loader_path/Frameworks";
 				OTHER_LDFLAGS = "";
 				PRODUCT_NAME = Libmacgpg;
+				PROVISIONING_PROFILE_SPECIFIER = "";
 				RUN_CLANG_STATIC_ANALYZER = NO;
 				WRAPPER_EXTENSION = framework;
 			};
@@ -1758,6 +1764,7 @@
 				CLANG_WARN_EMPTY_BODY = YES;
 				CLANG_WARN_OBJC_IMPLICIT_ATOMIC_PROPERTIES = YES;
 				CLANG_WARN_SUSPICIOUS_IMPLICIT_CONVERSION = YES;
+				CODE_SIGN_STYLE = Manual;
 				COMBINE_HIDPI_IMAGES = YES;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				DEVELOPMENT_TEAM = "";
@@ -1784,6 +1791,7 @@
 				LD_RUNPATH_SEARCH_PATHS = /Library/Frameworks;
 				OTHER_LDFLAGS = "";
 				PRODUCT_NAME = Libmacgpg;
+				PROVISIONING_PROFILE_SPECIFIER = "";
 				WRAPPER_EXTENSION = framework;
 			};
 			name = Release;
