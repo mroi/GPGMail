@@ -67,6 +67,8 @@ typedef enum {
 - (BOOL)isKindOfTrial;
 - (BOOL)isAppNameValid;
 
+- (BOOL)isEligibleForAppWithName:(NSString *)appName;
+
 @property (atomic, copy) NSDictionary *metadata;
 @property (atomic, copy) NSDictionary *activation;
 

@@ -36,6 +36,7 @@
 typedef enum : NSUInteger {
     GPGMailPreferencesSupportPlanStateUninitializedState,
     GPGMailPreferencesSupportPlanStateTrialState,
+    GPGMailPreferencesSupportPlanStateOldActiveState, // A GPG Mail 3 support plan is active.
     GPGMailPreferencesSupportPlanStateActiveState,
 } GPGMailPreferencesSupportPlanState;
 

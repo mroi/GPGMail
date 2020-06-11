@@ -37,7 +37,7 @@ NSString * const kGMSupportPlanManagerFallbackTrial = GMSPStringFromPreprocessor
 #endif
 #endif
 
-#ifdef DEBUG
+#if defined(DEBUG) && defined(DEBUG_ACTIVATION_SERVER)
 NSString * const kGMSupportPlanManagerAPIEndpointURL = @"http://localhost:8000/api/v1.0/support-plans";
 #else
 NSString * const kGMSupportPlanManagerAPIEndpointURL = @"https://support-plan.gpgtools.org/api/v1.0/support-plans";

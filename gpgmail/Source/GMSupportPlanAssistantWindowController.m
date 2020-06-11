@@ -20,7 +20,8 @@
 typedef enum {
     GMSupportPlanPaddleErrorCodeNetworkError = 99,
     GMSupportPlanPaddleErrorCodeActivationCodeNotFound = 100,
-    GMSupportPlanPaddleErrorCodeActivationCodeAlreadyUsed = 104
+    GMSupportPlanPaddleErrorCodeActivationCodeAlreadyUsed = 104,
+    GMSupportPlanServiceErrorCodeSupportPlanDisabled = 105
 } GMSupportPlanPaddleErrorCodes;
 
 @interface GMSupportPlanAssistantViewController ()
@@ -129,7 +130,7 @@ typedef enum {
 }
 
 - (void)activationDidCompleteWithSuccessForSupportPlan:(GMSupportPlan *)supportPlan {
-    GMSupportPlanAssistantViewController *viewController = [[self window] contentViewController];
+    GMSupportPlanAssistantViewController *viewController = [self contentViewController];
     GMSupportPlanManager *supportPlanManager = [viewController supportPlanManager];
 
     // It is possible that fetching the trial information did succeed, but the
@@ -194,6 +195,10 @@ typedef enum {
         title = [GPGMailBundle localizedStringForKey:@"SUPPORT_PLAN_NEW_ACTIVATION_FAILED_TOO_MANY_ACTIVATIONS_TITLE"];
         alert.informativeText = [GPGMailBundle localizedStringForKey:@"SUPPORT_PLAN_NEW_ACTIVATION_FAILED_TOO_MANY_ACTIVATIONS"]; // "We are very sorry to inform you that you have exceeded the allowed number of activations.\nPlease contact us at business@gpgtools.org, if you believe that you should still have activations left."
     }
+    else if(error.code == GMSupportPlanServiceErrorCodeSupportPlanDisabled) {
+        title = [GPGMailBundle localizedStringForKey:@"SUPPORT_PLAN_NEW_ACTIVATION_FAILED_SUPPORT_PLAN_DISABLED_TITLE"];
+        alert.informativeText = [GPGMailBundle localizedStringForKey:@"SUPPORT_PLAN_NEW_ACTIVATION_FAILED_SUPPORT_PLAN_DISABLED"];
+    }
     else {
         title = [GPGMailBundle localizedStringForKey:@"SUPPORT_PLAN_NEW_ACTIVATION_FAILED_GENERAL_ERROR_TITLE"];
         alert.informativeText = [GPGMailBundle localizedStringForKey:@"SUPPORT_PLAN_NEW_ACTIVATION_FAILED_GENERAL_ERROR"]; // "Unfortunately an unknown error has occurred. Please retry later or use 'System Preferences › GPG Suite › Send Report' to contact us"
@@ -255,11 +260,17 @@ typedef enum {
 
     GMSupportPlanAssistantViewControllerState currentState = GMSupportPlanViewControllerStateBuy;
 
-    GMSupportPlanManagerUpgradeState upgradeState = [self.supportPlanManager upgradeState];
+    // By default the current status of the support plan is always checked first.
+    // If however the user chose to switch support plan, there's no need to check
+    // the current status.
+    if(self.initialDialogType != GMSupportPlanAssistantDialogTypeSwitchSupportPlan) {
+        GMSupportPlanManagerUpgradeState upgradeState = [self.supportPlanManager upgradeState];
 
-    if(upgradeState == GMSupportPlanManagerUpgradeStateUpgradeOrKeepVersion3 || upgradeState == GMSupportPlanManagerUpgradeStateUpgradeFromVersion3ToVersion4) {
-        currentState = GMSupportPlanViewControllerStateCheckingSupportPlanStatus;
+        if(upgradeState == GMSupportPlanManagerUpgradeStateUpgradeOrKeepVersion3 || upgradeState == GMSupportPlanManagerUpgradeStateUpgradeFromVersion3ToVersion4) {
+            currentState = GMSupportPlanViewControllerStateCheckingSupportPlanStatus;
+        }
     }
+
 
     [self setState:currentState];
 
@@ -280,22 +291,12 @@ typedef enum {
 }
 
 - (GMSupportPlanAssistantDialogType)dialogTypeWithStateHint:(GMSupportPlanAssistantViewControllerState)state {
-    if(state == GMSupportPlanViewControllerStateThanks) {
-        return [[self supportPlanManager] supportPlanState] == GMSupportPlanStateTrial ? GMSupportPlanAssistantDialogTypeTrialActivationComplete : GMSupportPlanAssistantDialogTypeActivationComplete;
-    }
-    if(state == GMSupportPlanViewControllerStateCheckingSupportPlanStatus) {
-        return GMSupportPlanAssistantDialogTypeCheckingSupportPlanStatus;
-    }
-    if(state == GMSupportPlanViewControllerStateInfo) {
-        GMSupportPlanManagerUpgradeState upgradeState = [[self supportPlanManager] upgradeState];
-        if(upgradeState == GMSupportPlanManagerUpgradeStateUpgradeOrKeepVersion3) {
-            return GMSupportPlanAssistantDialogTypeUpgradeKeepPreviousVersion;
-        }
-        else if(upgradeState == GMSupportPlanManagerUpgradeStateUpgradeFromVersion3ToVersion4) {
-            return GMSupportPlanAssistantDialogTypeUpgrade;
-        }
-    }
     if(state == GMSupportPlanViewControllerStateBuy) {
+        // If a previous support plan exists, instead of the activation screen,
+        // display a custom switch support plan screen.
+        if(self.initialDialogType == GMSupportPlanAssistantDialogTypeSwitchSupportPlan) {
+			return GMSupportPlanAssistantDialogTypeSwitchSupportPlan;
+		}
         if(![self.supportPlanManager supportPlanIsActive]) {
             return [self.supportPlanManager supportPlanState] == GMSupportPlanStateTrialExpired ? GMSupportPlanAssistantDialogTypeTrialExpired : GMSupportPlanAssistantDialogTypeInactive;
         }
@@ -303,10 +304,15 @@ typedef enum {
             return [[self.supportPlanManager supportPlan] isAboutToExpire] ? GMSupportPlanAssistantDialogTypeTrialAboutToExpire : GMSupportPlanAssistantDialogTypeTrial;
         }
     }
+
+    return GMSupportPlanAssistantDialogTypeInactive;
 }
 
 - (void)configureTextForState:(GMSupportPlanAssistantViewControllerState)state {
     GMSupportPlanManager *supportPlanManager = self.supportPlanManager;
+
+    NSString *continueButtonTitle = [GPGMailBundle localizedStringForKey:@"SUPPORT_PLAN_NEW_ACTIVATION_DIALOG_BUTTON_BUY"]; // "Buy Now";
+    NSInteger continueButtonTag = GMSupportPlanAssistantBuyActivateButtonStateBuy;
 
     if(state == GMSupportPlanViewControllerStateBuy) {
         NSDictionary *attributes = [NSDictionary dictionaryWithObjectsAndKeys:
@@ -363,6 +369,20 @@ typedef enum {
             self.subHeaderTextField.stringValue = [NSString stringWithFormat:format, remainingTrialDays];
             alreadyHaveSupportPlanInfo = self.detailsTextField;
         }
+        else if(dialogType == GMSupportPlanAssistantDialogTypeSwitchSupportPlan) {
+            self.headerTextField.stringValue = [GPGMailBundle localizedStringForKey:@"SUPPORT_PLAN_NEW_ACTIVATION_DIALOG_HEADER_SWITCH_PLAN"];
+            self.subHeaderTextField.stringValue = [GPGMailBundle localizedStringForKey:@"SUPPORT_PLAN_NEW_ACTIVATION_DIALOG_SUBHEADER_SWITCH_PLAN"];
+            self.detailsTextField.stringValue = [GPGMailBundle localizedStringForKey:@"SUPPORT_PLAN_NEW_ACTIVATION_DIALOG_SWITCH_PLAN_DETAILS_TEXT"];
+            self.infoTextLabel.hidden = YES;
+            self.grayInfoTextField.stringValue = [NSString stringWithFormat:@"\n%@ %@ %@", [GPGMailBundle localizedStringForKey:@"SUPPORT_PLAN_NEW_ACTIVATION_DIALOG_VERSION_4_COMPATIBILITY_INFO"],
+                                                  [GPGMailBundle localizedStringForKey:@"SUPPORT_PLAN_NEW_ACTIVATION_DIALOG_VERSION_3_COMPATIBILITY_INFO"],
+                                                  [GPGMailBundle localizedStringForKey:@"SUPPORT_PLAN_NEW_ACTIVATION_DIALOG_VERSION_COMPATIBILITY_NO_GUARANTEE_INFO"]];
+            alreadyHaveSupportPlanInfo = nil;
+            // By default disable the button.
+            self.continueButton.enabled = NO;
+            continueButtonTitle = [GPGMailBundle localizedStringForKey:@"SUPPORT_PLAN_NEW_ACTIVATION_DIALOG_BUTTON_ACTIVATE"]; // "Activate"
+            continueButtonTag = GMSupportPlanAssistantBuyActivateButtonStateActivate;
+        }
 
         alreadyHaveSupportPlanInfo.attributedStringValue = ({
             [NSAttributedString lo_attributedStringWithBaseAttributes:nil
@@ -374,10 +394,10 @@ typedef enum {
         });
         alreadyHaveSupportPlanInfo.hidden = NO;
 
-        self.continueButton.title = [GPGMailBundle localizedStringForKey:@"SUPPORT_PLAN_NEW_ACTIVATION_DIALOG_BUTTON_BUY"]; // "Buy Now"
-        self.continueButton.tag = GMSupportPlanAssistantBuyActivateButtonStateBuy;
+        self.continueButton.title = continueButtonTitle;
+        self.continueButton.tag = continueButtonTag;
 
-        if(dialogType == GMSupportPlanAssistantDialogTypeTrialExpired) {
+        if(dialogType == GMSupportPlanAssistantDialogTypeTrialExpired || dialogType == GMSupportPlanAssistantDialogTypeSwitchSupportPlan) {
             self.cancelButton.tag = GMSupportPlanAssistantButtonActionClose;
             self.cancelButton.title = [GPGMailBundle localizedStringForKey:@"SUPPORT_PLAN_NEW_ACTIVATION_DIALOG_BUTTON_CLOSE"];
         }
@@ -505,6 +525,7 @@ typedef enum {
         }
         _continueButton.title = [GPGMailBundle localizedStringForKey:@"SUPPORT_PLAN_NEW_DIALOG_BUTTON_CLOSE"];
         _continueButton.tag = GMSupportPlanAssistantButtonActionClose;
+        _continueButton.enabled = YES;
     }
 }
 
@@ -573,7 +594,7 @@ typedef enum {
         }
         else {
             [_subStackView setVisibilityPriority:NSStackViewVisibilityPriorityNotVisible forView:_dontAskAgainView];
-            if(supportPlanState == GMSupportPlanStateTrialExpired || [[[self supportPlanManager] supportPlan] isAboutToExpire]) {
+            if((supportPlanState == GMSupportPlanStateTrialExpired || [[[self supportPlanManager] supportPlan] isAboutToExpire]) && ![self.supportPlanManager shouldPromptUserForUpgrade]) {
                 [_stackView setVisibilityPriority:NSStackViewVisibilityPriorityMustHold forView:_infoTextView];
             }
             else {
@@ -598,6 +619,13 @@ typedef enum {
             [_progressIndicator stopAnimation:nil];
         }
         _continueButton.enabled = (state == GMSupportPlanViewControllerStateBuy || state == GMSupportPlanViewControllerStateInfo || state == GMSupportPlanViewControllerStateThanks);
+        // If the user wants to switch support plan, the button will be activated, once they entered
+        // proper support plan details.
+        if(self.initialDialogType == GMSupportPlanAssistantDialogTypeSwitchSupportPlan) {
+            if(state != GMSupportPlanViewControllerStateThanks) {
+                _continueButton.enabled = NO;
+            }
+        }
         if(state == GMSupportPlanViewControllerStateCheckingSupportPlanStatus) {
             _cancelButton.enabled = NO;
         }
@@ -648,17 +676,17 @@ typedef enum {
 }
 
 - (void)updateBuyButton {
-    GMSupportPlanAssistantBuyActivateButtonState wantsState = [self.activationCode length] || [self.email length] ? GMSupportPlanAssistantBuyActivateButtonStateActivate : GMSupportPlanAssistantBuyActivateButtonStateBuy;
-    if(_continueButton.tag == wantsState) {
-        return;
-    }
+    GMSupportPlanAssistantBuyActivateButtonState wantsState = [self.activationCode length] || [self.email length] || self.initialDialogType == GMSupportPlanAssistantDialogTypeSwitchSupportPlan ? GMSupportPlanAssistantBuyActivateButtonStateActivate : GMSupportPlanAssistantBuyActivateButtonStateBuy;
+
     if(wantsState == GMSupportPlanAssistantBuyActivateButtonStateBuy) {
         _continueButton.title = [GPGMailBundle localizedStringForKey:@"SUPPORT_PLAN_NEW_ACTIVATION_DIALOG_BUTTON_BUY"]; // "Buy Now"
         _continueButton.tag = GMSupportPlanAssistantBuyActivateButtonStateBuy;
+        _continueButton.enabled = YES;
     }
     else {
         _continueButton.title = [GPGMailBundle localizedStringForKey:@"SUPPORT_PLAN_NEW_ACTIVATION_DIALOG_BUTTON_ACTIVATE"]; // "Activate"
         _continueButton.tag = GMSupportPlanAssistantBuyActivateButtonStateActivate;
+        _continueButton.enabled = [self.activationCode length] || [self.email length] ? YES : NO;
     }
 }
 

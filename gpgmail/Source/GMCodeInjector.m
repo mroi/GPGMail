@@ -686,7 +686,12 @@
                                          ]
                                      ]
                              }
-                     }
+                     },
+             @"MessageWebDocumentView": @{
+                     @"selectors": @[
+                        @"setContentSize:"
+                     ]
+             }
              };
 }
 

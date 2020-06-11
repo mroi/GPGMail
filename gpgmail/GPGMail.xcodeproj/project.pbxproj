@@ -93,6 +93,11 @@
 		1BD5D3502153794000EA4492 /* GMSupportPlanAssistantView.xib in Resources */ = {isa = PBXBuildFile; fileRef = 1BD5D33F21536EBB00EA4492 /* GMSupportPlanAssistantView.xib */; };
 		1BD7D27F1765E59C00F5A266 /* MessageCriterion+GPGMail.m in Sources */ = {isa = PBXBuildFile; fileRef = 1BD7D27E1765E59C00F5A266 /* MessageCriterion+GPGMail.m */; };
 		1BD7DC432367525900EA968D /* GMLoaderUpdater.m in Sources */ = {isa = PBXBuildFile; fileRef = 1BD7DC422367525900EA968D /* GMLoaderUpdater.m */; };
+		1BE64A1C24833B4900478C00 /* iframeResizer.contentWindow.js in Resources */ = {isa = PBXBuildFile; fileRef = 1BE64A1A24833B4900478C00 /* iframeResizer.contentWindow.js */; };
+		1BE64A1D24833B4900478C00 /* iframeResizer.js in Resources */ = {isa = PBXBuildFile; fileRef = 1BE64A1B24833B4900478C00 /* iframeResizer.js */; };
+		1BE64A1F2483E62D00478C00 /* content-isolator.js in Resources */ = {isa = PBXBuildFile; fileRef = 1BE64A1E2483E62D00478C00 /* content-isolator.js */; };
+		1BE64A23248462A400478C00 /* content-isolator.css in Resources */ = {isa = PBXBuildFile; fileRef = 1BE64A22248462A400478C00 /* content-isolator.css */; };
+		1BE64A26248487E000478C00 /* MessageWebDocumentView+GPGMail.m in Sources */ = {isa = PBXBuildFile; fileRef = 1BE64A25248487E000478C00 /* MessageWebDocumentView+GPGMail.m */; };
 		1BEA7AC51760AB5B0084B2AD /* BannerController+GPGMail.m in Sources */ = {isa = PBXBuildFile; fileRef = 1BEA7AC41760AB5B0084B2AD /* BannerController+GPGMail.m */; };
 		1BED89701DA0195700178513 /* GMMessageSecurityFeatures.m in Sources */ = {isa = PBXBuildFile; fileRef = 1BED896F1DA0195700178513 /* GMMessageSecurityFeatures.m */; };
 		1BED92F81079529C00D22B4C /* GPGMailBundle.m in Sources */ = {isa = PBXBuildFile; fileRef = 559A806E0838E9B10052F47C /* GPGMailBundle.m */; };
@@ -353,6 +358,12 @@
 		1BD7DC412367525900EA968D /* GMLoaderUpdater.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = GMLoaderUpdater.h; sourceTree = "<group>"; };
 		1BD7DC422367525900EA968D /* GMLoaderUpdater.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = GMLoaderUpdater.m; sourceTree = "<group>"; };
 		1BDAA67313EB680D00F27826 /* CODING */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = CODING; sourceTree = "<group>"; };
+		1BE64A1A24833B4900478C00 /* iframeResizer.contentWindow.js */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.javascript; path = iframeResizer.contentWindow.js; sourceTree = "<group>"; };
+		1BE64A1B24833B4900478C00 /* iframeResizer.js */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.javascript; path = iframeResizer.js; sourceTree = "<group>"; };
+		1BE64A1E2483E62D00478C00 /* content-isolator.js */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.javascript; path = "content-isolator.js"; sourceTree = "<group>"; };
+		1BE64A22248462A400478C00 /* content-isolator.css */ = {isa = PBXFileReference; lastKnownFileType = text.css; path = "content-isolator.css"; sourceTree = "<group>"; };
+		1BE64A24248487E000478C00 /* MessageWebDocumentView+GPGMail.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "MessageWebDocumentView+GPGMail.h"; sourceTree = "<group>"; };
+		1BE64A25248487E000478C00 /* MessageWebDocumentView+GPGMail.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = "MessageWebDocumentView+GPGMail.m"; sourceTree = "<group>"; };
 		1BEA7AC31760AB5B0084B2AD /* BannerController+GPGMail.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "BannerController+GPGMail.h"; sourceTree = "<group>"; };
 		1BEA7AC41760AB5B0084B2AD /* BannerController+GPGMail.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "BannerController+GPGMail.m"; sourceTree = "<group>"; };
 		1BECA61513E372AC00C622B0 /* en */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = en; path = en.lproj/SignatureView.strings; sourceTree = "<group>"; };
@@ -650,6 +661,7 @@
 		089C167CFE841241C02AAC07 /* Resources */ = {
 			isa = PBXGroup;
 			children = (
+				1BE64A20248461C100478C00 /* content-isolator */,
 				1BD5D33F21536EBB00EA4492 /* GMSupportPlanAssistantView.xib */,
 				1BD5D34E215372A200EA4492 /* GMSupportPlanAssistantWindow.xib */,
 				1B8C01D613E4F25900DB9FA4 /* GPGSignatureView.xib */,
@@ -821,6 +833,8 @@
 				1B22762F1E7F16C100E09464 /* RedundantContentIdentificationManager+GPGMail.m */,
 				1BD5D34521536F6800EA4492 /* GMSupportPlanAssistantWindowController.h */,
 				1BD5D34621536F6800EA4492 /* GMSupportPlanAssistantWindowController.m */,
+				1BE64A24248487E000478C00 /* MessageWebDocumentView+GPGMail.h */,
+				1BE64A25248487E000478C00 /* MessageWebDocumentView+GPGMail.m */,
 			);
 			name = UI;
 			sourceTree = "<group>";
@@ -935,6 +949,17 @@
 				559A80600838E8300052F47C /* NSString+GPGMail.h */,
 			);
 			name = Common;
+			sourceTree = "<group>";
+		};
+		1BE64A20248461C100478C00 /* content-isolator */ = {
+			isa = PBXGroup;
+			children = (
+				1BE64A1A24833B4900478C00 /* iframeResizer.contentWindow.js */,
+				1BE64A1B24833B4900478C00 /* iframeResizer.js */,
+				1BE64A1E2483E62D00478C00 /* content-isolator.js */,
+				1BE64A22248462A400478C00 /* content-isolator.css */,
+			);
+			path = "content-isolator";
 			sourceTree = "<group>";
 		};
 		1BFDB138180B30DB00B677C2 /* MailHeaders */ = {
@@ -1206,6 +1231,7 @@
 				3005017F14FFE711004EB26B /* GPGMailPreferences.xib in Resources */,
 				3005018014FFE711004EB26B /* GPGAttachments.xib in Resources */,
 				3005017B14FFE70A004EB26B /* GPGMail.strings in Resources */,
+				1BE64A1C24833B4900478C00 /* iframeResizer.contentWindow.js in Resources */,
 				3005017C14FFE70A004EB26B /* SignatureView.strings in Resources */,
 				1B72348F2332D1DB0025CE63 /* Catalina in Resources */,
 				3005017D14FFE70A004EB26B /* GPGAttachment.strings in Resources */,
@@ -1214,12 +1240,14 @@
 				3005016114FFE702004EB26B /* RedDot.png in Resources */,
 				3005016214FFE702004EB26B /* YellowDot.png in Resources */,
 				3005016E14FFE702004EB26B /* InvalidBadge.png in Resources */,
+				1BE64A1F2483E62D00478C00 /* content-isolator.js in Resources */,
 				3005017914FFE702004EB26B /* ValidBadge.png in Resources */,
 				1B95B4C01501297B005BE119 /* ADVANCED PREFERENCES in Resources */,
 				3057F2EB1507C9C000FA3C0D /* Special.html in Resources */,
 				1B56ECA916175AA8004A3ABE /* GPGMail-Entitlements.plist in Resources */,
 				30A7AE9A1756709F00746C29 /* InvalidBadge@2x.png in Resources */,
 				30A7AEA1175670A500746C29 /* ValidBadge@2x.png in Resources */,
+				1BE64A23248462A400478C00 /* content-isolator.css in Resources */,
 				30A7AEA31756727300746C29 /* YellowDot@2x.png in Resources */,
 				30A7AEA51756728400746C29 /* GreenDot@2x.png in Resources */,
 				30A7AEA71756728B00746C29 /* RedDot@2x.png in Resources */,
@@ -1229,6 +1257,7 @@
 				301380DC17569815005948EE /* CertLargeNotTrusted@2x.png in Resources */,
 				301380DE17569819005948EE /* CertLargeNotTrusted.png in Resources */,
 				301380E217578133005948EE /* GPGMail.iconset in Resources */,
+				1BE64A1D24833B4900478C00 /* iframeResizer.js in Resources */,
 				3066C60A17579F5900384E29 /* CertSmallStd_Invalid.png in Resources */,
 				3066C60B17579F5900384E29 /* CertSmallStd_Invalid@2x.png in Resources */,
 				3066C60C17579F5900384E29 /* CertSmallStd.png in Resources */,
@@ -1411,6 +1440,7 @@
 				1B6678711F74156B002A5857 /* MFLibraryStore+GPGMail.m in Sources */,
 				1B89E21614FC40F00012D4AD /* NSWindow+GPGMail.m in Sources */,
 				1B9287C919F9E99700D540DF /* MCMessageGenerator+GPGMail.m in Sources */,
+				1BE64A26248487E000478C00 /* MessageWebDocumentView+GPGMail.m in Sources */,
 				1B2341DE14FEEC8C0007EB64 /* GMSecurityMethodAccessoryView.m in Sources */,
 				1B97AE3815096FA700A4F0F2 /* MMStopwatch.m in Sources */,
 				1B03125F18116CB4006D451A /* ConversationMember+GPGMail.m in Sources */,

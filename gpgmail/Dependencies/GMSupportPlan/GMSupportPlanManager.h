@@ -58,6 +58,7 @@ typedef enum {
 
 - (BOOL)shouldPromptUserForUpgrade;
 - (GMSupportPlanManagerUpgradeState)upgradeState;
+- (GMSupportPlan *)supportPlanForPreviousVersion;
 
 - (NSDictionary *)legacySupportPlanInformation;
 

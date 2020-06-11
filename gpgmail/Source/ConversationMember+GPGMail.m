@@ -29,12 +29,15 @@
 
 #import "ConversationMember+GPGMail.h"
 #import "CCLog.h"
+#import "NSObject+LPDynamicIvars.h"
 #import "MCMessage.h"
 #import "Message+GPGMail.h"
 #import "GMMessageSecurityFeatures.h"
 #import "MUIWebDocument.h"
 
 #define MAIL_SELF ((ConversationMember *)self)
+
+extern NSString * const kMessageSecurityFeaturesKey;
 
 @interface MUIWebDocument (macOS_10_14_1)
 
@@ -111,6 +114,8 @@
     GMMessageSecurityFeatures *securityFeatures = [(Message_GPGMail *)[MAIL_SELF originalMessage] securityFeatures];
     BOOL isPGPEncrypted = securityFeatures.PGPEncrypted || securityFeatures.PGPPartlyEncrypted;
     BOOL isEncrypted = [webDocument isEncrypted] || isPGPEncrypted;
+
+    [webDocument setIvar:kMessageSecurityFeaturesKey value:securityFeatures];
 
     DebugLog(@"Is document encrypted?: %@", isEncrypted ? @"YES" : @"NO");
     if(isEncrypted) {

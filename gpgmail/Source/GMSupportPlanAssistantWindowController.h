@@ -21,14 +21,10 @@ typedef enum : NSUInteger {
 
 typedef enum : NSUInteger {
     GMSupportPlanAssistantDialogTypeInactive,
-    GMSupportPlanAssistantDialogTypeCheckingSupportPlanStatus,
     GMSupportPlanAssistantDialogTypeTrial,
     GMSupportPlanAssistantDialogTypeTrialAboutToExpire,
     GMSupportPlanAssistantDialogTypeTrialExpired,
-    GMSupportPlanAssistantDialogTypeTrialActivationComplete,
-    GMSupportPlanAssistantDialogTypeActivationComplete,
-    GMSupportPlanAssistantDialogTypeUpgrade,
-    GMSupportPlanAssistantDialogTypeUpgradeKeepPreviousVersion
+    GMSupportPlanAssistantDialogTypeSwitchSupportPlan
 } GMSupportPlanAssistantDialogType;
 
 typedef enum : NSUInteger {
@@ -77,6 +73,8 @@ typedef enum : NSUInteger {
 @property (weak) id<GMSupportPlanAssistantDelegate> delegate;
 @property (nonatomic) GMSupportPlanAssistantViewControllerState state;
 @property (nonatomic) GMSupportPlanAssistantViewControllerState previousState;
+
+@property (nonatomic) GMSupportPlanAssistantDialogType initialDialogType;
 
 @property (nonatomic) NSString *email;
 @property (nonatomic) NSString *activationCode;

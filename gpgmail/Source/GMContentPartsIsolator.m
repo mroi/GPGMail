@@ -197,14 +197,14 @@
         [isolatedContent appendString:safeContent];
     }
     _isCreatingIsolatedContent = NO;
-    return isolatedContent;
+    return [NSString stringWithFormat:@"<div class=\"content-isolator__container\">%@</div>", isolatedContent];
 }
 
 - (NSString *)isolatedContentMarkupForUnsafeContent:(NSString *)content {
     // Might have to be a different encoding, based on data, but we'll find out.
-    content = [NSString stringWithFormat:@"<iframe-content>%@</iframe-content>", content];
+    content = [NSString stringWithFormat:@"<iframe-content data-iframe-height=\"true\">%@</iframe-content>", content];
     NSString *encodedContent = [[content dataUsingEncoding:NSUTF8StringEncoding] base64EncodedStringWithOptions:0];
-    NSString *isolatedContent = [NSString stringWithFormat:@"<iframe class=\"untrusted-content-test\" scrolling=\"auto\" width=\"200\" height=\"20\" style=\"border:none;display:block;overflow:auto;\" data-src=\"data:text/html;charset=UTF-8;base64,%@\" sandbox=\"allow-scripts\"></iframe>", encodedContent];
+    NSString *isolatedContent = [NSString stringWithFormat:@"<iframe class=\"content-isolator__isolated-content\" sandbox=\"allow-scripts\" scrolling=\"auto\" width=\"200\" height=\"10\" style=\"border:none;display:block;overflow:auto;\" data-src=\"data:text/html;charset=UTF-8;base64,%@\"></iframe>", encodedContent];
 
     return isolatedContent;
 }
