@@ -308,7 +308,7 @@
     
     NSMutableString *securityHeaderString = [securityHeader mutableString];
     
-    [securityHeaderString appendFormat:@"%@:", [[NSBundle mainBundle] localizedStringForKey:securityHeaderLabelKey value:@"" table:@"Encryption"]];
+    [securityHeaderString appendFormat:@"%@: ", [[NSBundle mainBundle] localizedStringForKey:securityHeaderLabelKey value:@"" table:@"Encryption"]];
     
     // Add the encrypted part to the security header.
     if(isPGPEncrypted) {

@@ -8,7 +8,7 @@
 
 #import <Foundation/Foundation.h>
 
-@class GMMessageProtectionStatus;
+@class GMMessageProtectionStatus, MCMimePart;
 
 // TODO: Should probably be called security properties. 
 @interface GMMessageSecurityFeatures : NSObject

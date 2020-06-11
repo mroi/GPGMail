@@ -52,6 +52,8 @@ NSString *SUScheduledCheckIntervalKey = @"SUScheduledCheckInterval";
 @property (nonatomic, weak) IBOutlet NSButton *deactivateButton;
 @property (nonatomic, weak) IBOutlet NSButton *learnMoreButton;
 @property (nonatomic, weak) IBOutlet NSButton *reportProblemButton;
+@property (nonatomic, weak) IBOutlet NSButton *switchSupportPlanButton;
+@property (nonatomic, weak) IBOutlet NSTextField *supportPlanTitleField;
 @property (nonatomic, assign) BOOL preferencesDidLoad;
 
 @end
@@ -97,7 +99,7 @@ NSString *SUScheduledCheckIntervalKey = @"SUScheduledCheckInterval";
 
 
 - (NSString *)versionDescription {
-	return [NSString stringWithFormat:GMLocalizedString(@"VERSION: %@"), [self.bundle version]];
+	return [NSString stringWithFormat:localized(@"VERSION: %@"), [self.bundle version]];
 }
 
 - (NSAttributedString *)buildNumberDescription {
@@ -116,40 +118,126 @@ NSString *SUScheduledCheckIntervalKey = @"SUScheduledCheckInterval";
     }
 }
 
-- (NSString *)registrationCode {
+- (NSAttributedString *)activationCodeFieldDescription {
+    // The activation code field in most cases will only display
+    // the activation code, unless a previous GPG Mail Support Plan
+    // activation is detected which is not valid for the current version.
+    NSMutableAttributedString *description = [NSMutableAttributedString new];
+
     GMSupportPlanManager *supportPlanManager = [[GPGMailBundle sharedInstance] supportPlanManager];
-    if(![supportPlanManager supportPlanIsActive]) {
-        return @"";
-    }
-
     GMSupportPlan *supportPlan = [supportPlanManager supportPlan];
-    if([supportPlan isKindOfTrial]) {
-        return @"";
+
+    self.supportPlanTitleField.stringValue = @"GPG Mail 4 Support Plan";
+
+    // If a valid support plan for a previous version is available, show the old activation code.
+    BOOL anyValidSupportPlan = ([supportPlanManager supportPlanIsActive] && ![supportPlan isKindOfTrial]) || [supportPlanManager shouldPromptUserForUpgrade];
+    GMSupportPlan *previousSupportPlan = [supportPlanManager supportPlanForPreviousVersion];
+
+    if(!anyValidSupportPlan) {
+        return (NSAttributedString *)description;
     }
 
-    return [NSString stringWithFormat:@"Code: %@", [supportPlanManager currentActivationCode]];
+    // True if the support plan is valid for this version and not a trial.
+    BOOL validSupportPlanExists = [supportPlanManager supportPlanIsActive] && ![supportPlan isKindOfTrial];
+
+    NSString *activationCode = validSupportPlanExists ? [supportPlan activationCode] : [previousSupportPlan activationCode];
+
+    NSMutableParagraphStyle *style = [[NSParagraphStyle defaultParagraphStyle] mutableCopy];
+    [style setParagraphSpacing:4];
+    NSDictionary *formattingAttributes = @{
+        NSParagraphStyleAttributeName: style,
+        NSFontAttributeName: [NSFont systemFontOfSize:[NSFont smallSystemFontSize]],
+        NSForegroundColorAttributeName: [NSColor controlTextColor]
+    };
+    NSAttributedString *code = [[NSAttributedString alloc] initWithString:[NSString stringWithFormat:@"%@: %@", localized(@"PREFERENCES_SUPPORT_PLAN_STATE_ACTIVATION_CODE_TITLE"), activationCode] attributes:formattingAttributes];
+    [description appendAttributedString:code];
+
+    if(validSupportPlanExists) {
+        return description;
+    }
+    // Add information about covered versions.
+
+    NSMutableArray *coveredVersions = [NSMutableArray new];
+    if(validSupportPlanExists && [supportPlan isEligibleForAppWithName:@"org.gpgtools.gpgmail4"]) {
+        [coveredVersions addObject:@"4.x"];
+    }
+    if((validSupportPlanExists && [supportPlan isEligibleForAppWithName:@"org.gpgtools.gpgmail"]) || (!validSupportPlanExists && [previousSupportPlan isEligibleForAppWithName:@"org.gpgtools.gpgmail"])) {
+        [coveredVersions addObject:@"3.x"];
+    }
+
+    NSAttributedString *coveredVersionsDescription = [[NSAttributedString alloc] initWithString:[NSString stringWithFormat:@"\n%@: %@\n", localized(@"PREFERENCES_SUPPORT_PLAN_STATE_COVERED_VERSIONS_TITLE"),
+                                                      [coveredVersions componentsJoinedByString:@", "]] attributes:formattingAttributes];
+
+    [description appendAttributedString:coveredVersionsDescription];
+
+    // If no support plan exists that covers this version but only a previous version,
+    // display detailed information about possible options.
+    NSString *modeDescription = [self modeDescription];
+
+    NSMutableParagraphStyle *paddingStyle = [[NSParagraphStyle defaultParagraphStyle] mutableCopy];
+    [paddingStyle setParagraphSpacingBefore:14];
+    [paddingStyle setParagraphSpacing:4];
+    NSMutableAttributedString *decryptOnlyMode = [[NSMutableAttributedString alloc] initWithString:[NSString stringWithFormat:@"%@\n", modeDescription] attributes:formattingAttributes];
+    [decryptOnlyMode addAttribute:NSParagraphStyleAttributeName value:paddingStyle range:NSMakeRange(0, [decryptOnlyMode length])];
+    [decryptOnlyMode addAttribute:NSFontAttributeName value:[NSFont boldSystemFontOfSize:[NSFont smallSystemFontSize]] range:NSMakeRange(0, [decryptOnlyMode length])];
+    [description appendAttributedString:decryptOnlyMode];
+
+    // Add some padding bottom using a paragraph style's spacing property.
+    paddingStyle = [[NSParagraphStyle defaultParagraphStyle] mutableCopy];
+    [paddingStyle setParagraphSpacing:0];
+    NSMutableAttributedString *explanation = [[NSMutableAttributedString alloc] initWithString:[NSString stringWithFormat:@"%@\n", localized(@"PREFERENCES_SUPPORT_PLAN_STATE_INVALID_NOT_COVERED_VERSION_DETECTED_DESCRIPTION")] attributes:formattingAttributes]; // @"Your current support plan is not valid for this version of GPG Mail. You can either choose to 'Upgrade' it or 'Switch Support Plan' If you have a different valid one for GPG Mail 4.\n"
+    // Font of size 1 is necessary, since line height
+    [explanation addAttribute:NSParagraphStyleAttributeName value:paddingStyle range:NSMakeRange(0, [explanation length])];
+    [explanation addAttribute:NSFontAttributeName value:[NSFont systemFontOfSize:1.0] range:NSMakeRange([explanation length] - 1, 1)];
+    [description appendAttributedString:explanation];
+
+    return (NSAttributedString *)description;
+}
+
+- (NSString *)modeDescription {
+    GMSupportPlanManager *supportPlanManager = [[GPGMailBundle sharedInstance] supportPlanManager];
+
+    NSString *description = localized(@"PREFERENCES_SUPPORT_PLAN_STATE_DECRYPT_ONLY_DESCRIPTION"); // @"Decrypt Only Mode";
+    if([[supportPlanManager supportPlan] isKindOfTrial]) {
+        NSNumber *remainingDays = [supportPlanManager remainingTrialDays];
+        if([remainingDays integerValue] <= 0) {
+            description = localized(@"PREFERENCES_SUPPORT_PLAN_STATE_DECRYPT_ONLY_TRIAL_EXPIRED_DESCRIPTION"); // @"Decrypt Only Mode - Trial expired";
+        }
+        else {
+            description = [NSString stringWithFormat:localized(@"PREFERENCES_SUPPORT_PLAN_STATE_DECRYPT_ONLY_TRIAL_DAYS_REMAINING_DESCRIPTION"), remainingDays]; // @"Trial Mode - %@ days remaining"
+        }
+    }
+
+    return description;
 }
 
 - (NSString *)registrationDescription {
     GMSupportPlanManager *supportPlanManager = [[GPGMailBundle sharedInstance] supportPlanManager];
+
+    // The easiest state is to have a valid support plan or a valid previous support plan.
+    if(([supportPlanManager supportPlanIsActive] && ![[supportPlanManager supportPlan] isKindOfTrial]) || [supportPlanManager shouldPromptUserForUpgrade]) {
+        GMSupportPlan *previousSupportPlan = [supportPlanManager supportPlanForPreviousVersion];
+        NSString *email = [supportPlanManager supportPlanIsActive] && ![[supportPlanManager supportPlan] isKindOfTrial] ? [supportPlanManager currentEmail] : [previousSupportPlan email];
+        return [NSString stringWithFormat:@"%@: %@", localized(@"PREFERENCES_SUPPORT_PLAN_STATE_REGISTERED_TO"), email];
+    }
+
     if(![supportPlanManager supportPlan] || (![supportPlanManager supportPlanIsActive] && [supportPlanManager supportPlanState] != GMSupportPlanStateTrialExpired)) {
-        return @"Decrypt Only Mode";
+        return localized(@"PREFERENCES_SUPPORT_PLAN_STATE_DECRYPT_ONLY_DESCRIPTION");
     }
 
     GMSupportPlan *supportPlan = [supportPlanManager supportPlan];
     GMSupportPlanType type = [supportPlan type];
 
     if([supportPlan isKindOfTrial]) {
-        NSNumber *remainingDays = [[self bundle] remainingTrialDays];
-        return [NSString stringWithFormat:@"Trial Version%@", [remainingDays integerValue] <= 0 ? @" Expired - Decrypt Only Mode" : [NSString stringWithFormat:@" (%@ days remaining)", remainingDays]];
+        return [self modeDescription];
     }
     else if(type == GMSupportPlanTypeTime) {
         NSString *formattedDate = [NSDateFormatter localizedStringFromDate:[supportPlan expirationDate] dateStyle:NSDateFormatterShortStyle timeStyle:NSDateFormatterNoStyle];
 
-        return [NSString stringWithFormat:@"Registered to: %@ - valid until %@", [supportPlanManager currentEmail], formattedDate];
+        return [NSString stringWithFormat:@"%@ - valid until %@", [NSString stringWithFormat:@"%@: %@", localized(@"PREFERENCES_SUPPORT_PLAN_STATE_REGISTERED_TO"), [supportPlanManager currentEmail]], formattedDate];
     }
 
-    return [NSString stringWithFormat:@"Registered to: %@", [supportPlanManager currentEmail]];
+    return [NSString stringWithFormat:@"%@: %@", localized(@"PREFERENCES_SUPPORT_PLAN_STATE_REGISTERED_TO"), [supportPlanManager currentEmail]];
 }
 
 - (IBAction)activateSupportPlan:(NSButton *)sender {
@@ -170,6 +258,9 @@ NSString *SUScheduledCheckIntervalKey = @"SUScheduledCheckInterval";
 			[[GPGMailBundle sharedInstance] deactivateSupportContract];
 		}
 	}];
+}
+- (IBAction)switchSupportPlan:(__unused NSButton *)sender {
+	[[GPGMailBundle sharedInstance] startSupportContractWizardToSwitchPlan];
 }
 - (IBAction)learnMore:(NSButton *)sender {
 	[[NSWorkspace sharedWorkspace] openURL:[NSURL URLWithString:@"https://gpgtools.org/buy-support-plan?v4=1"]];
@@ -207,18 +298,29 @@ NSString *SUScheduledCheckIntervalKey = @"SUScheduledCheckInterval";
 
 
 - (void)willBeDisplayed {
+    GMSupportPlanManager *supportPlanManager = [[GPGMailBundle sharedInstance] supportPlanManager];
+    BOOL previousSupportPlanExists = [supportPlanManager shouldPromptUserForUpgrade];
     if([[GPGMailBundle sharedInstance] hasActiveContract]) {
-        GMSupportPlanManager *supportPlanManager = [[GPGMailBundle sharedInstance] supportPlanManager];
         GMSupportPlanState supportPlanState = [supportPlanManager supportPlanState];
         if(supportPlanState == GMSupportPlanStateTrial) {
-            [self setState:GPGMailPreferencesSupportPlanStateTrialState forceUpdate:YES];
+            if(previousSupportPlanExists) {
+                [self setState:GPGMailPreferencesSupportPlanStateOldActiveState forceUpdate:YES];
+            }
+            else {
+                [self setState:GPGMailPreferencesSupportPlanStateTrialState forceUpdate:YES];
+            }
         }
         else {
             [self setState:GPGMailPreferencesSupportPlanStateActiveState forceUpdate:YES];
         }
     }
     else {
-        [self setState:GPGMailPreferencesSupportPlanStateTrialState forceUpdate:YES];
+        if(previousSupportPlanExists) {
+            [self setState:GPGMailPreferencesSupportPlanStateOldActiveState forceUpdate:YES];
+        }
+        else {
+            [self setState:GPGMailPreferencesSupportPlanStateTrialState forceUpdate:YES];
+        }
     }
 }
 
@@ -226,12 +328,26 @@ NSString *SUScheduledCheckIntervalKey = @"SUScheduledCheckInterval";
     if (_state != state || forceUpdate) {
         _state = state;
 
-        _activationCodeTextField.hidden = (state == GPGMailPreferencesSupportPlanStateTrialState);
-        _reportProblemButton.hidden = (state == GPGMailPreferencesSupportPlanStateTrialState);
-        _deactivateButton.hidden = (state == GPGMailPreferencesSupportPlanStateTrialState);
+        _activationCodeTextField.hidden = (state != GPGMailPreferencesSupportPlanStateActiveState && state != GPGMailPreferencesSupportPlanStateOldActiveState);
+        _reportProblemButton.hidden = (state != GPGMailPreferencesSupportPlanStateActiveState);
+        _deactivateButton.hidden = (state != GPGMailPreferencesSupportPlanStateActiveState);
         _activateButton.hidden = (state == GPGMailPreferencesSupportPlanStateActiveState);
-        _learnMoreButton.hidden = (state == GPGMailPreferencesSupportPlanStateActiveState);
-        _activationCodeTextField.stringValue = [self registrationCode];
+        _learnMoreButton.hidden = (state != GPGMailPreferencesSupportPlanStateTrialState);
+		_switchSupportPlanButton.hidden = (state != GPGMailPreferencesSupportPlanStateOldActiveState);
+        _activationCodeTextField.attributedStringValue = [self activationCodeFieldDescription];
+        _activationCodeTextField.maximumNumberOfLines = 0;
+
+        // Allow the activation code to be selected and copied.
+        _activationCodeTextField.selectable = YES;
+        _activationCodeTextField.allowsEditingTextAttributes = YES;
+
+        if([[[GPGMailBundle sharedInstance] supportPlanManager] shouldPromptUserForUpgrade]) {
+            _activateButton.title = localized(@"PREFERENCES_SUPPORT_PLAN_ACTION_BUTTON_UPGRADE_TITLE");
+        }
+        else {
+            _activateButton.title = localized(@"PREFERENCES_SUPPORT_PLAN_ACTION_BUTTON_ACTIVATE_TITLE");
+        }
+        _switchSupportPlanButton.title = localized(@"PREFERENCES_SUPPORT_PLAN_ACTION_BUTTON_SWITCH_SUPPORT_PLAN_TITLE");
     }
     // When GPG Mail is deactivated, at first it is displayed that GPG Mail is now in read only mode.
     // But once the API call is completed a new trial activation might have been fetched.
@@ -305,29 +421,16 @@ NSString *SUScheduledCheckIntervalKey = @"SUScheduledCheckInterval";
 				
                 NSWindow *window = [[(MailApp *)[NSClassFromString(@"MailApp") sharedApplication] preferencesController] window];
 				
-				if (floor(NSAppKitVersionNumber) >= NSAppKitVersionNumber10_9) {
-					NSAlert *unencryptedReplyAlert = [NSAlert new];
-					unencryptedReplyAlert.messageText = localized(@"DISABLE_ENCRYPT_DRAFTS_TITLE");
-					unencryptedReplyAlert.informativeText = localized(@"DISABLE_ENCRYPT_DRAFTS_MESSAGE");
-					[unencryptedReplyAlert addButtonWithTitle:localized(@"DISABLE_ENCRYPT_DRAFTS_CANCEL")];
-					[unencryptedReplyAlert addButtonWithTitle:localized(@"DISABLE_ENCRYPT_DRAFTS_CONFIRM")];
-					unencryptedReplyAlert.icon = [NSImage imageNamed:@"GPGMail"];
+                NSAlert *unencryptedReplyAlert = [NSAlert new];
+                unencryptedReplyAlert.messageText = localized(@"DISABLE_ENCRYPT_DRAFTS_TITLE");
+                unencryptedReplyAlert.informativeText = localized(@"DISABLE_ENCRYPT_DRAFTS_MESSAGE");
+                [unencryptedReplyAlert addButtonWithTitle:localized(@"DISABLE_ENCRYPT_DRAFTS_CANCEL")];
+                [unencryptedReplyAlert addButtonWithTitle:localized(@"DISABLE_ENCRYPT_DRAFTS_CONFIRM")];
+                unencryptedReplyAlert.icon = [NSImage imageNamed:@"GPGMail"];
 
-					[unencryptedReplyAlert beginSheetModalForWindow:window completionHandler:^(NSModalResponse returnCode) {
-						[NSApp stopModalWithCode:returnCode];
-					}];
-				} else {
-					NSBeginAlertSheet(localized(@"DISABLE_ENCRYPT_DRAFTS_TITLE"),
-									  localized(@"DISABLE_ENCRYPT_DRAFTS_CANCEL"),
-									  localized(@"DISABLE_ENCRYPT_DRAFTS_CONFIRM"),
-									  nil,
-									  window,
-									  self,
-									  @selector(disableEncryptDraftSheetDidEnd:returnCode:contextInfo:),
-									  nil,
-									  nil,
-									  @"%@", localized(@"DISABLE_ENCRYPT_DRAFTS_MESSAGE"));
-				}
+                [unencryptedReplyAlert beginSheetModalForWindow:window completionHandler:^(NSModalResponse returnCode) {
+                    [NSApp stopModalWithCode:returnCode];
+                }];
 
 				if ([NSApp runModalForWindow:window] != NSAlertSecondButtonReturn) {
 					*value = @(YES);
@@ -338,11 +441,6 @@ NSString *SUScheduledCheckIntervalKey = @"SUScheduledCheckInterval";
 	}
 	return YES;
 }
-- (void)disableEncryptDraftSheetDidEnd:(NSWindow *)sheet returnCode:(int)returnCode contextInfo:(void *)contextInfo {
-	returnCode = returnCode == NSAlertAlternateReturn ? NSAlertSecondButtonReturn : NSAlertFirstButtonReturn;
-	[NSApp stopModalWithCode:returnCode];
-}
-
 
 - (BOOL)encryptDrafts {
 	return [self.options boolForKey:@"OptionallyEncryptDrafts"];

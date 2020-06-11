@@ -189,6 +189,7 @@ extern kGMSupportPlanManagerUpgradeState;
  */
 - (void)checkSupportContractAndStartWizardIfNecessary;
 - (void)startSupportContractWizard;
+- (void)startSupportContractWizardToSwitchPlan;
 - (BOOL)hasActiveContract;
 - (BOOL)hasActiveContractOrActiveTrial;
 - (NSNumber *)remainingTrialDays;

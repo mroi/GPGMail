@@ -306,6 +306,8 @@ ACCESSIBILITY_SIGN_OFF_IMAGE = "Nicht signieren";
 "SUPPORT_PLAN_NEW_ACTIVATION_FAILED_TOO_MANY_ACTIVATIONS" = "Die Anzahl der Geräte, auf denen du deinen GPG Mail Support Plan aktivieren kannst, ist aufgebraucht.\nBitte deaktiviere den GPG Mail Support Plan auf einem deiner anderen Geräte. Diese Funktion steht dir unter \"Mail › Einstellungen › GPG Mail › Deaktivieren\" zur Verfügung.";
 "SUPPORT_PLAN_NEW_ACTIVATION_FAILED_GENERAL_ERROR_TITLE" = "Serverfehler!";
 "SUPPORT_PLAN_NEW_ACTIVATION_FAILED_GENERAL_ERROR" = "Die Aktivierung deines Support Plans konnte aufgrund eines Serverfehlers nicht erfolgreich abgeschlossen werden. Bitte versuche es später erneut. Sollte das Problem fortbestehen, kontaktiere uns via \"Systemeinstellungen › GPG Suite › Bericht senden\"";
+"SUPPORT_PLAN_NEW_ACTIVATION_FAILED_SUPPORT_PLAN_DISABLED_TITLE" = "Deaktivierter Support Plan!";
+"SUPPORT_PLAN_NEW_ACTIVATION_FAILED_SUPPORT_PLAN_DISABLED" = "Dieser Support Plan wurde deaktiviert. Sollte es sich hierbei um einen Fehler handeln, bitte kontaktiere uns unter business@gpgtools.org";
 "SUPPORT_PLAN_NEW_ACTIVATION_DIALOG_LOCATE_ACTIVATION_CODE" = "Deinen Aktivierungscode findest du in der E-Mail welche du nach dem Kauf erhalten hast.";
 "SUPPORT_PLAN_NEW_ACTIVATION_DIALOG_VERSION_3_COMPATIBILITY_INFO" = "GPG Mail 3 garantiert Kompatibilität mit macOS High Sierra (10.13) und maOS Mojave (10.14). Wir können nicht garantieren, dass zukünftige macOS Versionen unterstützt werden können.";
 "SUPPORT_PLAN_NEW_ACTIVATION_DIALOG_HEADER_WELCOME" = "Willkommen bei GPG Mail 3";
@@ -329,6 +331,9 @@ ACCESSIBILITY_SIGN_OFF_IMAGE = "Nicht signieren";
 "SUPPORT_PLAN_NEW_ACTIVATION_DIALOG_EMAIL_LABEL" = "E-Mail";
 "SUPPORT_PLAN_NEW_ACTIVATION_DIALOG_ACTIVATION_CODE_LABEL" = "Aktivierungscode";
 "SUPPORT_PLAN_NEW_ACTIVATION_DIALOG_PROGRESS_TEXT" = "Dein GPG Mail Support Plan wird aktiviert…";
+"SUPPORT_PLAN_NEW_ACTIVATION_DIALOG_HEADER_SWITCH_PLAN" = "GPG Mail 4";
+"SUPPORT_PLAN_NEW_ACTIVATION_DIALOG_SUBHEADER_SWITCH_PLAN" = "GPG Mail Support Plan wechseln";
+"SUPPORT_PLAN_NEW_ACTIVATION_DIALOG_SWITCH_PLAN_DETAILS_TEXT" = "Dein aktueller GPG Mail Support Plan ist nur für GPG Mail 3 gültig. Um auf einen gültigen GPG Mail 4 Support Plan zu wechseln, füge dessen Registrierungsdetails unten ein.";
 "SUPPORT_PLAN_NEW_UPGRADE_DIALOG_SUBHEADER" = "Bitte upgrade deinen GPG Mail Support Plan";
 "SUPPORT_PLAN_NEW_UPGRADE_DIALOG_UPGRADE_3TO4_VALID_V3" = "Dein GPG Mail Support Plan ist gültig für GPG Mail 3, welches aber nicht mit macOS Catalina kompatibel ist.";
 "SUPPORT_PLAN_NEW_UPGRADE_DIALOG_UPGRADE_3TO4_EXPLANATION" = "Um alle Funktionen von GPG Mail nutzen zu können und alle Vorteile der neuesten Updates und Features genießen zu können, upgrade jetzt deinen GPG Mail Support Plan.\n\nAls Dankeschön würden wir dir gernen einen Rabatt von %@ anbieten.";
@@ -367,6 +372,13 @@ ACCESSIBILITY_SIGN_OFF_IMAGE = "Nicht signieren";
 "SUPPORT_PLAN_DEACTIVATION_WARNING_CANCEL" = "Abbrechen";
 "SUPPORT_PLAN_DEACTIVATION_WARNING_CONFIRM" = "Deaktivieren";
 
-
-
-
+"PREFERENCES_SUPPORT_PLAN_STATE_DECRYPT_ONLY_DESCRIPTION" = "Nur Entschlüsseln Modus";
+"PREFERENCES_SUPPORT_PLAN_STATE_DECRYPT_ONLY_TRIAL_EXPIRED_DESCRIPTION" = "Nur Entschlüsseln Modus - Trial abgelaufen";
+"PREFERENCES_SUPPORT_PLAN_STATE_DECRYPT_ONLY_TRIAL_DAYS_REMAINING_DESCRIPTION" = "Trial Modus - läuft noch %@ Tage";
+"PREFERENCES_SUPPORT_PLAN_STATE_INVALID_NOT_COVERED_VERSION_DETECTED_DESCRIPTION" = "Dein aktueller Support Plan is für diese Version von GPG Mail nicht gültig. Du kannst entweder deinen aktuellen Support Plan 'Upgraden' oder 'Support Plan wechseln', solltest du einen anderen gültigen Support Plan für GPG Mail 4 besitzen.";
+"PREFERENCES_SUPPORT_PLAN_STATE_ACTIVATION_CODE_TITLE" = "Code";
+"PREFERENCES_SUPPORT_PLAN_STATE_COVERED_VERSIONS_TITLE" = "Gültig für Versionen";
+"PREFERENCES_SUPPORT_PLAN_STATE_REGISTERED_TO" = "E-Mail:";
+"PREFERENCES_SUPPORT_PLAN_ACTION_BUTTON_UPGRADE_TITLE" = "Upgrade";
+"PREFERENCES_SUPPORT_PLAN_ACTION_BUTTON_ACTIVATE_TITLE" = "Aktivieren";
+"PREFERENCES_SUPPORT_PLAN_ACTION_BUTTON_SWITCH_SUPPORT_PLAN_TITLE" = "Support Plan wechseln";

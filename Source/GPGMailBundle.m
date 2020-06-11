@@ -222,13 +222,18 @@ decisionHandler:(void (^)(WKNavigationActionPolicy))decisionHandler {
 
 - (id)MAInit {
     id ret = [self MAInit];
-    WKUserScript *resizeScript = [[WKUserScript alloc] initWithSource:@";var __GMIsMainFrame__=!0,console={log:function(){return;for(var e=\"\",t=0;t<arguments.length;t++)e+=\" \"+arguments[t];!function(e){var t=document.getElementsByClassName(\"lp-logger\"),i=t.length?t[0]:null;i||((i=document.createElement(\"div\")).className=\"lp-logger\",document.getElementsByTagName(\"body\")[0].appendChild(i));var n=document.createElement(\"div\");n.innerHTML=e,i.appendChild(n)}(e)}},IFRAME_PREFIX=\"{IFRAME_PREFIX}\";function iframeMatchingName(e){var t=null;return forEachIframe(function(){this.getAttribute(\"name\")===e&&(t=this)}),t}function forEachIframe(e){for(var t=\"untrusted-content-\"+IFRAME_PREFIX,i=document.getElementsByClassName(t),n=0;n<i.length;n++){var a=i[n];e.call(a,n,a)}}function setupIframes(){forEachIframe(function(e,t){this.setAttribute(\"name\",this.className+\"_\"+e),console.log(\"Setting name for iframe \",this.getAttribute(\"name\")),this.onload=resizeIframe,this.src=this.getAttribute(\"data-src\")})}function resizeIframe(e){console.log(\"Asking iframe for height\",this.getAttribute(\"name\"));try{this.contentWindow.postMessage({name:this.getAttribute(\"name\"),width:parseInt(this.getAttribute('width'))},\"*\")}catch(e){console.log(\"Error: \",e)}}function resizeIframes(){lastWindowWidth!==window.innerWidth&&(lastWindowWidth=window.innerWidth,console.log(\"Resizing all iframes...\"),forEachIframe(function(){console.log(\"window width\",window.innerWidth),this.setAttribute(\"width\",(document.body.getBoundingClientRect().width-parseInt(window.getComputedStyle(this).getPropertyValue(\"border-left-width\"))-parseInt(window.getComputedStyle(this).getPropertyValue(\"border-right-width\"))-parseInt(window.getComputedStyle(this).getPropertyValue(\"margin-left\"))-parseInt(window.getComputedStyle(this).getPropertyValue(\"margin-right\"))-20)+\"px\"),console.log('body width', document.body.getBoundingClientRect().width, document.body.getBoundingClientRect().left, document.body.getBoundingClientRect().x, document.body.getBoundingClientRect().right),resizeIframe.call(this)}))}IFRAME_PREFIX=IFRAME_PREFIX.replace(\"{IFRAME_PREFIX}\",\"test\"),window.addEventListener(\"message\",function(e){var t=e.data,i=iframeMatchingName(t.name);console.log(\"Set height: \"+t.height+\"px for iframe '\"+t.name+\"'\"),i.style.height=t.height+\"px\"},!1);var resizeTimeout=!1,resizeDelay=250,lastWindowWidth=0;window.addEventListener(\"resize\",function(){clearTimeout(resizeTimeout),resizeTimeout=setTimeout(resizeIframes,resizeDelay)}),setupIframes();document.getElementsByTagName('html')[0].className+='__main__content'" injectionTime:WKUserScriptInjectionTimeAtDocumentEnd forMainFrameOnly:YES];
-    WKUserScript *iframeHeightScriptBegin = [[WKUserScript alloc] initWithSource:@"if(\"undefined\"==typeof __GMIsMainFrame__){document.getElementsByTagName('html')[0].className+='unsafe-content';var console={log:function(){return;for(var e=\"\",n=0;n<arguments.length;n++)e+=\" \"+arguments[n];!function(e){var n=document.getElementsByClassName(\"lp-logger\"),t=n.length?n[0]:null;t||((t=document.createElement(\"div\")).className=\"lp-logger\",document.getElementsByTagName(\"body\")[0].insertAdjacentElement(\"afterbegin\",t));var a=document.createElement(\"div\");a.innerHTML=e,t.appendChild(a)}(e)}};function computeContentHeight(){var rect = document.getElementsByTagName(\"iframe-content\")[0].getBoundingClientRect(); console.log('body bottom', document.body.getBoundingClientRect().bottom, document.body.getBoundingClientRect().height); console.log('rect bottom', rect.bottom, rect.height); return rect.height+rect.top+rect.y;}window.addEventListener(\"message\",function(e){var n=e.data||{};document.body.style.width = n.width + 'px',n.height=computeContentHeight(),console.log(\"Sending message: \",n.height,n.name),window.parent.postMessage(n,\"*\")},!1)}" injectionTime:WKUserScriptInjectionTimeAtDocumentEnd forMainFrameOnly:NO];
+
+    WKUserScript *resizeScript = [[WKUserScript alloc] initWithSource:[NSString stringWithContentsOfURL:[[GPGMailBundle bundle] URLForResource:@"iframeResizer" withExtension:@"js"] encoding:NSUTF8StringEncoding error:nil] injectionTime:WKUserScriptInjectionTimeAtDocumentEnd forMainFrameOnly:YES];
+    WKUserScript *configureResizerScript = [[WKUserScript alloc] initWithSource:[NSString stringWithContentsOfURL:[[GPGMailBundle bundle] URLForResource:@"content-isolator" withExtension:@"js"] encoding:NSUTF8StringEncoding error:nil] injectionTime:WKUserScriptInjectionTimeAtDocumentEnd forMainFrameOnly:YES];
+    WKUserScript *iframeHeightScriptBegin = [[WKUserScript alloc] initWithSource:[NSString stringWithContentsOfURL:[[GPGMailBundle bundle] URLForResource:@"iframeResizer.contentWindow" withExtension:@"js"] encoding:NSUTF8StringEncoding error:nil] injectionTime:WKUserScriptInjectionTimeAtDocumentEnd forMainFrameOnly:NO];
+
     [[[(MUIWKWebViewConfigurationManager *)ret configuration] userContentController] addUserScript:resizeScript];
+    [[[(MUIWKWebViewConfigurationManager *)ret configuration] userContentController] addUserScript:configureResizerScript];
     [[[(MUIWKWebViewConfigurationManager *)ret configuration] userContentController] addUserScript:iframeHeightScriptBegin];
 
     id styleSheet = [[NSClassFromString(@"_WKUserStyleSheet") alloc] initWithSource:[(MUIWKWebViewConfigurationManager *)self effectiveUserStyle] forMainFrameOnly:NO];
-    id styleSheet2 = [[NSClassFromString(@"_WKUserStyleSheet") alloc] initWithSource:@"iframe-content { display:block; max-width:100%; width: 100%; overflow-wrap: break-word; word-wrap: break-word; } html.unsafe-content, html.unsafe-content body { margin:0px;padding:0px; width:100%; max-width:100%; overflow:scroll; } html.__main__content .protected-part { margin-top: 20px; position: relative; } html.__main__content .protected-part .protected-title { position: absolute; margin-top: -5px; background-color: #fff; margin-left: 20px; font-weight: bold; } html.__main__content .protected-part .protected-content { border: 3px solid #ccc; padding: 16px; padding-left: 20px; }" forMainFrameOnly:NO];
+    id styleSheet2 = [[NSClassFromString(@"_WKUserStyleSheet") alloc] initWithSource:[NSString stringWithContentsOfURL:[[GPGMailBundle bundle] URLForResource:@"content-isolator" withExtension:@"css"] encoding:NSUTF8StringEncoding error:nil] forMainFrameOnly:NO];
+
     [[[(MUIWKWebViewConfigurationManager *)ret configuration] userContentController] _addUserStyleSheet:styleSheet];
     [[[(MUIWKWebViewConfigurationManager *)ret configuration] userContentController] _addUserStyleSheet:styleSheet2];
     return ret;
@@ -919,7 +924,11 @@ static BOOL gpgMailWorks = NO;
     [self startSupportContractWizardWithActivationCode:nil email:nil];
 }
 
-- (void)startSupportContractWizardWithActivationCode:(NSString *)activationCode email:(NSString *)email {
+- (void)startSupportContractWizardToSwitchPlan {
+    [self startSupportContractWizardWithActivationCode:nil email:nil switchPlan:YES];
+}
+
+- (void)startSupportContractWizardWithActivationCode:(NSString *)activationCode email:(NSString *)email switchPlan:(BOOL)switchPlan {
     // Check if an open SupportPlanAssistantWindowController exists and if so close
     // it
     GMSupportPlanAssistantWindowController *supportPlanAssistantWindowController = [self getIvar:@"SupportPlanAssistantWindowController"];
@@ -930,6 +939,7 @@ static BOOL gpgMailWorks = NO;
     GMSupportPlanAssistantViewController *supportPlanAssistantViewController = [[GMSupportPlanAssistantViewController alloc] initWithNibName:@"GMSupportPlanAssistantView" bundle:[GPGMailBundle bundle]];
     supportPlanAssistantViewController.supportPlanManager = [self supportPlanManager];
     supportPlanAssistantViewController.delegate = self;
+    supportPlanAssistantViewController.initialDialogType = switchPlan ? GMSupportPlanAssistantDialogTypeSwitchSupportPlan : GMSupportPlanAssistantDialogTypeInactive;
 
     supportPlanAssistantWindowController = [[GMSupportPlanAssistantWindowController alloc] initWithSupportPlanManager:[self supportPlanManager]];
     supportPlanAssistantWindowController.delegate = self;
@@ -951,6 +961,10 @@ static BOOL gpgMailWorks = NO;
         supportPlanAssistantWindowController.closeWindowAfterError = YES;
         [supportPlanAssistantWindowController performAutomaticSupportPlanActivationWithActivationCode:activationCode email:email];
     }
+}
+
+- (void)startSupportContractWizardWithActivationCode:(NSString *)activationCode email:(NSString *)email {
+    [self startSupportContractWizardWithActivationCode:activationCode email:email switchPlan:NO];
 }
 
 - (void)checkSupportContractAndStartWizardIfNecessary {
