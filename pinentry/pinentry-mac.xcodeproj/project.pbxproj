@@ -272,7 +272,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "if [[ -d \"$DEPLOY_RESOURCES_DIR\" ]] ;then\nsource \"$DEPLOY_RESOURCES_DIR/config/versioning.sh\"\nelse\nsource \"$SRCROOT/Version.config\"\nfi\n[[ -n \"$VERSION\" ]] || { echo \"Missing Version!\"; exit 1; }\n\n\n/usr/libexec/PlistBuddy \\\n-c \"Set CommitHash '${COMMIT_HASH:--}'\" \\\n-c \"Set BuildNumber '${BUILD_NUMBER:-0}'\" \\\n-c \"Set CFBundleVersion '${BUILD_VERSION:-0n}'\" \\\n-c \"Set CFBundleShortVersionString '$VERSION'\" \\\n\"$BUILT_PRODUCTS_DIR/$INFOPLIST_PATH\" || exit 2\n";
+			shellScript = "if [ -d \"$DEPLOY_RESOURCES_DIR\" ] ;then\nsource \"$DEPLOY_RESOURCES_DIR/config/versioning.sh\"\nelse\nsource \"$SRCROOT/Version.config\"\nfi\n[ -n \"$VERSION\" ] || { echo \"Missing Version!\"; exit 1; }\n\n\n/usr/libexec/PlistBuddy \\\n-c \"Set CommitHash '${COMMIT_HASH:--}'\" \\\n-c \"Set BuildNumber '${BUILD_NUMBER:-0}'\" \\\n-c \"Set CFBundleVersion '${BUILD_VERSION:-0n}'\" \\\n-c \"Set CFBundleShortVersionString '$VERSION'\" \\\n\"$BUILT_PRODUCTS_DIR/$INFOPLIST_PATH\" || exit 2\n";
 			showEnvVarsInLog = 0;
 		};
 		307377841AA4B7DA0097BCDE /* Copy "How to get the source code" into Resources */ = {
@@ -287,7 +287,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "[[ -d \"$DEPLOY_RESOURCES_DIR\" ]] || exit 0\n \n HOWTO_PATH=\"$DEPLOY_RESOURCES_DIR/resources/How to get the source code\"\n cp \"$HOWTO_PATH\" \"$BUILT_PRODUCTS_DIR/$UNLOCALIZED_RESOURCES_FOLDER_PATH/\"";
+			shellScript = "[ -d \"$DEPLOY_RESOURCES_DIR\" ] || exit 0\n \n HOWTO_PATH=\"$DEPLOY_RESOURCES_DIR/resources/How to get the source code\"\n cp \"$HOWTO_PATH\" \"$BUILT_PRODUCTS_DIR/$UNLOCALIZED_RESOURCES_FOLDER_PATH/\"";
 			showEnvVarsInLog = 0;
 		};
 		30FC955F129818AE0039CEF8 /* Localize XIBs */ = {
@@ -302,7 +302,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "[[ \"$LOCALIZE\" == \"NO\" ]] && exit 0\n[[ -d \"$DEPLOY_RESOURCES_DIR\" ]] || exit 0\n\nalias localizeXIB=\"$DEPLOY_RESOURCES_DIR/bin/localizeXIB\"\nignore=\"$DEPLOY_RESOURCES_DIR/config/l10n_ignored_strings.txt\"\nlangs=\"German\"\nsourceDir=Resources/English.lproj\n\nlocalizeXIB -i \"$ignore\" $sourceDir/Pinentry.xib     $langs || exit 1\n";
+			shellScript = "[ \"$LOCALIZE\" = \"NO\" ] && exit 0\n[ -d \"$DEPLOY_RESOURCES_DIR\" ] || exit 0\n\nalias localizeXIB=\"$DEPLOY_RESOURCES_DIR/bin/localizeXIB\"\nignore=\"$DEPLOY_RESOURCES_DIR/config/l10n_ignored_strings.txt\"\nlangs=\"German\"\nsourceDir=Resources/English.lproj\n\nlocalizeXIB -i \"$ignore\" $sourceDir/Pinentry.xib     $langs || exit 1\n";
 			showEnvVarsInLog = 0;
 		};
 /* End PBXShellScriptBuildPhase section */
