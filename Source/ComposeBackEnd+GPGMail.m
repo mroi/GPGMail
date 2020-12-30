@@ -35,8 +35,6 @@
 //#import "ActivityMonitor.h"
 //#import <MFError.h>
 //#import "NSData-MessageAdditions.h"
-#define restrict
-#import <RegexKit/RegexKit.h>
 
 #import "ComposeViewController.h"
 #import "HeadersEditor.h"
@@ -335,21 +333,18 @@ NSString * const kComposeBackEndPreferredSecurityPropertiesAccessLockKey = @"Com
     }
     
     // Remove all whitespaces at the end of lines. But don't kill attachments.
-    RKRegex *regex = [RKRegex regexWithRegexString:@"[\\t\\f\\r\\p{Z}]+$" options:RKCompileMultiline];
-    RKEnumerator *rkEnum = [plainString matchEnumeratorWithRegex:regex];
-    
     NSMutableArray *ranges = [NSMutableArray array];
-    
+    NSError __autoreleasing *error = nil;
+    NSRegularExpression *regex = [NSRegularExpression regularExpressionWithPattern:@"[\\t\\f\\r\\p{Z}]+$" options:NSRegularExpressionCaseInsensitive | NSRegularExpressionAnchorsMatchLines error:&error];
     // Get all matches and reverse the order.
-    for (NSArray *match in rkEnum) {
-        [ranges insertObject:match[0] atIndex:0];
-    }
-    // Removed matched characters.
-    for (NSValue *range in ranges) {
-        [plainString replaceCharactersInRange:range.rangeValue withString:@""];
+    [regex enumerateMatchesInString:plainString options:0 range:NSMakeRange(0, [plainString length]) usingBlock:^(NSTextCheckingResult * _Nullable result, NSMatchingFlags __unused flags, BOOL * _Nonnull __unused  stop) {
+        [ranges insertObject:result atIndex:0];
+    }];
+
+    for (NSTextCheckingResult *result in ranges) {
+        [plainString replaceCharactersInRange:result.range withString:@""];
     }
     
-    // TODO: Fix and verify that the data is really transformed.
     return plainText;
 }
 

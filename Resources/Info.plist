@@ -11,7 +11,7 @@
 	<key>CFBundleIconFile</key>
 	<string>GPGMail.icns</string>
 	<key>CFBundleIdentifier</key>
-	<string>org.gpgtools.gpgmail4</string>
+	<string>org.gpgtools.gpgmail5</string>
 	<key>CFBundleInfoDictionaryVersion</key>
 	<string>6.0</string>
 	<key>CFBundleName</key>

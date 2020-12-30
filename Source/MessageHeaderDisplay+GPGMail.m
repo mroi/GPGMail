@@ -30,6 +30,8 @@
 
 #import "GMMessageSecurityFeatures.h"
 
+#import "GMSystemIcon.h"
+
 @implementation MessageHeaderDisplay_GPGMail
 
 - (BOOL)MATextView:(id)textView clickedOnLink:(id)link atIndex:(unsigned long long)index {
@@ -97,21 +99,12 @@
         NSString *title = GMLocalizedString(@"MESSAGE_ERROR_ALERT_PGP_VERIFY_NOT_IN_KEYCHAIN_TITLE");
         NSString *message = GMLocalizedString(@"MESSAGE_ERROR_ALERT_PGP_VERIFY_NOT_IN_KEYCHAIN_MESSAGE");
         
-        // The error domain is checked in certain occasion, so let's use the system
-        // dependent one.
-        NSString *errorDomain = [GPGMailBundle isMavericks] ? @"MCMailErrorDomain" : @"MFMessageErrorDomain";
-        // TODO: Fix to use the new Sierra method!
-        NSError *error = nil;/*[GM_MAIL_CLASS(@"MFError") errorWithDomain:errorDomain code:1035 localizedDescription:message title:title helpTag:nil userInfo:@{@"_MFShortDescription": title, @"NSLocalizedDescription": message}];*/
-        // NSAlert has different category methods based on the version of OS X.
-		NSAlert *alert = nil;
-		if([[NSAlert class] respondsToSelector:@selector(alertForError:defaultButton:alternateButton:otherButton:)]) {
-			alert = [NSAlert alertForError:error defaultButton:@"OK" alternateButton:nil otherButton:nil];
-		}
-		else if([[NSAlert class] respondsToSelector:@selector(alertForError:firstButton:secondButton:thirdButton:)]) {
-			alert = [NSAlert alertForError:error firstButton:@"OK" secondButton:nil thirdButton:nil];
-		}
-		
-		[alert beginSheetModalForWindow:[self modalWindow] modalDelegate:self didEndSelector:nil contextInfo:nil];
+        NSAlert *alert = [GPGMailBundle customAlert];
+        alert.informativeText = message;
+        alert.messageText = title;
+        [alert beginSheetModalForWindow:[self modalWindow] completionHandler:^(NSModalResponse __unused returnCode) {
+
+        }];
         return;
     }
     GPGSignatureView *signatureView = [GPGSignatureView signatureView];
@@ -312,11 +305,15 @@
     
     // Add the encrypted part to the security header.
     if(isPGPEncrypted) {
-        NSImage *encryptedBadge = [NSImage imageNamed:@"NSLockLockedTemplate"];
+        NSImage *encryptedBadge = [GMSystemIcon iconNamed:kGMSystemIconNameLockClosed];
+        NSInteger offset = 0.0;
+        if(@available(macOS 10.16, *)) {
+            offset = -3.0;
+        }
         NSAttributedString *encryptAttachmentString = [NSAttributedString attributedStringWithAttachment:[[NSTextAttachment alloc] init]
                                                                                                    image:encryptedBadge
                                                                                                     link:nil
-                                                                                                  offset:0.0];
+                                                                                                  offset:offset];
         if([GPGMailBundle isMavericks])
             [securityHeader appendAttributedString:[NSAttributedString attributedStringWithString:@" "]];
         else {
@@ -389,11 +386,16 @@
     NSImage *attachmentIcon = [NSImage imageNamed:@"attachment_header"];
     float iconOffset = -3.0;
 
+    BOOL addSpace = NO;
     // On macOS Mojave 10.14.6 attachment_header no longer exists. Instead
     // the icon is now called MessageListAttachmentTemplate.
-    if(!attachmentIcon) {
-        attachmentIcon = [NSImage imageNamed:@"MessageListAttachmentTemplate"];
-        iconOffset = -1.0;
+    if([[NSProcessInfo processInfo] isOperatingSystemAtLeastVersion:(NSOperatingSystemVersion){10,14,6}]) {
+        addSpace = YES;
+        attachmentIcon = [GMSystemIcon iconNamed:kGMSystemIconNamePaperclip];
+        iconOffset = -2.0;
+        if(@available(macOS 10.16, *)) {
+            iconOffset = -4.0;
+        }
     }
 
     [securityHeaderAttachmentsPart appendAttributedString:[NSAttributedString attributedStringWithAttachment:textAttachment image:attachmentIcon link:[GPGMailBundle isMavericks] ? nil : @"gpgmail://show-attachments" offset:iconOffset]];
@@ -422,7 +424,7 @@
     }
 
     NSString *encryptionString = [NSString stringWithFormat:@"%li %@", (long)[securityFeatures numberOfPGPAttachments], attachmentPart];
-    if(![NSImage imageNamed:@"attachment_header"]) {
+    if(addSpace) {
         encryptionString = [@" " stringByAppendingString:encryptionString];
     }
     
@@ -491,13 +493,13 @@
     }
     
     if (errorCode) {
-        signedImage = [NSImage imageNamed:@"SignatureOffTemplate"];
+        signedImage = [GMSystemIcon iconNamed:kGMSystemIconNameSignatureInvalid];
 	} else if (signatures.count == 0) {
         titlePart = GMLocalizedString(@"MESSAGE_SECURITY_HEADER_NO_SIGNATURE_TITLE");
-        signedImage = [NSImage imageNamed:@"SignatureOffTemplate"];
+        signedImage = [GMSystemIcon iconNamed:kGMSystemIconNameSignatureInvalid];;
     } else {
         titlePart = GMLocalizedString(@"MESSAGE_SECURITY_HEADER_SIGNATURE_TITLE");
-        signedImage = [NSImage imageNamed:@"SignatureOnTemplate"];
+        signedImage = [GMSystemIcon iconNamed:kGMSystemIconNameSignatureValid];
     }
     
     
@@ -509,9 +511,14 @@
     NSSet *signerLabels = [NSSet setWithArray:[securityFeatures PGPSignatureLabels]];
     NSTextAttachment *signedTextAttachment = [[NSTextAttachment alloc] init];
     [signedTextAttachment setIvar:@"ShowSignaturePanel" value:@YES];
+
+    NSInteger iconOffset = -2.0;
+    if(@available(macOS 10.16, *)) {
+        iconOffset = -4.0;
+    }
     NSAttributedString *signedAttachmentString = [NSAttributedString attributedStringWithAttachment:signedTextAttachment
                                                                                               image:signedImage link:[GPGMailBundle isMavericks] ? nil : @"gpgmail://show-signature"
-                                                                                             offset:-2.0];
+                                                                                             offset:iconOffset];
     
     [securityHeaderSignaturePart appendAttributedString:signedAttachmentString];
     [[securityHeaderSignaturePart mutableString] appendString:@" "];

@@ -62,6 +62,8 @@ typedef NS_ENUM(NSInteger, GMSecurityMethodAccessoryViewStyle) {
     NSTextField *_label;
     
     NSMapTable *_attributedTitlesCache;
+
+    NSSegmentedControl *_segmentedControl;
 }
 
 @property (nonatomic, assign) GPGMAIL_SECURITY_METHOD securityMethod;
@@ -69,6 +71,7 @@ typedef NS_ENUM(NSInteger, GMSecurityMethodAccessoryViewStyle) {
 @property (nonatomic, assign) BOOL active;
 @property (nonatomic, weak) id <GMSecurityMethodAccessoryViewDelegate> delegate;
 @property (nonatomic, assign) GMSecurityMethodAccessoryViewStyle style;
+@property (nonatomic, retain) NSSegmentedControl *segmentedControl;
 
 - (id)init;
 - (id)initWithStyle:(GMSecurityMethodAccessoryViewStyle)style;

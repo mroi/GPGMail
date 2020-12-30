@@ -28,14 +28,22 @@
  */
 
 #include <CommonCrypto/CommonDigest.h>
-#define restrict
-#import <RegexKit/RegexKit.h>
 #import <Foundation/Foundation.h>
 #import "NSString+GPGMail.h"
 #import "GPGMailBundle.h"
 #import "EAEmailAddressParser.h"
 
 @implementation NSString (GPGMail)
+
+- (BOOL)isMatchedByRegex:(NSString *)regularExpression inRange:(NSRange)range {
+    NSError __autoreleasing *error = nil;
+    NSRegularExpression *regex = [NSRegularExpression regularExpressionWithPattern:regularExpression options:NSRegularExpressionCaseInsensitive | NSRegularExpressionAnchorsMatchLines error:&error];
+    return [regex numberOfMatchesInString:self options:0 range:range] > 0;
+}
+
+- (BOOL)isMatchedByRegex:(NSString *)regularExpression {
+    return [self isMatchedByRegex:regularExpression inRange:NSMakeRange(0, [self length])];
+}
 
 - (NSString *)gpgNormalizedEmail {
 	if([self respondsToSelector:@selector(uncommentedAddress)])
@@ -59,31 +67,6 @@
         return [self stringByDeletingPathExtension];
     
     return [NSString stringWithString:self];
-}
-
-- (NSString *)stringByDeletingAttachmentsWithNames:(NSArray *)names {
-    // Attachments in parsed messages have the following format.
-    // <object name="name" data="cid:xxxx" type=application/x-apple-msg-attachment></object>
-    // So best is to look for <object> tags which have a type of application/x-apple-msg-attachment and a .sig in the filename.
-    // Let's hope normal attachments don't have that.
-    NSString *attachmentRegex = @"(?sm)(?<all><object([^>]*)name=\"(?<name>[^\"]+)\"([^>]*)application/x-apple-msg-attachment([^>]*)></object>)";
-    
-    RKEnumerator *matchEnumerator = [self matchEnumeratorWithRegex:attachmentRegex];
-    
-    NSMutableString *withoutAttachments = [self mutableCopy];
-    
-    while([matchEnumerator nextRanges] != NULL) {
-        __autoreleasing NSString *all = nil, __autoreleasing *name = nil;
-        
-        [matchEnumerator getCapturesWithReferences:@"${all}", &all, @"${name}", &name, nil];
-        
-        if(![names containsObject:name])
-            continue;
-        
-        [withoutAttachments replaceOccurrencesOfString:all withString:@"" options:NSCaseInsensitiveSearch range:NSMakeRange(0, [withoutAttachments length])];
-    }
-    
-    return withoutAttachments;
 }
 
 - (NSString *)SHA1 {
