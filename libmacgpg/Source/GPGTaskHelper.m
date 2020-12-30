@@ -293,6 +293,7 @@ closeInput = _closeInput;
 				[self writeInputData];
 			}, &lock, &blockException);
 		});
+		_wroteInputData = YES;
 	}
 	
 	
@@ -638,7 +639,9 @@ closeInput = _closeInput;
             
         case GPG_STATUS_BEGIN_ENCRYPTION:
         case GPG_STATUS_BEGIN_SIGNING:
-            [self writeInputData];
+			if (!_wroteInputData) {
+				[self writeInputData];
+			}
             break;
             
         case GPG_STATUS_PROGRESS: {
