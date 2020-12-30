@@ -36,9 +36,6 @@
 #import "MFRemoteStoreAccount.h"
 #import "MailApp.h"
 
-#import "GMSupportPlanManager.h"
-#import "GMSupportPlan.h"
-
 #define localized(key) [GPGMailBundle localizedStringForKey:key]
 
 NSString *SUEnableAutomaticChecksKey = @"SUEnableAutomaticChecks";

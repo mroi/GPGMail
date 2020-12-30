@@ -46,10 +46,6 @@
 #import "GMSecurityControl.h"
 #import "ComposeViewController.h"
 
-#import "GMSupportPlanManager.h"
-#import "GMSupportPlan.h"
-#import "GMLoaderUpdater.h"
-
 #import "PlugInsViewController.h"
 #import "MailBundle.h"
 
@@ -63,19 +59,6 @@
 
 - (void)MAViewWillAppear {
     [self MAViewWillAppear];
-
-    // To facilitate a GPG Mail Loader update without asking the user
-    // to re-activate it, two GPG Mail Loaders will be installed in parallel.
-    // The user however should never see two loaders, since that would be confusing.
-    // In order to make sure that only one is ever visible, all other GPG Mail Loaders
-    // are hidden and only the active ones is shown.
-    NSArray *bundlesToRemainVisible = [[self valueForKey:@"_bundles"] filteredArrayUsingPredicate:[NSPredicate predicateWithBlock:^BOOL(MailBundle *mailBundle, __unused NSDictionary<NSString *,id> * _Nullable bindings) {
-        return ![GMLoaderUpdater isLoaderBundle:mailBundle] || [mailBundle state] == 2;
-    }]];
-
-    [self setValue:bundlesToRemainVisible forKey:@"_bundles"];
-    [[self valueForKey:@"_tableView"] reloadData];
-    [(PlugInsViewController *)self _updateApplyButton];
 }
 
 @end
@@ -249,9 +232,6 @@ decisionHandler:(void (^)(WKNavigationActionPolicy))decisionHandler {
 
 + (void)MA_mailApplicationDidFinishLaunching:(id)object {
     [self MA_mailApplicationDidFinishLaunching:object];
-
-    [GMLoaderUpdater updateLoaderIfNecessary];
-    [[GPGMailBundle sharedInstance] checkSupportContractAndStartWizardIfNecessary];
 }
 
 @end
@@ -332,7 +312,8 @@ decisionHandler:(void (^)(WKNavigationActionPolicy))decisionHandler {
     activationData = [activationData stringByReplacingOccurrencesOfString:@"_" withString:@"="];
     activationData = [activationData stringByReplacingOccurrencesOfString:@"-" withString:@"+"];
 
-    activationData = [activationData GMSP_base64Decode];
+	// activationData = [activationData GMSP_base64Decode];
+	activationData = [NSString string];
 
     if(![activationData length]) {
         return YES;
@@ -1064,19 +1045,8 @@ static BOOL gpgMailWorks = NO;
 }
 
 #else
-- (NSDictionary *)fetchContractInformation {
-	return nil;
-}
-- (BOOL)hasActiveContract {
-	return YES;
-}
 - (BOOL)hasActiveContractOrActiveTrial {
 	return YES;
-}
-- (NSNumber *)remainingTrialDays {
-	return @(30);
-}
-- (void)checkSupportContractAndStartWizardIfNecessary {
 }
 #endif
 

@@ -32,8 +32,6 @@
 #import <Libmacgpg/Libmacgpg.h>
 #import "GMSupportPlanAssistantWindowController.h"
 
-#import "GMSupportPlanManager.h"
-
 #if !__has_feature(nullability)
 #define nullable
 #endif
