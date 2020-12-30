@@ -34,11 +34,9 @@
 #import "NSSet+Functional.h"
 #import "NSString+GPGMail.h"
 #import "GMKeyManager.h"
-#define restrict
-#import <RegexKit/RegexKit.h>
-
 
 const double kGMKeyManagerDelayInSecondsForInitialKeyLoad = 4;
+NSString * const kGMKeyManagerRegexTokenKey = @"{NSRegularExpression}";
 
 @interface GMKeyManager ()
 
@@ -512,18 +510,21 @@ publicKeyMap = _publicKeyMap, groups = _groups, allSecretKeys = _allSecretKeys, 
 #pragma mark - Key helper methods
 
 - (NSMutableSet *)keysForAddresses:(NSArray *)addresses onlySecret:(BOOL)onlySecret stopOnFound:(BOOL)stop {
-    Class regexClass = [RKRegex class];
-	Class setClass = [NSSet class];
+    Class setClass = [NSSet class];
     Class arrayClass = [NSArray class];
 	NSDictionary *map = onlySecret ? self.secretKeyMap : self.publicKeyMap;
     NSString *allAdresses = [addresses componentsJoinedByString:@"\n"];
     NSMutableSet *keys = [NSMutableSet set];
     
-    for (id identifier in map) {
-        if ([identifier isKindOfClass:regexClass] ? [allAdresses isMatchedByRegex:identifier] : [addresses containsObject:identifier]) {
+    for (NSString *cIdentifier in map) {
+        NSString *identifier = cIdentifier;
+        NSRange regexTokenRange = [identifier rangeOfString:kGMKeyManagerRegexTokenKey];
+        BOOL isRegex = regexTokenRange.location != NSNotFound && regexTokenRange.length > 0;
+        identifier = isRegex ? [identifier stringByReplacingOccurrencesOfString:kGMKeyManagerRegexTokenKey withString:@""] : identifier;
+        if (isRegex ? [allAdresses isMatchedByRegex:identifier] : [addresses containsObject:identifier]) {
 			id object = map[identifier];
 			if([object isKindOfClass:setClass])
-				[keys addObjectsFromArray:[object allObjects]];
+				[keys addObjectsFromArray:[(NSSet *)object allObjects]];
 			else if([object isKindOfClass:arrayClass])
 				[keys addObjectsFromArray:object];
 			else
@@ -620,8 +621,8 @@ publicKeyMap = _publicKeyMap, groups = _groups, allSecretKeys = _allSecretKeys, 
         
         
         if ([pattern rangeOfString:@"*"].length > 0) {
-            NSString *regexString =  [NSString stringWithFormat:@"^%@$", [[NSRegularExpression escapedPatternForString:pattern] stringByReplacingOccurrencesOfString:@"\\*" withString:@".*"]];
-            pattern = [RKRegex regexWithRegexString:regexString library:RKRegexPCRELibrary options:RKCompileCaseless | RKCompileMultiline error:nil];
+            NSString *regexString =  [NSString stringWithFormat:@"%@^%@$", kGMKeyManagerRegexTokenKey, [[NSRegularExpression escapedPatternForString:pattern] stringByReplacingOccurrencesOfString:@"\\*" withString:@".*"]];
+            pattern = regexString;
         } else {
             pattern = [pattern gpgNormalizedEmail];
         }

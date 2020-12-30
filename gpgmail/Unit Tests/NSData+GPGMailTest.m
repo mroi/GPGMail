@@ -83,7 +83,6 @@
     NSData *signature = [data subdataWithRange:match];
     // This first does a UTF8 guess, so it's good
     NSString *decoded = [[NSString alloc] initWithData:signature encoding:NSUTF8StringEncoding];
-    // existing implementation should pass, but was broken before RegexKit
     XCTAssertTrue([decoded hasPrefix:PGP_SIGNED_MESSAGE_BEGIN], @"%@", decoded);
     XCTAssertTrue([decoded hasSuffix:PGP_MESSAGE_SIGNATURE_END], @"%@", decoded);
 }
@@ -122,7 +121,6 @@
     
     NSData *signature = [data subdataWithRange:match];
     NSString *decoded = [[NSString alloc] initWithData:signature encoding:NSUTF8StringEncoding];
-    // existing implementation should pass, but was broken before RegexKit
     XCTAssertTrue([decoded hasPrefix:PGP_MESSAGE_SIGNATURE_BEGIN], @"%@", decoded);
     XCTAssertTrue([decoded hasSuffix:PGP_MESSAGE_SIGNATURE_END], @"%@", decoded);
 }
@@ -147,7 +145,6 @@
     
     NSData *pgpBlock = [data subdataWithRange:match];
     NSString *decoded = [[NSString alloc] initWithData:pgpBlock encoding:NSUTF8StringEncoding];
-    // existing implementation should pass, but was broken before RegexKit
     XCTAssertTrue([decoded hasPrefix:PGP_MESSAGE_BEGIN], @"%@", decoded);
     XCTAssertTrue([decoded hasSuffix:PGP_MESSAGE_END], @"%@", decoded);
 }
@@ -160,7 +157,6 @@
     
     NSData *pgpBlock = [data subdataWithRange:match];
     NSString *decoded = [[NSString alloc] initWithData:pgpBlock encoding:NSASCIIStringEncoding];
-    // existing implementation should pass, but was broken before RegexKit
     XCTAssertTrue([decoded hasPrefix:PGP_MESSAGE_BEGIN], @"%@", decoded);
     XCTAssertTrue([decoded hasSuffix:PGP_MESSAGE_END], @"%@", decoded);
 }

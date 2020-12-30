@@ -257,12 +257,11 @@ NSString * const kComposeViewControllerPreventAutoSave = @"ComposeViewController
 	[explanation appendString:solutionProposals];
 	[explanation appendString:@"\n"];
 
-	NSAlert *unencryptedReplyAlert = [NSAlert new];
+	NSAlert *unencryptedReplyAlert = [GPGMailBundle customAlert];
 	[unencryptedReplyAlert setMessageText:[GPGMailBundle localizedStringForKey:[NSString stringWithFormat:@"%@ENCRYPTED_MESSAGE_TITLE", typePrefix]]];
 	[unencryptedReplyAlert setInformativeText:explanation];
 	[unencryptedReplyAlert addButtonWithTitle:[GPGMailBundle localizedStringForKey:[NSString stringWithFormat:@"%@ENCRYPTED_MESSAGE_BUTTON_CANCEL", typePrefix]]];
 	[unencryptedReplyAlert addButtonWithTitle:[GPGMailBundle localizedStringForKey:[NSString stringWithFormat:@"%@ENCRYPTED_MESSAGE_BUTTON_SEND_ANYWAY", typePrefix]]];
-	[unencryptedReplyAlert setIcon:[NSImage imageNamed:@"GPGMail"]];
 
 	// On Mavericks and later we can use, beginSheetModalForWindow:.
 	// Before that, we have to use NSBeginAlertSheet.

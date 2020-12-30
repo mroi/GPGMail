@@ -175,7 +175,7 @@ decisionHandler:(void (^)(WKNavigationActionPolicy))decisionHandler {
     }
 
     if(isSMIMEEncrypted) {
-        NSAlert *alert = [[NSAlert alloc] init];
+        NSAlert *alert = [GPGMailBundle customAlert];
         [alert setMessageText:[GPGMailBundle localizedStringForKey:@"NAVIGATION_ACTION_FROM_ENCRYPTED_MESSAGE_TITLE"]];
         [alert setInformativeText:[NSString stringWithFormat:[GPGMailBundle localizedStringForKey:@"NAVIGATION_ACTION_FROM_ENCRYPTED_MESSAGE_MESSAGE"], navigationAction.request.URL]];
         [alert addButtonWithTitle:[GPGMailBundle localizedStringForKey:@"NAVIGATION_ACTION_FROM_ENCRYPTED_MESSAGE_BUTTON_YES"]];
@@ -409,7 +409,7 @@ static BOOL gpgMailWorks = NO;
 }
 
 + (void)showMultipleInstallationsErrorAndExit:(NSArray *)installations {
-    NSAlert *errorModal = [[NSAlert alloc] init];
+    NSAlert *errorModal = [GPGMailBundle customAlert];
     
     errorModal.messageText = GMLocalizedString(@"GPGMAIL_MULTIPLE_INSTALLATIONS_TITLE");
     errorModal.informativeText = [NSString stringWithFormat:GMLocalizedString(@"GPGMAIL_MULTIPLE_INSTALLATIONS_MESSAGE"), [installations componentsJoinedByString:@"\n\n"]];
@@ -1079,6 +1079,22 @@ static BOOL gpgMailWorks = NO;
 - (void)checkSupportContractAndStartWizardIfNecessary {
 }
 #endif
+
++ (NSString *)productNameForVersion:(NSString *)version {
+    return [NSString stringWithFormat:@"OpenPGP %@", version];
+}
+
++ (NSAlert *)customAlert {
+    NSAlert *alert = [NSAlert new];
+
+    alert.icon = [NSImage imageNamed:@"GPGMail"];
+    // Define a minimum alert width for macOS Big Sur
+    if (@available(macOS 10.16, *)) {
+        alert.accessoryView = [[NSView alloc] initWithFrame:NSMakeRect(0, 0, 350, 0)];
+    }
+
+    return alert;
+}
 
 @end
 

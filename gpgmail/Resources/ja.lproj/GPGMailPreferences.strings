@@ -2,7 +2,7 @@
 "728.title" = "Composing";
 "733.ibShadowedToolTip" = "よくある質問";
 "734.alternateTitle" = "よくある質問";
-"734.title" = "ナレッジベース";
+"734.title" = "知識ベース";
 "781.title" = "下書きを暗号化";
 "834.title" = "ボタン";
 "1051.ibShadowedToolTip" = "If you've any other question.";
@@ -14,8 +14,8 @@
 "80G-ZN-hjm.title" = "更新を自動的に確認する";
 "8oZ-YB-M9Q.title" = "Beta builds are published more often. New features and improvements are less tested.";
 "D6D-o9-63C.title" = "リリースノートを表示";
-"JYv-nD-iep.title" = "GPG Mail Support Plan";
+"JYv-nD-iep.title" = "GPG Mail サポートプラン";
 "UhD-uR-dUs.title" = "ベータビルドを含む";
-"Yjx-OU-Oxq.title" = "Learn More";
+"Yjx-OU-Oxq.title" = "さらに学ぶ";
 "q0m-y8-baf.title" = "ビルド:";
-"yJs-2y-8Cb.title" = "Encrypt new emails";
+"yJs-2y-8Cb.title" = "新しいメールを暗号化";

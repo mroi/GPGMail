@@ -75,20 +75,25 @@ extern const NSString *kFullScreenWindowControllerCloseModalWindowNotYet;
 		if([item.itemIdentifier isEqualToString:itemIdentifier])
 			return nil;
 	}
-	
-	// The delegate of GMSecurityMethodAccessoryView will be the current composeViewController.
-	// At this point it's however not yet set on the ComposeWindowController, so once the
-	// compose view controller is ready, it will set if self up as delegate.
+
+    // The delegate of GMSecurityMethodAccessoryView will be the current composeViewController.
+    // At this point it's however not yet set on the ComposeWindowController, so once the
+    // compose view controller is ready, it will set if self up as delegate.
+    NSToolbarItem *item = [[NSToolbarItem alloc] initWithItemIdentifier:itemIdentifier];
     NSSize toolbarItemSize = NSMakeSize(75.0, 23.0);
     GMSecurityMethodAccessoryView *securityMethodAccessoryView = [[GMSecurityMethodAccessoryView alloc] initWithStyle:GMSecurityMethodAccessoryViewStyleToolbarItem size:toolbarItemSize];
-	[self setIvar:@"SecurityMethodAccessoryView" value:securityMethodAccessoryView];
-	
-	NSToolbarItem *item = [[NSToolbarItem alloc] initWithItemIdentifier:itemIdentifier];
-	
-	[item setView:securityMethodAccessoryView];
-	[item setMinSize:toolbarItemSize];
-	[item setTarget:nil];
-	
+    [self setIvar:@"SecurityMethodAccessoryView" value:securityMethodAccessoryView];
+    [item setTarget:nil];
+
+    if(@available(macOS 10.16, *)) {
+        item.label = @"Security Method";
+        [item setView:[securityMethodAccessoryView segmentedControl]];
+    }
+    else {
+        [item setView:securityMethodAccessoryView];
+        [item setMinSize:toolbarItemSize];
+    }
+
 	return item;
 }
 

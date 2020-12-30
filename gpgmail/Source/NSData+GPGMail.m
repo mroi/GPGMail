@@ -27,8 +27,6 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#define restrict
-#import <RegexKit/RegexKit.h>
 #import <Libmacgpg/Libmacgpg.h>
 //#import <NSString-NSStringUtils.h>
 #import "NSData+GPGMail.h"
@@ -73,6 +71,32 @@
                                    reason:@"It was not possible to recognize the string encoding." userInfo:nil];
 }
 
+- (NSRange)rangeMatchingRegularExpression:(NSString *)regularExpression inRange:(NSRange)range {
+    NSRange match = NSMakeRange(NSNotFound, 0);
+    if([self length] == 0)
+        return match;
+
+    NSError __autoreleasing *error = nil;
+    NSRegularExpression *regex = [NSRegularExpression regularExpressionWithPattern:regularExpression options:NSRegularExpressionCaseInsensitive | NSRegularExpressionAnchorsMatchLines error:&error];
+    NSString *searchString = [[NSString alloc] initWithData:self encoding:NSASCIIStringEncoding];
+    return [regex rangeOfFirstMatchInString:searchString options:0 range:range];
+}
+
+- (NSRange)rangeMatchingRegularExpression:(NSString *)regularExpression {
+    NSRange range = NSMakeRange(0, [self length]);
+    return [self rangeMatchingRegularExpression:regularExpression inRange:range];
+}
+
+- (BOOL)isMatchedByRegex:(NSString *)regularExpression inRange:(NSRange)range {
+    NSError __autoreleasing *error = nil;
+    NSRegularExpression *regex = [NSRegularExpression regularExpressionWithPattern:regularExpression options:NSRegularExpressionCaseInsensitive | NSRegularExpressionAnchorsMatchLines error:&error];
+    NSString *searchString = [[NSString alloc] initWithData:self encoding:NSASCIIStringEncoding];
+    return [regex numberOfMatchesInString:searchString options:0 range:range] > 0;
+}
+
+- (BOOL)isMatchedByRegex:(NSString *)regularExpression {
+    return [self isMatchedByRegex:regularExpression inRange:NSMakeRange(0, [self length])];
+}
 - (NSRange)rangeOfPGPInlineSignatures  {
 	return [self rangeOfPGPInlineSignaturesInRange:NSMakeRange(0, self.length)];
 }
@@ -80,70 +104,26 @@
     // Use the regular expression to ignore all signatures contained in a reply.
     NSString *signatureRegex = [NSString stringWithFormat:@"(?sm)(^%@\\r?\\n(.*?)\\r?\n%@)",
                                 PGP_SIGNED_MESSAGE_BEGIN, PGP_MESSAGE_SIGNATURE_END];
-    NSRange match = NSMakeRange(NSNotFound, 0);
-    if([self length] == 0)
-        return match;
-    @try {
-		RKRegex *sigRKRegex = [RKRegex regexWithRegexString:signatureRegex options:RKCompileNoOptions];
-		match = [self rangeOfRegex:sigRKRegex inRange:range capture:0];
-    }
-    @catch (NSException *exception) {
-        // Ignore...
-    }
-    
-    return match;
+    return [self rangeMatchingRegularExpression:signatureRegex inRange:range];
 }
 
 - (NSRange)rangeOfPGPSignatures  {
     NSString *signatureRegex = [NSString stringWithFormat:@"(?sm)(%@.*?%@)", 
                                 PGP_MESSAGE_SIGNATURE_BEGIN, PGP_MESSAGE_SIGNATURE_END];
-    NSRange match = NSMakeRange(NSNotFound, 0);
-    if([self length] == 0)
-        return match;
-    @try {
-		RKRegex *sigRKRegex = [RKRegex regexWithRegexString:signatureRegex options:RKCompileNoOptions];
-		match = [self rangeOfRegex:sigRKRegex];
-    }
-    @catch (NSException *exception) {
-        // Ignore...
-    }
-    
-    return match;
+    return [self rangeMatchingRegularExpression:signatureRegex];
 }
 
 - (NSRange)rangeOfPGPInlineEncryptedData {
     // Use the regular expression to ignore all signatures contained in a reply.
     NSString *messageRegex = [NSString stringWithFormat:@"(?sm)(^%@\\s*\\r?\\s*\\n(.*?)\\r?\\s*\\n\\s*%@)",
                                 PGP_MESSAGE_BEGIN, PGP_MESSAGE_END];
-    NSRange match = NSMakeRange(NSNotFound, 0);
-    if([self length] == 0)
-		return match;
-	
-	@try {
-		RKRegex *sigRKRegex = [RKRegex regexWithRegexString:messageRegex options:RKCompileNoOptions];
-		match = [self rangeOfRegex:sigRKRegex];
-    }
-    @catch (NSException *exception) {
-        // Ignore...
-    }
-    
-    return match;
+    return [self rangeMatchingRegularExpression:messageRegex];
 }
 
 - (BOOL)mightContainPGPEncryptedDataOrSignatures {
     NSString *signatureRegex = [NSString stringWithFormat:@"(?sm)(-----BEGIN PGP (?<prefix>MESSAGE|SIGNATURE)-----"
                                 ".*-----END PGP \\k<prefix>-----)"];
-    BOOL isMatched = NO;
-    
-	@try {
-		RKRegex *sigRKRegex = [RKRegex regexWithRegexString:signatureRegex options:RKCompileNoOptions];
-		isMatched = [self isMatchedByRegex:sigRKRegex];
-    }
-    @catch (NSException *exception) {
-        // Ignore...
-    }
-    
-    return isMatched;
+    return [self isMatchedByRegex:signatureRegex];
 }
 
 
@@ -151,32 +131,12 @@
 - (NSRange)rangeOfPGPPublicKey {
     NSString *signatureRegex = [NSString stringWithFormat:@"(?sm)(%@.*?%@)",
                                 PGP_MESSAGE_PUBLIC_KEY_BEGIN, PGP_MESSAGE_PUBLIC_KEY_END];
-    NSRange match = NSMakeRange(NSNotFound, 0);
-    if([self length] == 0)
-        return match;
-    @try {
-		RKRegex *sigRKRegex = [RKRegex regexWithRegexString:signatureRegex options:RKCompileNoOptions];
-		match = [self rangeOfRegex:sigRKRegex];
-    }
-    @catch (NSException *exception) {
-        // Ignore...
-    }
-    
-    return match;
+    return [self rangeMatchingRegularExpression:signatureRegex];
 }
 
 - (BOOL)containsPGPVersionMarker:(int)version {
     NSString *versionRegex = [NSString stringWithFormat:@"(?smi)(version[ ]?: %d)", version];
-    BOOL isMatched = NO;
-    @try {
-		RKRegex *versionRKRegex = [RKRegex regexWithRegexString:versionRegex options:RKCompileNoOptions];
-		isMatched = [self isMatchedByRegex:versionRKRegex];
-    }
-    @catch (NSException *exception) {
-        // Ignore...
-    }
-    
-    return isMatched;
+    return [self isMatchedByRegex:versionRegex];
 }
 
 - (BOOL)containsPGPVersionString:(NSString *)version {
@@ -185,16 +145,7 @@
     // this method is used to check if the PGP BEGIN marker contains the version
     // string given.
     NSString *versionRegex = [NSString stringWithFormat:@"(?smi)(version[ ]?: %@)", version];
-    BOOL isMatched = NO;
-    @try {
-        RKRegex *versionRKRegex = [RKRegex regexWithRegexString:versionRegex options:RKCompileNoOptions];
-        isMatched = [self isMatchedByRegex:versionRKRegex];
-    }
-    @catch (NSException *exception) {
-        // Ignore...
-    }
-
-    return isMatched;
+    return [self isMatchedByRegex:versionRegex];
 }
 
 

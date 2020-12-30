@@ -56,6 +56,8 @@
 
 #import "GMComposeMessagePreferredSecurityProperties.h"
 
+#import "GMSystemIcon.h"
+
 #define mailself ((HeadersEditor *)self)
 #define tomailself(obj) ((HeadersEditor *)obj)
 
@@ -89,14 +91,8 @@ const NSString *kHeadersEditorFromControlParentItemKey = @"HeadersEditorFromCont
     
     // VoiceOver uses the accessibilityDescription of NSImage for the encrypt and sign buttons, if there is no other text for accessibility.
     // The lock-images have a default of "lock" and "unlocked lock". (NSLockLockedTemplate and NSLockUnlockedTemplate)
-    NSImage *signOnImage = [NSImage imageNamed:@"SignatureOnTemplate"];
-    if (signOnImage) {
-        [signOnImage setAccessibilityDescription:[GPGMailBundle localizedStringForKey:@"ACCESSIBILITY_SIGN_ON_IMAGE"]];
-    }
-    NSImage *signOffImage = [NSImage imageNamed:@"SignatureOffTemplate"];
-    if (signOffImage) {
-        [signOffImage setAccessibilityDescription:[GPGMailBundle localizedStringForKey:@"ACCESSIBILITY_SIGN_OFF_IMAGE"]];
-    }
+    NSImage *signOnImage = [GMSystemIcon iconNamed:kGMSystemIconNameSignatureValid accessibilityDescription:[GPGMailBundle localizedStringForKey:@"ACCESSIBILITY_SIGN_ON_IMAGE"]];
+    NSImage *signOffImage = [GMSystemIcon iconNamed:kGMSystemIconNameSignatureInvalid accessibilityDescription:[GPGMailBundle localizedStringForKey:@"ACCESSIBILITY_SIGN_OFF_IMAGE"]];
     
     // Configure setting the tool tip by unbinding the controls toolTip.
     // We will update it, after _updateSecurityStateInBackground is run.
@@ -364,7 +360,7 @@ const NSString *kHeadersEditorFromControlParentItemKey = @"HeadersEditorFromCont
         if(messageIsToBeEncrypted == YES && [recipientsWithNoKey count]) {
             NSString *missingCertificatesErrorMessage = [composeViewController missingCertificatesMessageForRecipients:recipientsWithNoKey uponDelivery:NO];
             if(missingCertificatesErrorMessage) {
-                NSAlert *missingCertificatesAlert = [NSAlert new];
+                NSAlert *missingCertificatesAlert = [GPGMailBundle customAlert];
                 // TODO: Find out what _MFStringKeyErrorTitle resolves to.
                 NSString *alertTitle = [[NSClassFromString(@"MailFramework") bundle] localizedStringForKey:@"MFStringKeyErrorTitle" value:@"" table:@"MailFramework"];
                 [missingCertificatesAlert setMessageText:alertTitle];

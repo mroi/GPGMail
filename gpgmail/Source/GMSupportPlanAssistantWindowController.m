@@ -17,6 +17,9 @@
 #import "GMSupportPlanManager.h"
 #import "GMSupportPlan.h"
 
+NSString * const kGMSupportPlanAssistantActivationInformationEmailKey = @"GMSupportPlanAssistantActivationInformationEmail";
+NSString * const kGMSupportPlanAssistantActivationInformationActivationCodeKey = @"GMSupportPlanAssistantActivationInformationActivationCode";
+
 typedef enum {
     GMSupportPlanPaddleErrorCodeNetworkError = 99,
     GMSupportPlanPaddleErrorCodeActivationCodeNotFound = 100,
@@ -117,15 +120,13 @@ typedef enum {
     }
 }
 
-- (void)showActivationError {
+- (void)showActivationError:(NSDictionary *)error {
     // This error is shown, if the local input validation did fail.
 	// This happen, when the entered code has the wrong length or an invalid email was entered.
-    NSAlert *alert = [NSAlert new];
-	alert.informativeText = [GPGMailBundle localizedStringForKey:@"SUPPORT_PLAN_NEW_ACTIVATION_FAILED_INPUT_INVALID"]; // "The entered activation code is invalid. Please check the entered information and try again."
+    NSAlert *alert = [GPGMailBundle customAlert];
+    alert.informativeText = [error allValues][0];
     alert.messageText = [GPGMailBundle localizedStringForKey:@"SUPPORT_PLAN_NEW_ACTIVATION_FAILED_TITLE"]; // "Support Plan Activation Failed"
-    alert.icon = [NSImage imageNamed:@"GPGMail"];
-    [alert beginSheetModalForWindow:[self window] completionHandler:^(NSModalResponse returnCode) {
-        
+    [alert beginSheetModalForWindow:[self window] completionHandler:^(NSModalResponse __unused returnCode) {
     }];
 }
 
@@ -138,29 +139,35 @@ typedef enum {
     [viewController hideLoadingSpinner];
     if([supportPlan isKindOfTrial] && [supportPlan isExpired]) {
         [viewController setState:GMSupportPlanViewControllerStateBuy forceUpdate:YES];
-        NSAlert *alert = [NSAlert new];
+        NSAlert *alert = [GPGMailBundle customAlert];
         alert.messageText = [GPGMailBundle localizedStringForKey:@"SUPPORT_PLAN_NEW_TRIAL_NO_NEW_TRIAL_ALLOWED_TITLE"];
         alert.informativeText = [GPGMailBundle localizedStringForKey:@"SUPPORT_PLAN_NEW_TRIAL_NO_NEW_TRIAL_ALLOWED_MESSAGE"];
-        alert.icon = [NSImage imageNamed:@"GPGMail"];
+
         [alert beginSheetModalForWindow:[self window] completionHandler:^(NSModalResponse returnCode) {
 
         }];
         return;
     }
 
-    // If GPG Mail 3 is running, but the support plan succeeded for GPG Mail 4,
-    // prompt to relaunch GPG Mail 4.
-    if([supportPlan isValidForAppName:@"org.gpgtools.gpgmail4"] && [[[GPGMailBundle bundle] bundleIdentifier] isEqualToString:@"org.gpgtools.gpgmail"]) {
-        // Reset the alwys load version, to make sure GPG Mail 4 is loaded.
-        [GMSupportPlanManager setAlwaysLoadVersion:nil];
-        [GMSupportPlanManager setShouldNeverAskAgainForUpgradeVersion:nil];
-        [viewController showGPGMail4ExplanationAndRelaunchMail];
+    // If the support plan is for a newer version, propose to restart Mail.
+    if([supportPlanManager version:[supportPlan newestEligibleVersion] isNewerThanVersion:[supportPlanManager applicationVersion]]) {
+        NSAlert *alert = [GPGMailBundle customAlert];
+        alert.messageText = [GPGMailBundle localizedStringForKey:@"SUPPORT_PLAN_NEW_SUPPORT_PLAN_FOR_NEWER_VERSION_DETECTED_TITLE"];
+        alert.informativeText = [NSString stringWithFormat:[GPGMailBundle localizedStringForKey:@"SUPPORT_PLAN_NEW_SUPPORT_PLAN_FOR_NEWER_VERSION_DETECTED_MESSAGE"], [GPGMailBundle productNameForVersion:[supportPlan newestEligibleVersion]], [GPGMailBundle productNameForVersion:[supportPlan newestEligibleVersion]]];
+        [alert addButtonWithTitle:[GPGMailBundle localizedStringForKey:@"SUPPORT_PLAN_NEW_SUPPORT_PLAN_FOR_NEWER_VERSION_DETECTED_BUTTON_RESTART"]];
+        [alert addButtonWithTitle:[GPGMailBundle localizedStringForKey:@"SUPPORT_PLAN_NEW_SUPPORT_PLAN_FOR_NEWER_VERSION_DETECTED_BUTTON_CANCEL"]];
+        [alert beginSheetModalForWindow:[self window] completionHandler:^(NSModalResponse __unused returnCode) {
+            [[self delegate] closeSupportPlanAssistant:[[self window] windowController]];
+            if(returnCode == NSAlertFirstButtonReturn) {
+                [(MailApp *)[NSClassFromString(@"MailApp") sharedApplication] quitAndRelaunchWithAdditionalArguments:nil];
+            }
+        }];
         return;
     }
 
     // It is possible that the activation did succeed, yet the support plan
     // is not valid for the current version. In that case, show the upgrade or keep dialog.
-    if([supportPlan isValidForAppName:@"org.gpgtools.gpgmail"] && [[[GPGMailBundle bundle] bundleIdentifier] isEqualToString:@"org.gpgtools.gpgmail4"]) {
+    if([supportPlan isValidExcludingAppName] && ![supportPlan isValid]) {
         [viewController setState:GMSupportPlanViewControllerStateInfo];
     }
     else {
@@ -170,7 +177,7 @@ typedef enum {
 
 - (void)activationDidFailWithError:(NSError *)error {
     [(GMSupportPlanAssistantViewController *)[[self window] contentViewController] restorePreviousState];
-    NSAlert *alert = [NSAlert new];
+    NSAlert *alert = [GPGMailBundle customAlert];
 
     BOOL closeWindow = NO;
     NSString *title = [GPGMailBundle localizedStringForKey:@"SUPPORT_PLAN_NEW_ACTIVATION_FAILED_TITLE"];
@@ -214,7 +221,6 @@ typedef enum {
     }
 
     alert.messageText = title; // "Support Plan Activation Failed"
-    alert.icon = [NSImage imageNamed:@"GPGMail"];
     [alert beginSheetModalForWindow:[self window] completionHandler:^(NSModalResponse returnCode) {
         if(self.closeWindowAfterError || closeWindow) {
             [[self delegate] closeSupportPlanAssistant:self];
@@ -308,6 +314,64 @@ typedef enum {
     return GMSupportPlanAssistantDialogTypeInactive;
 }
 
+- (NSString *)compatibilityInfoText {
+    return [self compatibilityInfoTextForVersion:[self.supportPlanManager applicationVersion]];
+}
+
+- (NSString *)compatibilityInfoTextLongVersionWithPreviousVersion:(NSString *)previousVersion {
+    NSMutableArray *compatibilityTextParts = [NSMutableArray new];
+    [compatibilityTextParts addObject:[self compatibilityInfoText]];
+    if(previousVersion) {
+        [compatibilityTextParts addObject:[self compatibilityInfoTextForVersion:previousVersion]];
+    }
+    [compatibilityTextParts addObject:[GPGMailBundle localizedStringForKey:@"SUPPORT_PLAN_NEW_ACTIVATION_DIALOG_VERSION_COMPATIBILITY_NO_GUARANTEE_INFO"]];
+    return [compatibilityTextParts componentsJoinedByString:@" "];
+}
+
+- (NSString *)compatibilityInfoTextForVersion:(NSString *)version {
+    NSDictionary *osNames = @{
+        @"10.13": @"High Sierra", @"10.14": @"Mojave",
+        @"10.15": @"Catalina", @"11.0": @"Big Sur"};
+    NSDictionary *versionInfo = @{
+        @"3": @[@"10.14", @"10.13"],
+        @"4": @[@"10.15", @"10.14", @"10.13"],
+        @"5": @[@"11.0", @"10.15", @"10.14"]
+    };
+
+    NSMutableArray *compatibilityTextParts = [NSMutableArray new];
+    for(NSString *currentVersion in versionInfo[version]) {
+        [compatibilityTextParts addObject:osNames[currentVersion]];
+    }
+    NSString *compatibilityOSText = [compatibilityTextParts componentsJoinedByString:@", "];
+
+    NSString *compatibilityInfo = [NSString stringWithFormat:[GPGMailBundle localizedStringForKey:@"SUPPORT_PLAN_NEW_ACTIVATION_DIALOG_VERSION_DYNAMIC_COMPATIBILITY_INFO"], [self productNameForVersion:version], [@"macOS " stringByAppendingString:compatibilityOSText]];
+
+    return compatibilityInfo;
+}
+
+- (NSString *)productNameForVersion:(NSString *)version {
+    return [GPGMailBundle productNameForVersion:version];
+}
+
+- (NSString *)productName {
+    return [self productNameForVersion:[self.supportPlanManager applicationVersion]];
+}
+
+- (NSString *)introText {
+    NSString *introText = [NSString stringWithFormat:[GPGMailBundle localizedStringForKey:@"SUPPORT_PLAN_NEW_ACTIVATION_DIALOG_HEADER_WELCOME_DYNAMIC"], [self productName]];
+    return introText;
+}
+
+- (NSString *)coveredVersionsForPreviousSupportPlanText {
+    GMSupportPlan *previousSupportPlan = [self.supportPlanManager supportPlanForPreviousVersion];
+    NSMutableArray *parts = [NSMutableArray new];
+    for(NSString *version in [previousSupportPlan eligibleVersions]) {
+        [parts addObject:[NSString stringWithFormat:@"%@", [self productNameForVersion:version]]];
+    }
+
+    return [parts componentsJoinedByString:@", "];
+}
+
 - (void)configureTextForState:(GMSupportPlanAssistantViewControllerState)state {
     GMSupportPlanManager *supportPlanManager = self.supportPlanManager;
 
@@ -317,21 +381,12 @@ typedef enum {
     if(state == GMSupportPlanViewControllerStateBuy) {
         NSDictionary *attributes = [NSDictionary dictionaryWithObjectsAndKeys:
                                     [NSColor linkColor], NSForegroundColorAttributeName,
-                                    [NSURL URLWithString:@"https://gpgtools.org/buy-support-plan?v4=1"], NSLinkAttributeName,
+                                    [NSURL URLWithString:@"https://gpgtools.org/buy-support-plan"], NSLinkAttributeName,
                                     nil];
 
         self.grayInfoTextField.stringValue = [GPGMailBundle localizedStringForKey:@"SUPPORT_PLAN_NEW_ACTIVATION_DIALOG_LOCATE_ACTIVATION_CODE"];
-        if([[[GPGMailBundle bundle] bundleIdentifier] isEqualToString:@"org.gpgtools.gpgmail"]) {
-            self.grayInfoTextField.stringValue = [self.grayInfoTextField.stringValue stringByAppendingFormat:@"\n\n%@ %@", [GPGMailBundle localizedStringForKey:@"SUPPORT_PLAN_NEW_ACTIVATION_DIALOG_VERSION_3_COMPATIBILITY_INFO"],
-                [GPGMailBundle localizedStringForKey:@"SUPPORT_PLAN_NEW_ACTIVATION_DIALOG_VERSION_COMPATIBILITY_NO_GUARANTEE_INFO"]                                  ];
-            self.headerTextField.stringValue = [GPGMailBundle localizedStringForKey:@"SUPPORT_PLAN_NEW_ACTIVATION_DIALOG_HEADER_WELCOME"]; // "Welcome to GPG Mail"
-        }
-        else {
-            self.grayInfoTextField.stringValue = [self.grayInfoTextField.stringValue stringByAppendingFormat:@"\n\n%@ %@ %@", [GPGMailBundle localizedStringForKey:@"SUPPORT_PLAN_NEW_ACTIVATION_DIALOG_VERSION_4_COMPATIBILITY_INFO"],
-                [GPGMailBundle localizedStringForKey:@"SUPPORT_PLAN_NEW_ACTIVATION_DIALOG_VERSION_3_COMPATIBILITY_INFO"],
-                [GPGMailBundle localizedStringForKey:@"SUPPORT_PLAN_NEW_ACTIVATION_DIALOG_VERSION_COMPATIBILITY_NO_GUARANTEE_INFO"]];
-            self.headerTextField.stringValue = [GPGMailBundle localizedStringForKey:@"SUPPORT_PLAN_NEW_HEADER_WELCOME_4"]; // "Welcome to GPG Mail"
-        }
+        self.grayInfoTextField.stringValue = [self.grayInfoTextField.stringValue stringByAppendingFormat:@"\n\n%@", [self compatibilityInfoTextLongVersionWithPreviousVersion:nil]];
+        self.headerTextField.stringValue = [self introText];
 
         NSNumber *remainingTrialDays = [supportPlanManager remainingTrialDays];
         BOOL trialStarted = YES;
@@ -343,8 +398,10 @@ typedef enum {
         NSTextField *alreadyHaveSupportPlanInfo = nil;
 
         GMSupportPlanAssistantDialogType dialogType = [self dialogTypeWithStateHint:GMSupportPlanViewControllerStateBuy];
+        if(dialogType == GMSupportPlanAssistantDialogTypeTrialExpired || dialogType == GMSupportPlanAssistantDialogTypeTrialAboutToExpire || dialogType == GMSupportPlanAssistantDialogTypeTrial) {
+            self.headerTextField.stringValue = [NSString stringWithFormat:[GPGMailBundle localizedStringForKey:@"SUPPORT_PLAN_NEW_ACTIVATION_DIALOG_HEADER_TRIAL"], [self productName]];
+        }
         if(dialogType == GMSupportPlanAssistantDialogTypeTrialExpired) {
-            self.headerTextField.stringValue = [GPGMailBundle localizedStringForKey:@"SUPPORT_PLAN_NEW_ACTIVATION_DIALOG_HEADER_TRIAL_4"];
             self.subHeaderTextField.stringValue = [GPGMailBundle localizedStringForKey:@"SUPPORT_PLAN_NEW_ACTIVATION_DIALOG_SUBHEADER_TRIAL_EXPIRED"];
 
             self.detailsTextField.stringValue = [GPGMailBundle localizedStringForKey:@"SUPPORT_PLAN_NEW_ACTIVATION_DIALOG_TRIAL_EXPIRED_DETAILS_TEXT"];
@@ -352,14 +409,12 @@ typedef enum {
             alreadyHaveSupportPlanInfo = self.infoTextLabel;
         }
         else if(dialogType == GMSupportPlanAssistantDialogTypeTrialAboutToExpire) {
-            self.headerTextField.stringValue = [GPGMailBundle localizedStringForKey:@"SUPPORT_PLAN_NEW_ACTIVATION_DIALOG_HEADER_TRIAL_4"];
             NSString *format = [GPGMailBundle localizedStringForKey:@"SUPPORT_PLAN_NEW_ACTIVATION_DIALOG_TRIAL_ABOUT_TO_EXPIRE_SUBHEADER"];
             self.subHeaderTextField.stringValue = [NSString stringWithFormat:format, remainingTrialDays];
             self.detailsTextField.stringValue = [GPGMailBundle localizedStringForKey:@"SUPPORT_PLAN_NEW_ACTIVATION_DIALOG_TRIAL_ABOUT_TO_EXPIRE_DETAILS_TEXT"];
             alreadyHaveSupportPlanInfo = self.infoTextLabel;
         }
         else if(dialogType == GMSupportPlanAssistantDialogTypeTrial) {
-            self.headerTextField.stringValue = [GPGMailBundle localizedStringForKey:@"SUPPORT_PLAN_NEW_ACTIVATION_DIALOG_HEADER_TRIAL_4"];
             NSString *format = [GPGMailBundle localizedStringForKey:@"SUPPORT_PLAN_NEW_ACTIVATION_DIALOG_TRIAL_CONTINUE_SUBHEADER"];
             self.subHeaderTextField.stringValue = [NSString stringWithFormat:format, remainingTrialDays];
             alreadyHaveSupportPlanInfo = self.detailsTextField;
@@ -370,13 +425,11 @@ typedef enum {
             alreadyHaveSupportPlanInfo = self.detailsTextField;
         }
         else if(dialogType == GMSupportPlanAssistantDialogTypeSwitchSupportPlan) {
-            self.headerTextField.stringValue = [GPGMailBundle localizedStringForKey:@"SUPPORT_PLAN_NEW_ACTIVATION_DIALOG_HEADER_SWITCH_PLAN"];
+            self.headerTextField.stringValue = [self productName];
             self.subHeaderTextField.stringValue = [GPGMailBundle localizedStringForKey:@"SUPPORT_PLAN_NEW_ACTIVATION_DIALOG_SUBHEADER_SWITCH_PLAN"];
-            self.detailsTextField.stringValue = [GPGMailBundle localizedStringForKey:@"SUPPORT_PLAN_NEW_ACTIVATION_DIALOG_SWITCH_PLAN_DETAILS_TEXT"];
+            self.detailsTextField.stringValue = [NSString stringWithFormat:[GPGMailBundle localizedStringForKey:@"SUPPORT_PLAN_NEW_ACTIVATION_DIALOG_SWITCH_PLAN_DETAILS_TEXT_DYNAMIC"], [self coveredVersionsForPreviousSupportPlanText], [self productName]];
             self.infoTextLabel.hidden = YES;
-            self.grayInfoTextField.stringValue = [NSString stringWithFormat:@"\n%@ %@ %@", [GPGMailBundle localizedStringForKey:@"SUPPORT_PLAN_NEW_ACTIVATION_DIALOG_VERSION_4_COMPATIBILITY_INFO"],
-                                                  [GPGMailBundle localizedStringForKey:@"SUPPORT_PLAN_NEW_ACTIVATION_DIALOG_VERSION_3_COMPATIBILITY_INFO"],
-                                                  [GPGMailBundle localizedStringForKey:@"SUPPORT_PLAN_NEW_ACTIVATION_DIALOG_VERSION_COMPATIBILITY_NO_GUARANTEE_INFO"]];
+            self.grayInfoTextField.stringValue = [self compatibilityInfoTextLongVersionWithPreviousVersion:nil];
             alreadyHaveSupportPlanInfo = nil;
             // By default disable the button.
             self.continueButton.enabled = NO;
@@ -410,11 +463,6 @@ typedef enum {
             self.cancelButton.tag = GMSupportPlanAssistantButtonActionStartTrial;
         }
 
-        // If this is version 3, hide the start trial button.
-        if([[[GPGMailBundle bundle] bundleIdentifier] isEqualToString:@"org.gpgtools.gpgmail"]) {
-            self.cancelButton.hidden = YES;
-        }
-
         self.emailLabel.stringValue = [GPGMailBundle localizedStringForKey:@"SUPPORT_PLAN_NEW_ACTIVATION_DIALOG_EMAIL_LABEL"]; // "Email"
         self.licenseLabel.stringValue = [GPGMailBundle localizedStringForKey:@"SUPPORT_PLAN_NEW_ACTIVATION_DIALOG_ACTIVATION_CODE_LABEL"]; // "Activation Code"
         self.progressTextField.stringValue = [GPGMailBundle localizedStringForKey:@"SUPPORT_PLAN_NEW_ACTIVATION_DIALOG_PROGRESS_TEXT"]; // "Activating your copy of GPG Mail"
@@ -423,28 +471,24 @@ typedef enum {
         GMSupportPlanManagerUpgradeState upgradeState = [supportPlanManager upgradeState];
         GMSupportPlanState supportPlanState = [supportPlanManager supportPlanState];
 
-        self.headerTextField.stringValue = [GPGMailBundle localizedStringForKey:@"SUPPORT_PLAN_NEW_HEADER_WELCOME_4"];
-        
+        self.headerTextField.stringValue = [self introText];
+        self.infoTextLabel.hidden = NO;
         if(upgradeState == GMSupportPlanManagerUpgradeStateUpgradeFromVersion3ToVersion4) {
-            self.headerTextField.stringValue = [GPGMailBundle localizedStringForKey:@"SUPPORT_PLAN_NEW_HEADER_WELCOME_4"];
             self.subHeaderTextField.stringValue = [GPGMailBundle localizedStringForKey:@"SUPPORT_PLAN_NEW_UPGRADE_DIALOG_SUBHEADER"];
 
             self.progressTextField.stringValue = [GPGMailBundle localizedStringForKey:@"SUPPORT_PLAN_NEW_ACTIVATION_DIALOG_PROGRESS_TEXT"]; // "Activating your copy of GPG Mail"
             //self.dontAskAgainCheckBox.title = [GPGMailBundle localizedStringForKey:@"SUPPORT_PLAN_DONT_ASK_AGAIN"]; // "Don't ask again"
             //self.showDontAskAgain = YES;
-            self.detailsTextField.stringValue = [GPGMailBundle localizedStringForKey:@"SUPPORT_PLAN_NEW_UPGRADE_DIALOG_UPGRADE_3TO4_VALID_V3"];
-            self.infoTextLabel.stringValue = [NSString stringWithFormat:[GPGMailBundle localizedStringForKey:@"SUPPORT_PLAN_NEW_UPGRADE_DIALOG_UPGRADE_3TO4_EXPLANATION"], @"30%", @"30"];
+            self.detailsTextField.stringValue = [NSString stringWithFormat:[GPGMailBundle localizedStringForKey:@"SUPPORT_PLAN_NEW_UPGRADE_DIALOG_UPGRADE_REQUIRED_TITLE"], [self productName]];
+            self.infoTextLabel.stringValue = [NSString stringWithFormat:[GPGMailBundle localizedStringForKey:@"SUPPORT_PLAN_NEW_UPGRADE_DIALOG_UPGRADE_REQUIRED_EXPLANATION"], @"30%"];
             if(supportPlanState != GMSupportPlanStateTrialExpired) {
-                self.infoTextLabel.stringValue = [[self.infoTextLabel.stringValue stringByAppendingString:@"\n\n"] stringByAppendingFormat:[GPGMailBundle localizedStringForKey:@"SUPPORT_PLAN_NEW_UPGRADE_DIALOG_UPGRADE_3TO4_START_TRIAL_EXPLANATION"], @"30"];
+                self.infoTextLabel.stringValue = [[self.infoTextLabel.stringValue stringByAppendingString:@"\n\n"] stringByAppendingFormat:[GPGMailBundle localizedStringForKey:@"SUPPORT_PLAN_NEW_UPGRADE_DIALOG_UPGRADE_REQUIRED_START_TRIAL_EXPLANATION"], @"30"];
             }
-            self.grayInfoTextField.stringValue = [NSString stringWithFormat:@"%@ %@",
-                                                   [GPGMailBundle localizedStringForKey:@"SUPPORT_PLAN_NEW_ACTIVATION_DIALOG_VERSION_4_COMPATIBILITY_INFO"],
-                                                   [GPGMailBundle localizedStringForKey:@"SUPPORT_PLAN_NEW_ACTIVATION_DIALOG_VERSION_COMPATIBILITY_NO_GUARANTEE_INFO"]
-                                                   ];
+            self.grayInfoTextField.stringValue = [self compatibilityInfoTextLongVersionWithPreviousVersion:nil];
 
             self.continueButton.title = [GPGMailBundle localizedStringForKey:@"SUPPORT_PLAN_NEW_UPGRADE_DIALOG_UPGRADE_BUTTON_UPGRADE"];
             self.continueButton.tag = GMSupportPlanAssistantBuyActivateButtonStateUpgrade;
-
+            self.continueButton.enabled = YES;
             BOOL trialStarted = NO;
             if([supportPlanManager supportPlan] && [supportPlanManager remainingTrialDays] != nil) {
                 trialStarted = YES;
@@ -460,68 +504,53 @@ typedef enum {
             }
         }
         else {
-            self.headerTextField.stringValue = [GPGMailBundle localizedStringForKey:@"SUPPORT_PLAN_NEW_HEADER_WELCOME_4"];
             self.progressTextField.stringValue = [GPGMailBundle localizedStringForKey:@"SUPPORT_PLAN_NEW_ACTIVATION_DIALOG_PROGRESS_TEXT"]; // "Activating your copy of GPG Mail"
             self.dontAskAgainCheckBox.title = @"Don't ask me again"; // TODO: [GPGMailBundle localizedStringForKey:@"SUPPORT_PLAN_DONT_ASK_AGAIN"]; // "Don't ask again"
             self.showDontAskAgain = YES;
-            self.detailsTextField.stringValue = [GPGMailBundle localizedStringForKey:@"SUPPORT_PLAN_NEW_UPGRADE_DIALOG_UPGRADE_4ORKEEP3_V4_AVAILABLE"];
+            self.detailsTextField.stringValue = [NSString stringWithFormat:[GPGMailBundle localizedStringForKey:@"SUPPORT_PLAN_NEW_UPGRADE_DIALOG_UPGRADE_OR_KEEP_TITLE"], [self productName]];
             self.subHeaderTextField.stringValue = [GPGMailBundle localizedStringForKey:@"SUPPORT_PLAN_NEW_UPGRADE_DIALOG_SUBHEADER"];
-            self.infoTextLabel.stringValue = [NSString stringWithFormat:[GPGMailBundle localizedStringForKey:@"SUPPORT_PLAN_NEW_UPGRADE_DIALOG_UPGRADE_4ORKEEP3_EXPLANATION"], @"30%"];
-            self.grayInfoTextField.stringValue = [NSString stringWithFormat:@"%@ %@ %@",
-                [GPGMailBundle localizedStringForKey:@"SUPPORT_PLAN_NEW_ACTIVATION_DIALOG_VERSION_4_COMPATIBILITY_INFO"],
-                [GPGMailBundle localizedStringForKey:@"SUPPORT_PLAN_NEW_ACTIVATION_DIALOG_VERSION_3_COMPATIBILITY_INFO"],
-                [GPGMailBundle localizedStringForKey:@"SUPPORT_PLAN_NEW_ACTIVATION_DIALOG_VERSION_COMPATIBILITY_NO_GUARANTEE_INFO"]];
+            NSString *previousVersion = [[self.supportPlanManager supportPlanForPreviousVersion] newestEligibleVersion];
+            NSString *previousProductName = [self productNameForVersion:previousVersion];
+            self.infoTextLabel.stringValue = [NSString stringWithFormat:[GPGMailBundle localizedStringForKey:@"SUPPORT_PLAN_NEW_UPGRADE_DIALOG_UPGRADE_OR_KEEP_EXPLANATION"], previousProductName, @"30%", previousProductName];
+            self.grayInfoTextField.stringValue = [self compatibilityInfoTextLongVersionWithPreviousVersion:previousVersion];
 
-            self.cancelButton.title = [GPGMailBundle localizedStringForKey:@"SUPPORT_PLAN_NEW_UPGRADE_DIALOG_UPGRADE_4ORKEEP3_BUTTON_KEEP"];
+            // TODO: Make sure to check that the keep version is compatible with this system.
+            self.cancelButton.title = [NSString stringWithFormat:[GPGMailBundle localizedStringForKey:@"SUPPORT_PLAN_NEW_UPGRADE_DIALOG_UPGRADE_OR_KEEP_BUTTON_KEEP"], previousProductName];
             self.cancelButton.tag = GMSupportPlanAssistantButtonActionKeepVersion3;
 
             self.continueButton.title = [GPGMailBundle localizedStringForKey:@"SUPPORT_PLAN_NEW_UPGRADE_DIALOG_UPGRADE_BUTTON_UPGRADE"];
             self.continueButton.tag = GMSupportPlanAssistantButtonActionUpgrade;
+            self.continueButton.enabled = YES;
         }
 
         if(state == GMSupportPlanViewControllerStateCheckingSupportPlanStatus) {
-            self.detailsTextField.stringValue = [GPGMailBundle localizedStringForKey:@"SUPPORT_PLAN_NEW_STATUS_UPDATE_DIALOG_EXPLANATION"];
+            NSString *previousVersion = [[self.supportPlanManager supportPlanForPreviousVersion] newestEligibleVersion];
+            NSString *previousProductName = [self productNameForVersion:previousVersion];
+            self.detailsTextField.stringValue = [NSString stringWithFormat:[GPGMailBundle localizedStringForKey:@"SUPPORT_PLAN_NEW_STATUS_UPDATE_DIALOG_EXPLANATION_TITLE"], previousProductName, [self productName]];
             self.progressTextField.stringValue = [GPGMailBundle localizedStringForKey:@"SUPPORT_PLAN_NEW_STATUS_UPDATE_DIALOG_PROGRESS_TEXT"];
         }
     }
 
     if(state == GMSupportPlanViewControllerStateThanks) {
-        if([[[GPGMailBundle bundle] bundleIdentifier] isEqualToString:@"org.gpgtools.gpgmail"]) {
-            self.headerTextField.stringValue = [GPGMailBundle localizedStringForKey:@"SUPPORT_PLAN_NEW_ACTIVATION_DIALOG_HEADER_WELCOME"];
-        }
-        else {
-            self.headerTextField.stringValue = [GPGMailBundle localizedStringForKey:@"SUPPORT_PLAN_NEW_HEADER_WELCOME_4"];
-        }
+        self.headerTextField.stringValue = [self introText];
+
+        NSString *previousVersion = [[self.supportPlanManager supportPlanForPreviousVersion] newestEligibleVersion];
+        NSString *previousProductName = [self productNameForVersion:previousVersion];
+        self.grayInfoTextField.stringValue = [self compatibilityInfoTextLongVersionWithPreviousVersion:previousVersion];
+
         if([supportPlanManager supportPlanState] == GMSupportPlanStateTrial) {
             self.subHeaderTextField.stringValue = [GPGMailBundle localizedStringForKey:@"SUPPORT_PLAN_NEW_THANKS_DIALOG_TRIAL_SUBHEADER"];
             self.detailsTextField.stringValue = [GPGMailBundle localizedStringForKey:@"SUPPORT_PLAN_NEW_THANKS_DIALOG_TRIAL_SUCCESS_MESSAGE"];
-            self.grayInfoTextField.stringValue = [NSString stringWithFormat:@"%@ %@ %@",
-                                                  [GPGMailBundle localizedStringForKey:@"SUPPORT_PLAN_NEW_ACTIVATION_DIALOG_VERSION_4_COMPATIBILITY_INFO"],
-                                                  [GPGMailBundle localizedStringForKey:@"SUPPORT_PLAN_NEW_ACTIVATION_DIALOG_VERSION_3_COMPATIBILITY_INFO"],
-                                                  [GPGMailBundle localizedStringForKey:@"SUPPORT_PLAN_NEW_ACTIVATION_DIALOG_VERSION_COMPATIBILITY_NO_GUARANTEE_INFO"]];
         }
         else {
             self.subHeaderTextField.stringValue = [GPGMailBundle localizedStringForKey:@"SUPPORT_PLAN_NEW_THANKS_DIALOG_SUBHEADER"];
             self.detailsTextField.stringValue = [GPGMailBundle localizedStringForKey:@"SUPPORT_PLAN_NEW_THANKS_DIALOG_SUCCESS_MESSAGE"];
-            if([[[GPGMailBundle bundle] bundleIdentifier] isEqualToString:@"org.gpgtools.gpgmail"]) {
-                self.grayInfoTextField.stringValue = [NSString stringWithFormat:@"%@ %@",
-                                                      [GPGMailBundle localizedStringForKey:@"SUPPORT_PLAN_NEW_ACTIVATION_DIALOG_VERSION_3_COMPATIBILITY_INFO"],
-                                                      [GPGMailBundle localizedStringForKey:@"SUPPORT_PLAN_NEW_ACTIVATION_DIALOG_VERSION_COMPATIBILITY_NO_GUARANTEE_INFO"]];
+            NSDictionary *meta = [[supportPlanManager supportPlan] metadata];
+            NSDictionary *effu = [meta valueForKey:@"effu"];
+            if(effu && effu[@"purchase_date"] != nil && [effu[@"eligible"] boolValue]) {
+                NSString *effuText = [NSString stringWithFormat:[GPGMailBundle localizedStringForKey:@"SUPPORT_PLAN_NEW_THANKS_DIALOG_EFFU_MESSAGE_DYNAMIC"], previousProductName, [self productName]];
+                self.detailsTextField.stringValue = [NSString stringWithFormat:@"%@\n\n%@", effuText, self.detailsTextField.stringValue];
             }
-            else {
-                NSDictionary *meta = [[supportPlanManager supportPlan] metadata];
-                NSDictionary *effu = [meta valueForKey:@"effu"];
-                if(effu && effu[@"purchase_date"] != nil && [effu[@"eligible"] boolValue]) {
-                    NSString *effuText = [GPGMailBundle localizedStringForKey:@"SUPPORT_PLAN_NEW_THANKS_DIALOG_EFFU_MESSAGE"];
-                    self.detailsTextField.stringValue = [NSString stringWithFormat:@"%@\n\n%@", effuText, self.detailsTextField.stringValue];
-                }
-
-                self.grayInfoTextField.stringValue = [NSString stringWithFormat:@"%@ %@ %@",
-                                                      [GPGMailBundle localizedStringForKey:@"SUPPORT_PLAN_NEW_ACTIVATION_DIALOG_VERSION_4_COMPATIBILITY_INFO"],
-                                                      [GPGMailBundle localizedStringForKey:@"SUPPORT_PLAN_NEW_ACTIVATION_DIALOG_VERSION_3_COMPATIBILITY_INFO"],
-                                                      [GPGMailBundle localizedStringForKey:@"SUPPORT_PLAN_NEW_ACTIVATION_DIALOG_VERSION_COMPATIBILITY_NO_GUARANTEE_INFO"]];
-            }
-
         }
         _continueButton.title = [GPGMailBundle localizedStringForKey:@"SUPPORT_PLAN_NEW_DIALOG_BUTTON_CLOSE"];
         _continueButton.tag = GMSupportPlanAssistantButtonActionClose;
@@ -632,10 +661,6 @@ typedef enum {
         else {
             _cancelButton.enabled = YES;
         }
-
-        if([[[GPGMailBundle bundle] bundleIdentifier] isEqualToString:@"org.gpgtools.gpgmail"]) {
-            self.subHeaderTextField.hidden = YES;
-        }
     }
 }
 
@@ -720,30 +745,47 @@ typedef enum {
         }];
     }
     else if([(NSButton *)sender tag] == GMSupportPlanAssistantBuyActivateButtonStateBuy) {
-        [[NSWorkspace sharedWorkspace] openURL:[NSURL URLWithString:@"https://gpgtools.org/buy-support-plan?v4=1"]];
+        [[NSWorkspace sharedWorkspace] openURL:[NSURL URLWithString:@"https://gpgtools.org/buy-support-plan"]];
     }
     else {
-        if(self.email && self.emailTextField.stringValue != self.email) {
-            self.emailTextField.stringValue = self.email;
+        NSString *email = [self whitespaceStripped:[self.email copy]];
+        NSString *activationCode = [self whitespaceStripped:[self.activationCode copy]];
+        if(email && self.emailTextField.stringValue != email) {
+            self.emailTextField.stringValue = email;
         }
-        if(self.activationCode && self.licenseTextField.stringValue != self.activationCode) {
-            self.licenseTextField.stringValue = self.activationCode;
+        if(activationCode && self.licenseTextField.stringValue != activationCode) {
+            self.licenseTextField.stringValue = activationCode;
         }
-        
-        if(![self validateActivationInformation]) {
-            [(GMSupportPlanAssistantWindowController *)[[[self view] window] windowController] showActivationError];
+
+        NSDictionary *activationInformation = @{
+            kGMSupportPlanAssistantActivationInformationEmailKey: email == nil ? @"" : email,
+            kGMSupportPlanAssistantActivationInformationActivationCodeKey: activationCode == nil ? @"" : activationCode
+        };
+
+        NSDictionary __autoreleasing *error = nil;
+        if(![self validateActivationInformation:activationInformation error:&error]) {
+            [(GMSupportPlanAssistantWindowController *)[[[self view] window] windowController] showActivationError:error];
         }
         else {
+            // Unset initial dialog type, since otherwise the continue button is deactivated, once the state
+            // changes again.
+            self.initialDialogType = GMSupportPlanAssistantDialogTypeInactive;
+
             [self setState:GMSupportPlanViewControllerStateActivating];
             [[self delegate] supportPlanAssistant:[[[self view] window] windowController]
-                                            email:self.email
-                                   activationCode:self.activationCode];
+                                            email:email
+                                   activationCode:activationCode];
         }
     }
 }
 
+- (NSString *)whitespaceStripped:(NSString *)value {
+    NSCharacterSet *whitespaceSet = [NSCharacterSet whitespaceAndNewlineCharacterSet];
+    return [value stringByTrimmingCharactersInSet:whitespaceSet];
+}
+
 - (void)showUpgradeURLFetchOperationFailedAlertForError:(NSError *)error {
-    NSAlert *alert = [NSAlert new];
+    NSAlert *alert = [GPGMailBundle customAlert];
 
     if(error.code == GMSupportPlanAPIErrorUpgradeURLVolume) {
         alert.messageText = [GPGMailBundle localizedStringForKey:@"SUPPORT_PLAN_NEW_UPGRADE_DIALOG_ERROR_ALERT_VOLUME_TITLE"];
@@ -754,7 +796,6 @@ typedef enum {
         alert.informativeText = [GPGMailBundle localizedStringForKey:@"SUPPORT_PLAN_NEW_UPGRADE_DIALOG_ERROR_ALERT_SERVER_MESSAGE"];
     }
 
-    alert.icon = [NSImage imageNamed:@"GPGMail"];
     [alert beginSheetModalForWindow:[[self view] window] completionHandler:^(NSModalResponse returnCode) {
         if(error.code != GMSupportPlanAPIErrorUpgradeURLVolume) {
             [[self delegate] closeSupportPlanAssistant:[[[self view] window] windowController]];
@@ -788,11 +829,25 @@ typedef enum {
     [self hideLoadingSpinnerAndReenableButtons:@[_cancelButton, _continueButton]];
 }
 
-- (BOOL)validateActivationInformation {
-    if([self.activationCode length] <= 20 || [self.activationCode length] >= 44 + 10 || ![self.email length] || [self.email rangeOfString:@"@"].location == NSNotFound) {
-        return NO;
+- (BOOL)validateActivationInformation:(NSDictionary *)activationInformation error:(NSDictionary **)error {
+    // Check email for not-empty and @ sign.
+    NSMutableDictionary *validationError = [NSMutableDictionary new];
+    NSString *email = activationInformation[kGMSupportPlanAssistantActivationInformationEmailKey];
+    NSString *activationCode = activationInformation[kGMSupportPlanAssistantActivationInformationActivationCodeKey];
+    if([email length] <= 5 || [email rangeOfString:@"@"].location == NSNotFound) {
+        validationError[kGMSupportPlanAssistantActivationInformationEmailKey] = [GPGMailBundle localizedStringForKey:@"SUPPORT_PLAN_NEW_ACTIVATION_FAILED_INPUT_EMAIL_INVALID"];
     }
-    return YES;
+    else if([activationCode length] <= 20 || [self.activationCode length] >= 44 + 10) {
+        validationError[kGMSupportPlanAssistantActivationInformationActivationCodeKey] = [GPGMailBundle localizedStringForKey:@"SUPPORT_PLAN_NEW_ACTIVATION_FAILED_INPUT_INVALID"];
+    }
+
+    BOOL valid = YES;
+    if([[validationError allKeys] count] > 0) {
+        valid = NO;
+        *error = [validationError copy];
+    }
+
+    return valid;
 }
 
 - (void)cancelOperation:(id)sender {
@@ -835,10 +890,9 @@ typedef enum {
 }
 
 - (void)showAlreadyActivatedAlert {
-    NSAlert *alert = [NSAlert new];
+    NSAlert *alert = [GPGMailBundle customAlert];
     alert.messageText = [GPGMailBundle localizedStringForKey:@"SUPPORT_PLAN_NEW_ACTIVATION_DIALOG_ERROR_ALERT_ACTIVATED_TITLE"];
     alert.informativeText = [GPGMailBundle localizedStringForKey:@"SUPPORT_PLAN_NEW_ACTIVATION_DIALOG_ERROR_ALERT_ACTIVATED_MESSAGE"];
-    alert.icon = [NSImage imageNamed:@"GPGMail"];
     [alert beginSheetModalForWindow:[[self view] window] completionHandler:^(NSModalResponse returnCode) {
         [[self delegate] closeSupportPlanAssistant:[[[self view] window] windowController]];
     }];
@@ -849,30 +903,18 @@ typedef enum {
 }
 
 - (void)showKeepExplanationDialogAndRelaunchMail {
-    [GMSupportPlanManager setAlwaysLoadVersion:@"3"];
+    NSString *previousVersion = [[self.supportPlanManager supportPlanForPreviousVersion] newestEligibleVersion];
+    [GMSupportPlanManager setAlwaysLoadVersion:previousVersion];
     [[self supportPlanManager] resetLastDateOfAllEvents];
 
-    NSAlert *alert = [NSAlert new];
-    alert.messageText = [GPGMailBundle localizedStringForKey:@"SUPPORT_PLAN_NEW_ACTIVATION_DIALOG_ALERT_RESTARTING_V3_TITLE"];
-    alert.informativeText = [GPGMailBundle localizedStringForKey:@"SUPPORT_PLAN_NEW_ACTIVATION_DIALOG_ALERT_RESTARTING_V3_MESSAGE"];
-    alert.icon = [NSImage imageNamed:@"GPGMail"];
+    NSAlert *alert = [GPGMailBundle customAlert];
+    alert.messageText = [GPGMailBundle localizedStringForKey:@"SUPPORT_PLAN_NEW_ACTIVATION_DIALOG_ALERT_RESTARTING_TITLE"];
+    alert.informativeText = [NSString stringWithFormat:[GPGMailBundle localizedStringForKey:@"SUPPORT_PLAN_NEW_ACTIVATION_DIALOG_ALERT_RESTARTING_MESSAGE"], [self productNameForVersion:previousVersion], [self productName]];
     [alert beginSheetModalForWindow:[[self view] window] completionHandler:^(NSModalResponse returnCode) {
         [[self delegate] closeSupportPlanAssistant:[[[self view] window] windowController]];
         [(MailApp *)[NSClassFromString(@"MailApp") sharedApplication] quitAndRelaunchWithAdditionalArguments:nil];
     }];
 }
-
-- (void)showGPGMail4ExplanationAndRelaunchMail {
-    NSAlert *alert = [NSAlert new];
-    alert.messageText = [GPGMailBundle localizedStringForKey:@"SUPPORT_PLAN_NEW_ACTIVATION_DIALOG_ALERT_RESTARTING_V4_TITLE"];;
-    alert.informativeText = [GPGMailBundle localizedStringForKey:@"SUPPORT_PLAN_NEW_ACTIVATION_DIALOG_ALERT_RESTARTING_V4_MESSAGE"];;
-    alert.icon = [NSImage imageNamed:@"GPGMail"];
-    [alert beginSheetModalForWindow:[[self view] window] completionHandler:^(NSModalResponse returnCode) {
-        [[self delegate] closeSupportPlanAssistant:[[[self view] window] windowController]];
-        [(MailApp *)[NSClassFromString(@"MailApp") sharedApplication] quitAndRelaunchWithAdditionalArguments:nil];
-    }];
-}
-
 
 - (BOOL)windowShouldClose:(id)sender {
     GMSupportPlanManager *supportPlanManager = self.supportPlanManager;
@@ -882,7 +924,7 @@ typedef enum {
     }
 
     if(supportPlanState == GMSupportPlanStateTrialExpired || supportPlanState == GMSupportPlanStateInactive) {
-        NSAlert *alert = [NSAlert new];
+        NSAlert *alert = [GPGMailBundle customAlert];
         if(supportPlanState == GMSupportPlanStateInactive) {
             alert.messageText = [GPGMailBundle localizedStringForKey:@"SUPPORT_PLAN_NEW_WINDOW_CLOSE_ALERT_INACTIVE_TITLE"];
             alert.informativeText = [GPGMailBundle localizedStringForKey:@"SUPPORT_PLAN_NEW_WINDOW_CLOSE_ALERT_INACTIVE_MESSAGE"];
@@ -891,7 +933,6 @@ typedef enum {
             alert.messageText = [GPGMailBundle localizedStringForKey:@"SUPPORT_PLAN_NEW_WINDOW_CLOSE_ALERT_TRIAL_EXPIRED_TITLE"];
             alert.informativeText = [GPGMailBundle localizedStringForKey:@"SUPPORT_PLAN_NEW_WINDOW_CLOSE_ALERT_TRIAL_EXPIRED_MESSAGE"];;
         }
-        alert.icon = [NSImage imageNamed:@"GPGMail"];
         [alert beginSheetModalForWindow:[[self view] window] completionHandler:^(NSModalResponse returnCode) {
             [[self delegate] closeSupportPlanAssistant:[[[self view] window] windowController]];
         }];

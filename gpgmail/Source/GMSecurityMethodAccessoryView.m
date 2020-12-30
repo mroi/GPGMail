@@ -85,6 +85,49 @@
 	return [self initWithStyle:GMSecurityMethodAccessoryViewStyleWindowAccessory];
 }
 
+- (void)configureSegmentedControl {
+    NSSegmentedControl *segmentedControl = [NSSegmentedControl segmentedControlWithLabels:@[@"OpenPGP"] trackingMode:NSSegmentSwitchTrackingSelectOne target:nil action:nil];
+
+    [segmentedControl setSelectedSegment:0];
+    [segmentedControl setShowsMenuIndicator:YES forSegment:0];
+
+    NSMenu *menu = [NSMenu new];
+    menu.title = @"Security Method Picker";
+
+    NSMenuItem *menuItemOpenPGP = [[NSMenuItem alloc] initWithTitle:@"OpenPGP" action:@selector(_changeSecurityMethod:) keyEquivalent:@""];
+    NSMenuItem *menuItemOpenSMIME = [[NSMenuItem alloc] initWithTitle:@"S/MIME" action:@selector(_changeSecurityMethod:) keyEquivalent:@""];
+    [menuItemOpenPGP setState:NSControlStateValueOn];
+    menuItemOpenPGP.target = self;
+    menuItemOpenSMIME.target = self;
+    menuItemOpenPGP.tag = GPGMAIL_SECURITY_METHOD_OPENPGP;
+    menuItemOpenSMIME.tag = GPGMAIL_SECURITY_METHOD_SMIME;
+
+    menuItemOpenPGP.enabled = YES;
+    menuItemOpenSMIME.enabled = YES;
+
+    [menu addItem:menuItemOpenPGP];
+    [menu addItem:menuItemOpenSMIME];
+
+    menu.autoenablesItems = NO;
+
+    [segmentedControl setMenu:menu forSegment:0];
+
+    _segmentedControl = segmentedControl;
+}
+
+- (void)_changeSecurityMethod:(id)sender {
+    [[[sender menu] itemArray] enumerateObjectsUsingBlock:^(NSMenuItem * _Nonnull obj, NSUInteger idx, BOOL * _Nonnull stop) {
+        if([sender isEqual:obj]) {
+            [obj setState:NSControlStateValueOn];
+        }
+        else {
+            [obj setState:NSControlStateValueOff];
+        }
+    }];
+    [_segmentedControl setLabel:[sender title] forSegment:0];
+    [self changeSecurityMethod:sender];
+}
+
 - (id)initWithStyle:(GMSecurityMethodAccessoryViewStyle)style size:(NSSize)size {
     self = [self initWithFrame:NSMakeRect(0.0f, 0.0f, size.width, size.height) pullsDown:NO];
     if(!self) {
@@ -102,6 +145,8 @@
     [self _configurePopupWithSecurityMethods:@[@"OpenPGP", @"S/MIME"]];
     [self _configureArrow];
     
+    [self configureSegmentedControl];
+
     return self;
 }
 
@@ -458,32 +503,36 @@
 }
 
 - (void)drawRect:(__unused NSRect)dirtyRect {
+    if(@available(macOS 10.16, *)) {
+        return [super drawRect:dirtyRect];
+    }
+
     NSRect rect = [self bounds];
     rect.origin = NSMakePoint(0, 0);
     float cornerRadius = 4.0f;
 	KBCornerType corners;
-	
+
 	if (self.fullscreen || self.style == GMSecurityMethodAccessoryViewStyleToolbarItem) {
 		corners = (KBTopLeftCorner | KBBottomLeftCorner | KBTopRightCorner | KBBottomRightCorner);
 	} else {
 		corners = (KBTopRightCorner | KBBottomLeftCorner);
 	}
-	
+
 	NSBezierPath* path = [NSBezierPath bezierPathWithRoundedRect:rect inCorners:corners cornerRadius:cornerRadius flipped:NO];
-    
+
     NSGradient *gradient = nil;
     NSColor *strokeColor = nil;
-    
+
     if(!self.active)
         gradient = [self gradientNotActiveWithStrokeColor:&strokeColor];
     else if(self.securityMethod == GPGMAIL_SECURITY_METHOD_OPENPGP)
         gradient = [self gradientPGPWithStrokeColor:&strokeColor];
     else if(self.securityMethod == GPGMAIL_SECURITY_METHOD_SMIME)
         gradient = [self gradientSMIMEWithStrokeColor:&strokeColor];
-    
+
     [gradient drawInBezierPath:path angle:90.0f];
     [strokeColor setStroke];
-    
+
     [path strokeInside];
 }
 

@@ -28,9 +28,6 @@
  */
 
 #import <Libmacgpg/Libmacgpg.h>
-#define restrict
-#import <RegexKit/RegexKit.h>
-#undef restrict
 #import "CCLog.h"
 #import "NSData+GPGMail.h"
 #import "NSArray+Functional.h"
@@ -75,6 +72,12 @@ NSString * const kMimePartAllowPGPProcessingKey = @"MimePartAllowPGPProcessingKe
 - (id)decryptedMimeBody; // @synthesize decryptedMimeBody=_decryptedMimeBody;
 - (id)decode;
 - (id)dataSource;
+
+@end
+
+@interface NSString (BigSur_Mail)
+
+- (NSString *)sanitizedString;
 
 @end
 
@@ -388,6 +391,18 @@ NSString * const kMimePartAllowPGPProcessingKey = @"MimePartAllowPGPProcessingKe
     }];
 }
 
+- (NSString *)GMStringFromAttachmentFilename:(id)attachmentFilename {
+    if([attachmentFilename respondsToSelector:@selector(sanitizedString)]) {
+        return [attachmentFilename sanitizedString];
+    }
+
+    return attachmentFilename;
+}
+
+- (NSString *)GMLowerCasedAttachmentFilename:(id)attachmentFilename {
+    return [[self GMStringFromAttachmentFilename:attachmentFilename] lowercaseString];
+}
+
 - (void)GMTransformMimeTreeForPGPPartitionedIfNecessary {
     if([[GPGMailBundle sharedInstance] shouldNotConvertPGPPartitionedMessages]) {
         return;
@@ -395,8 +410,8 @@ NSString * const kMimePartAllowPGPProcessingKey = @"MimePartAllowPGPProcessingKe
 
     __block MCMimePart *PGPExchPart = nil;
     [self enumerateSubpartsWithBlock:^(MCMimePart *currentPart) {
-        if([[[MAIL_SELF(currentPart) attachmentFilename] lowercaseString] isEqualToString:@"pgpexch.htm.pgp"] ||
-           [[[MAIL_SELF(currentPart) attachmentFilename] lowercaseString] isEqualToString:@"pgpexch.htm.asc"]) {
+        if([[self GMLowerCasedAttachmentFilename:[MAIL_SELF(currentPart) attachmentFilename]] isEqualToString:@"pgpexch.htm.pgp"] ||
+           [[self GMLowerCasedAttachmentFilename:[MAIL_SELF(currentPart) attachmentFilename]] isEqualToString:@"pgpexch.htm.asc"]) {
             PGPExchPart = currentPart;
             return;
         }
@@ -988,7 +1003,7 @@ NSString * const kMimePartAllowPGPProcessingKey = @"MimePartAllowPGPProcessingKe
     NSArray *encryptedDataExtensions = @[@"pgp", @"gpg", @"asc"];
     NSArray *signedDataExtensions = @[@"asc", @"sig"];
     NSArray *pgpDataExtensions = [encryptedDataExtensions arrayByAddingObjectsFromArray:signedDataExtensions];
-    NSString *filename = [mailself attachmentFilename];
+    NSString *filename = [self GMStringFromAttachmentFilename:[mailself attachmentFilename]];
     NSString *extension = [filename pathExtension];
 
 
@@ -1135,10 +1150,10 @@ NSString * const kMimePartAllowPGPProcessingKey = @"MimePartAllowPGPProcessingKe
 - (MCMimePart *)signedPartForDetachedSignaturePart:(MCMimePart *)signaturePart {
     MCMimePart *parentPart = [signaturePart parentPart];
     MCMimePart *signedPart = nil;
-    NSString *signatureFilename = [[signaturePart attachmentFilename] lastPathComponent];
+    NSString *signatureFilename = [[self GMStringFromAttachmentFilename:[signaturePart attachmentFilename]] lastPathComponent];
     NSString *signedFilename = [signatureFilename stringByDeletingPathExtension];
     for(MCMimePart *part in [parentPart subparts]) {
-        if([[[part attachmentFilename] lastPathComponent] isEqualToString:signedFilename]) {
+        if([[[self GMStringFromAttachmentFilename:[part attachmentFilename]] lastPathComponent] isEqualToString:signedFilename]) {
             signedPart = part;
             break;
         }
@@ -1156,7 +1171,7 @@ NSString * const kMimePartAllowPGPProcessingKey = @"MimePartAllowPGPProcessingKe
     BOOL remove = removeAllSignatureAttachments ? YES : self.PGPVerified;
     
     if(remove) {
-        [self scheduleSignatureAttachmentForRemoval:[MAIL_SELF(self) attachmentFilename]];
+        [self scheduleSignatureAttachmentForRemoval:[self GMStringFromAttachmentFilename:[MAIL_SELF(self) attachmentFilename]]];
     }
 }
 
@@ -1879,17 +1894,32 @@ NSString * const kMimePartAllowPGPProcessingKey = @"MimePartAllowPGPProcessingKe
 
 - (NSStringEncoding)stringEncodingFromPGPData:(NSData *)PGPData {
     NSString *asciiData = [[NSString alloc] initWithData:PGPData encoding:NSASCIIStringEncoding];
-    __autoreleasing NSString *charsetName = nil;
-    [asciiData getCapturesWithRegexAndReferences:@"Charset:\\s*(?<charset>.+)\r?\n", @"${charset}", &charsetName, nil];
-    
-    if(![charsetName length])
-        return NSUTF8StringEncoding;
-    
-    CFStringEncoding stringEncoding= CFStringConvertIANACharSetNameToEncoding((CFStringRef)charsetName);
-    if (stringEncoding != kCFStringEncodingInvalidId) {
-        stringEncoding = (CFStringEncoding)CFStringConvertEncodingToNSStringEncoding(stringEncoding);
+    NSError __autoreleasing *error = nil;
+    NSRegularExpression *regex = [NSRegularExpression regularExpressionWithPattern:@"Charset:\\s*(?<charset>.+)\r?\n" options:NSRegularExpressionCaseInsensitive | NSRegularExpressionAnchorsMatchLines error:&error];
+    NSTextCheckingResult *match = [regex firstMatchInString:asciiData options:0 range:NSMakeRange(0, [asciiData length])];
+
+    NSStringEncoding stringEncoding = NSUTF8StringEncoding;
+
+    if(!match) {
+        return stringEncoding;
     }
-    
+    NSRange charsetRange = [match rangeWithName:@"charset"];
+    if(charsetRange.location == NSNotFound) {
+        return stringEncoding;
+    }
+
+    NSString *charsetName = [asciiData substringWithRange:charsetRange];
+    if([charsetName length] <= 0) {
+        return stringEncoding;
+    }
+
+    CFStringRef charsetNameRef = CFBridgingRetain(charsetName);
+    CFStringEncoding cfStringEncoding = CFStringConvertIANACharSetNameToEncoding(charsetNameRef);
+    if (cfStringEncoding != kCFStringEncodingInvalidId) {
+        stringEncoding = CFStringConvertEncodingToNSStringEncoding(cfStringEncoding);
+    }
+    CFBridgingRelease(charsetNameRef);
+
     return stringEncoding;
 }
 
@@ -2084,28 +2114,69 @@ NSString * const kMimePartAllowPGPProcessingKey = @"MimePartAllowPGPProcessingKe
     // Should never happen!
     if(signedRange.location == NSNotFound)
         return signedData;
-    
-    
+
     NSMutableData *partData = [[NSMutableData alloc] init];
-    
+
     // Use a regular expression to find data before and after the signed part.
-    NSString *regex = [NSString stringWithFormat:@"(?sm)^(?<whitespace_before>(\r?\n)*)(?<before>.*)%@\r?\n(?<headers>[\\w\\s:]*)\r?\n\r?\n(?<signed_text>.*)%@.*%@(?<whitespace_after>(\r?\n)*)(?<after>.*)$",PGP_SIGNED_MESSAGE_BEGIN, PGP_MESSAGE_SIGNATURE_BEGIN, PGP_MESSAGE_SIGNATURE_END];
-    
+    // Unfortunately word (\w) is not enough.
+    NSMutableString *headerPattern = [NSMutableString new];
+    int i = 0;
+    for(i = 33; i <= 47; i++) {
+      [headerPattern appendFormat:@"\\%c", i];
+    }
+    for(i = 58; i <= 64; i++) {
+      [headerPattern appendFormat:@"\\%c", i];
+    }
+    for(i = 91; i <= 95; i++) {
+      // Skip \ and ^
+      if(i == 92 || i == 94) {
+        continue;
+      }
+      [headerPattern appendFormat:@"\\%c", i];
+    }
+    for(i = 123; i <= 125; i++) {
+      [headerPattern appendFormat:@"\\%c", i];
+    }
+
+    NSString *regex = [NSString stringWithFormat:@"(?sm)^(?<whitespacebefore>(\r?\n)*)(?<before>.*)%@\r?\n(?<headers>[\\w\\s:%@]*)\r?\n\r?\n(?<signedtext>.*)%@.*%@(?<whitespaceafter>(\r?\n)*)(?<after>.*)$",[NSRegularExpression escapedPatternForString:PGP_SIGNED_MESSAGE_BEGIN], headerPattern, [NSRegularExpression escapedPatternForString:PGP_MESSAGE_SIGNATURE_BEGIN], [NSRegularExpression escapedPatternForString:PGP_MESSAGE_SIGNATURE_END]];
+
     NSStringEncoding bestEncoding = [self bestStringEncoding];
-    RKEnumerator *matches = [[signedData stringByGuessingEncodingWithHint:bestEncoding] matchEnumeratorWithRegex:regex];
-    
+    NSString *signedString = [signedData stringByGuessingEncodingWithHint:bestEncoding];
+    NSError __autoreleasing *error = nil;
+    NSRegularExpression *re = [NSRegularExpression regularExpressionWithPattern:regex options:NSRegularExpressionCaseInsensitive | NSRegularExpressionAnchorsMatchLines error:&error];
+
+    NSRange beforeRange, signedTextRange, afterRange, whitespaceBeforeRange, whitespaceAfterRange, headersRange = NSMakeRange(NSNotFound, 0);
+    NSString *before = nil, *signedText = nil, *after = nil, *whitespaceBefore = nil,
+    *whitespaceAfter = nil, *headers = nil;
     NSMutableData *markedPart = [NSMutableData data];
-    __autoreleasing NSString *before = nil, *signedText = nil, *after = nil, *whitespaceBefore = nil,
-             *whitespaceAfter = nil, *headers = nil;
-    
-    while([matches nextRanges] != NULL) {
-        [matches getCapturesWithReferences:@"${before}", &before, nil];
-        [matches getCapturesWithReferences:@"${signed_text}", &signedText, nil];
-        [matches getCapturesWithReferences:@"${after}", &after, nil];
-        [matches getCapturesWithReferences:@"${whitespace_before}", &whitespaceBefore, nil];
-        [matches getCapturesWithReferences:@"${whitespace_after}", &whitespaceAfter, nil];
-        [matches getCapturesWithReferences:@"${headers}", &headers, nil];
-        
+    NSTextCheckingResult *result = [re firstMatchInString:signedString  options:0 range:NSMakeRange(0, [signedString length])];
+
+    if(result) {
+        beforeRange = [result rangeWithName:@"before"];
+        if(beforeRange.location != NSNotFound) {
+          before = [signedString substringWithRange:beforeRange];
+        }
+        signedTextRange = [result rangeWithName:@"signedtext"];
+        if(signedTextRange.location != NSNotFound) {
+          signedText = [signedString substringWithRange:signedTextRange];
+        }
+        afterRange = [result rangeWithName:@"after"];
+        if(afterRange.location != NSNotFound) {
+          after = [signedString substringWithRange:afterRange];
+        }
+        whitespaceBeforeRange = [result rangeWithName:@"whitespacebefore"];
+        if(whitespaceBeforeRange.location != NSNotFound) {
+          whitespaceBefore = [signedString substringWithRange:whitespaceBeforeRange];
+        }
+        whitespaceAfterRange = [result rangeWithName:@"whitespaceafter"];
+        if(whitespaceAfterRange.location != NSNotFound) {
+          whitespaceAfter = [signedString substringWithRange:whitespaceAfterRange];
+        }
+        headersRange = [result rangeWithName:@"headers"];
+        if(headersRange.location != NSNotFound) {
+          headers = [signedString substringWithRange:headersRange];
+        }
+
         [self addPGPPartMarkerToData:markedPart partData:[signedText dataUsingEncoding:bestEncoding]];
     }
     
@@ -2440,7 +2511,7 @@ NSString * const kMimePartAllowPGPProcessingKey = @"MimePartAllowPGPProcessingKe
         if([part isType:@"application" subtype:@"pgp-encrypted"] && [[(MimePart_GPGMail *)part GMBodyData] containsPGPVersionMarker:1]) {
             applicationPGPEncrypted = part;
         }
-        BOOL partHasPGPFilename = [[[part attachmentFilename] lowercaseString] isEqualToString:@"encrypted.asc"] ||
+        BOOL partHasPGPFilename = [[self GMLowerCasedAttachmentFilename:[part attachmentFilename]] isEqualToString:@"encrypted.asc"] ||
                                   [[[part bodyParameterForKey:@"name"] lowercaseString] isEqualToString:@"encrypted.asc"];
         BOOL partHasPGPExtension = [[[[part attachmentFilename] pathExtension] lowercaseString] isEqualToString:@"asc"] ||
                                    [[[part bodyParameterForKey:@"name"] pathExtension] lowercaseString];

@@ -49,6 +49,9 @@
 
 - (NSString *)stringByGuessingEncodingWithHint:(NSStringEncoding)encoding;
 
+- (NSRange)rangeMatchingRegularExpression:(NSString *)regularExpression inRange:(NSRange)range;
+- (NSRange)rangeMatchingRegularExpression:(NSString *)regularExpression;
+
 /**
  Finds inline pgp signed data including the signatures. 
  Starts with -----BEGIN PGP SIGNED MESSAGE-----

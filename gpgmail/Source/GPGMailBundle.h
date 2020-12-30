@@ -208,6 +208,10 @@ extern kGMSupportPlanManagerUpgradeState;
 
 - (void)startSupportContractWizardWithActivationCode:(NSString *)activationCode email:(NSString *)email;
 
++ (NSString *)productNameForVersion:(NSString *)version;
+
++ (NSAlert *)customAlert;
+
 @end
 
 @interface GPGMailBundle (NoImplementation)

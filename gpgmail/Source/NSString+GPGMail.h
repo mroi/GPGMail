@@ -48,10 +48,8 @@
  */
 - (NSString *)stringByDeletingPGPExtension;
 
-/**
- Removes <object> elements with filename matching the given filenames.
- */
-- (NSString *)stringByDeletingAttachmentsWithNames:(NSArray *)names;
+- (BOOL)isMatchedByRegex:(NSString *)regularExpression inRange:(NSRange)range;
+- (BOOL)isMatchedByRegex:(NSString *)regularExpression;
 
 @end
 

@@ -16,6 +16,8 @@
 #import "GPGSignatureView.h"
 #import "GPGMailBundle.h"
 
+#import "GMSystemIcon.h"
+
 @interface GPGAttachmentController ()
 @property (strong, readwrite, nonatomic) GPGKey *gpgKey;
 @property (strong, readwrite, nonatomic) GPGKey *subkey;
@@ -115,9 +117,9 @@
     if(!part.PGPSigned)
         return nil;
     if(part.PGPVerified)
-        return [NSImage imageNamed:@"SignatureOnTemplate"];
+        return [GMSystemIcon iconNamed:kGMSystemIconNameSignatureValid];
     
-    return [NSImage imageNamed:@"SignatureOffTemplate"];
+    return [GMSystemIcon iconNamed:kGMSystemIconNameSignatureInvalid];
 }
 
 - (NSImage *)encryptedImageForPart:(MimePart_GPGMail *)part {
@@ -127,9 +129,9 @@
         return nil;
     
     if(part.PGPDecrypted)
-        return [NSImage imageNamed:@"NSLockUnlockedTemplate"];
+        return [GMSystemIcon iconNamed:kGMSystemIconNameLockClosed];
     
-    return [NSImage imageNamed:@"NSLockLockedTemplate"];
+    return [GMSystemIcon iconNamed:kGMSystemIconNameLockClosed];
 }
 
 - (void)windowDidLoad
@@ -430,9 +432,9 @@
 - (id)tableView:(NSTableView *)aTableView objectValueForTableColumn:(NSTableColumn *)aTableColumn row:(NSInteger)rowIndex {
     id value = nil;
     if([aTableColumn.identifier isEqualToString:@"encrypted"])
-        value = [NSImage imageNamed:@"NSLockUnlockedTemplate"];
+        value = [GMSystemIcon iconNamed:kGMSystemIconNameLockClosed];
     else if([aTableColumn.identifier isEqualToString:@"signed"])
-        value = [NSImage imageNamed:@"SignatureOffTemplate"];
+        value = [GMSystemIcon iconNamed:kGMSystemIconNameSignatureInvalid];
     else if([aTableColumn.identifier isEqualToString:@"name"])
         value = @"gpgmail.png";
     

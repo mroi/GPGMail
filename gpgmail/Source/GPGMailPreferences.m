@@ -129,8 +129,8 @@ NSString *SUScheduledCheckIntervalKey = @"SUScheduledCheckInterval";
 
     GMSupportPlanManager *supportPlanManager = [[GPGMailBundle sharedInstance] supportPlanManager];
     GMSupportPlan *supportPlan = [supportPlanManager supportPlan];
-
-    self.supportPlanTitleField.stringValue = @"GPG Mail 4 Support Plan";
+    NSString *version = [supportPlanManager applicationVersion];
+    self.supportPlanTitleField.stringValue = @"GPG Mail Support Plan";
 
     // If a valid support plan for a previous version is available, show the old activation code.
     BOOL anyValidSupportPlan = ([supportPlanManager supportPlanIsActive] && ![supportPlan isKindOfTrial]) || [supportPlanManager shouldPromptUserForUpgrade];
@@ -152,26 +152,21 @@ NSString *SUScheduledCheckIntervalKey = @"SUScheduledCheckInterval";
         NSFontAttributeName: [NSFont systemFontOfSize:[NSFont smallSystemFontSize]],
         NSForegroundColorAttributeName: [NSColor controlTextColor]
     };
-    NSAttributedString *code = [[NSAttributedString alloc] initWithString:[NSString stringWithFormat:@"%@: %@", localized(@"PREFERENCES_SUPPORT_PLAN_STATE_ACTIVATION_CODE_TITLE"), activationCode] attributes:formattingAttributes];
+
+    NSMutableString *activationCodeAndCoveredVersionsText = [NSMutableString new];
+    [activationCodeAndCoveredVersionsText appendString:[NSString stringWithFormat:@"%@: %@", localized(@"PREFERENCES_SUPPORT_PLAN_STATE_ACTIVATION_CODE_TITLE"), activationCode]];
+    NSArray *eligibleVersions = validSupportPlanExists ? [supportPlan eligibleVersions] : [previousSupportPlan eligibleVersions];
+    [activationCodeAndCoveredVersionsText appendString:@"\n"];
+    [activationCodeAndCoveredVersionsText appendString:[self coveredVersionsTextForVersions:eligibleVersions]];
+    NSAttributedString *code = [[NSAttributedString alloc] initWithString:activationCodeAndCoveredVersionsText attributes:formattingAttributes];
     [description appendAttributedString:code];
 
     if(validSupportPlanExists) {
         return description;
     }
-    // Add information about covered versions.
 
-    NSMutableArray *coveredVersions = [NSMutableArray new];
-    if(validSupportPlanExists && [supportPlan isEligibleForAppWithName:@"org.gpgtools.gpgmail4"]) {
-        [coveredVersions addObject:@"4.x"];
-    }
-    if((validSupportPlanExists && [supportPlan isEligibleForAppWithName:@"org.gpgtools.gpgmail"]) || (!validSupportPlanExists && [previousSupportPlan isEligibleForAppWithName:@"org.gpgtools.gpgmail"])) {
-        [coveredVersions addObject:@"3.x"];
-    }
-
-    NSAttributedString *coveredVersionsDescription = [[NSAttributedString alloc] initWithString:[NSString stringWithFormat:@"\n%@: %@\n", localized(@"PREFERENCES_SUPPORT_PLAN_STATE_COVERED_VERSIONS_TITLE"),
-                                                      [coveredVersions componentsJoinedByString:@", "]] attributes:formattingAttributes];
-
-    [description appendAttributedString:coveredVersionsDescription];
+    // Add space between covered version and rest.
+    [description appendAttributedString:[[NSAttributedString alloc] initWithString:@"\n" attributes:formattingAttributes]];
 
     // If no support plan exists that covers this version but only a previous version,
     // display detailed information about possible options.
@@ -188,13 +183,25 @@ NSString *SUScheduledCheckIntervalKey = @"SUScheduledCheckInterval";
     // Add some padding bottom using a paragraph style's spacing property.
     paddingStyle = [[NSParagraphStyle defaultParagraphStyle] mutableCopy];
     [paddingStyle setParagraphSpacing:0];
-    NSMutableAttributedString *explanation = [[NSMutableAttributedString alloc] initWithString:[NSString stringWithFormat:@"%@\n", localized(@"PREFERENCES_SUPPORT_PLAN_STATE_INVALID_NOT_COVERED_VERSION_DETECTED_DESCRIPTION")] attributes:formattingAttributes]; // @"Your current support plan is not valid for this version of GPG Mail. You can either choose to 'Upgrade' it or 'Switch Support Plan' If you have a different valid one for GPG Mail 4.\n"
+    NSString *explanationString = [[NSString stringWithFormat:localized(@"PREFERENCES_SUPPORT_PLAN_STATE_INVALID_NOT_COVERED_VERSION_DETECTED_DESCRIPTION_DYNAMIC"), [GPGMailBundle productNameForVersion:[supportPlanManager applicationVersion]]] stringByAppendingString:@"\n"];
+    NSMutableAttributedString *explanation = [[NSMutableAttributedString alloc] initWithString:explanationString attributes:formattingAttributes]; // @"Your current support plan is not valid for this version of GPG Mail. You can either choose to 'Upgrade' it or 'Switch Support Plan' If you have a different valid one for GPG Mail 4.\n"
     // Font of size 1 is necessary, since line height
     [explanation addAttribute:NSParagraphStyleAttributeName value:paddingStyle range:NSMakeRange(0, [explanation length])];
     [explanation addAttribute:NSFontAttributeName value:[NSFont systemFontOfSize:1.0] range:NSMakeRange([explanation length] - 1, 1)];
     [description appendAttributedString:explanation];
 
     return (NSAttributedString *)description;
+}
+
+- (NSString *)coveredVersionsTextForVersions:(NSArray *)versions {
+    NSMutableArray *coveredVersions = [NSMutableArray new];
+    for(NSString *tempVersion in versions) {
+        [coveredVersions addObject:[NSString stringWithFormat:@"%@.x", tempVersion]];
+    }
+    NSString *coveredVersionsText = [NSString stringWithFormat:@"%@: %@", localized(@"PREFERENCES_SUPPORT_PLAN_STATE_COVERED_VERSIONS_TITLE"),
+    [coveredVersions componentsJoinedByString:@", "]];
+
+    return coveredVersionsText;
 }
 
 - (NSString *)modeDescription {
@@ -248,14 +255,12 @@ NSString *SUScheduledCheckIntervalKey = @"SUScheduledCheckInterval";
 }
 - (IBAction)deactivateSupportPlan:(NSButton *)sender {
 	NSWindow *window = [[(MailApp *)[NSClassFromString(@"MailApp") sharedApplication] preferencesController] window];
-	NSAlert *alert = [NSAlert new];
+	NSAlert *alert = [GPGMailBundle customAlert];
 	alert.messageText = localized(@"SUPPORT_PLAN_DEACTIVATION_WARNING_TITLE");
 	alert.informativeText = localized(@"SUPPORT_PLAN_DEACTIVATION_WARNING_MESSAGE");
 	[alert addButtonWithTitle:localized(@"SUPPORT_PLAN_DEACTIVATION_WARNING_CANCEL")];
 	[alert addButtonWithTitle:localized(@"SUPPORT_PLAN_DEACTIVATION_WARNING_CONFIRM")];
-	alert.icon = [NSImage imageNamed:@"GPGMail"];
-	
-	
+
 	[alert beginSheetModalForWindow:window completionHandler:^(NSModalResponse returnCode) {
 		if (returnCode == NSAlertSecondButtonReturn) {
 			[[GPGMailBundle sharedInstance] deactivateSupportContract];
@@ -428,12 +433,11 @@ NSString *SUScheduledCheckIntervalKey = @"SUScheduledCheckInterval";
 				
                 NSWindow *window = [[(MailApp *)[NSClassFromString(@"MailApp") sharedApplication] preferencesController] window];
 				
-                NSAlert *unencryptedReplyAlert = [NSAlert new];
+                NSAlert *unencryptedReplyAlert = [GPGMailBundle customAlert];
                 unencryptedReplyAlert.messageText = localized(@"DISABLE_ENCRYPT_DRAFTS_TITLE");
                 unencryptedReplyAlert.informativeText = localized(@"DISABLE_ENCRYPT_DRAFTS_MESSAGE");
                 [unencryptedReplyAlert addButtonWithTitle:localized(@"DISABLE_ENCRYPT_DRAFTS_CANCEL")];
                 [unencryptedReplyAlert addButtonWithTitle:localized(@"DISABLE_ENCRYPT_DRAFTS_CONFIRM")];
-                unencryptedReplyAlert.icon = [NSImage imageNamed:@"GPGMail"];
 
                 [unencryptedReplyAlert beginSheetModalForWindow:window completionHandler:^(NSModalResponse returnCode) {
                     [NSApp stopModalWithCode:returnCode];
