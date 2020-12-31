@@ -275,7 +275,7 @@ NSString *SUScheduledCheckIntervalKey = @"SUScheduledCheckInterval";
 
 
 - (NSImage *)imageForPreferenceNamed:(NSString *)aName {
-	return [NSImage imageNamed:@"GPGMail"];
+	return [NSImage imageWithSystemSymbolName:@"lock" accessibilityDescription:@"OpenPGP"];
 }
 
 
