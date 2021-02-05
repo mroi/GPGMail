@@ -22,9 +22,13 @@ install: all
 	rsync -rlcv --delete \
 		pinentry/build/Release/pinentry-mac.app "$(COMPONENT_DIR)/"
 	uuid=$$(/usr/libexec/PlistBuddy -c 'Print PluginCompatibilityUUID' /System/Applications/Mail.app/Contents/Info.plist) ; \
-		fgrep -q $$uuid "$(PLUGIN_DIR)/OpenPGP.mailbundle/Contents/Info.plist" || \
-		/usr/libexec/PlistBuddy -c "Add :Supported$$(sw_vers -productVersion | cut -d '.' -f 1,2)PluginCompatibilityUUIDs: string $$uuid" \
-		"$(PLUGIN_DIR)/OpenPGP.mailbundle/Contents/Info.plist"
+	if ! fgrep -q $$uuid "$(PLUGIN_DIR)/OpenPGP.mailbundle/Contents/Info.plist" ; then \
+		major=$$(sw_vers -productVersion | cut -d '.' -f 1) ; \
+		for minor in 0 1 2 3 4 5 6 7 8 9 ; do \
+			/usr/libexec/PlistBuddy -c "Add :Supported$${major}.$${minor}PluginCompatibilityUUIDs array" "$(PLUGIN_DIR)/OpenPGP.mailbundle/Contents/Info.plist" ; \
+			/usr/libexec/PlistBuddy -c "Add :Supported$${major}.$${minor}PluginCompatibilityUUIDs: string $$uuid" "$(PLUGIN_DIR)/OpenPGP.mailbundle/Contents/Info.plist" ; \
+		done ; \
+	fi
 	codesign -s "$$(id -F)" --deep --force "$(PLUGIN_DIR)/OpenPGP.mailbundle"
 	codesign -s "$$(id -F)" --deep --force "$(COMPONENT_DIR)/Libmacgpg.framework"
 	codesign -s "$$(id -F)" --deep --force "$(COMPONENT_DIR)/pinentry-mac.app"
