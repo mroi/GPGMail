@@ -2,6 +2,8 @@ PLUGIN_DIR = $(shell echo ~)/Library/Mail/Bundles
 COMPONENT_DIR = $(shell echo ~)/Library/Components
 XPC_DIR = $(COMPONENT_DIR)/Libmacgpg.framework/Versions/Current/XPCServices
 LAUNCH_AGENT = $(shell echo ~)/Library/LaunchAgents/org.gpgtools.Libmacgpg.xpc.plist
+INSTALL_DIR = $(shell echo ~)/Library/Application Support/Mail/Plug-ins/Bundles$(PLUGIN_DIR)
+INSTALL_SCRIPT = $(shell echo ~)/Desktop/install-openpgp.sh
 
 .PHONY: all install update clean
 
@@ -39,6 +41,12 @@ install: all
 	sed 's|/Library/Application Support/GPGTools|$(XPC_DIR)|' < libmacgpg/build/org.gpgtools.Libmacgpg.xpc.plist > "$(LAUNCH_AGENT)"
 	launchctl bootstrap gui/$$(id -u) "$(LAUNCH_AGENT)"
 	echo 'pinentry-program $(COMPONENT_DIR)/pinentry-mac.app/Contents/MacOS/pinentry-mac' > ~/.gnupg/gpg-agent.conf
+	# write script to circumvent missing notarization
+	cdhash=$$(codesign -dvvv $(PLUGIN_DIR)/OpenPGP.mailbundle 2>&1 | sed -n '/^CDHash=/{s/^CDHash=//;p;}') ; \
+	sysvol=/Volumes/$$(diskutil info / | sed -n '/Volume Name/{s/[^:]*: *//;p;}') ; \
+	datavol=/Volumes/$$(diskutil info /System/Volumes/Data | sed -n '/Volume Name/{s/[^:]*: *//;p;}') ; \
+	printf "#!/bin/sh\nset -x\n\"$${sysvol}/usr/bin/sqlite3\" \"$${datavol}/private/var/db/SystemPolicyConfiguration/ExecPolicy\" \"INSERT INTO old_platform_cache VALUES ('7667712-$${cdhash}', $$(date +%s));\"\nrm -rf \"$${datavol}$(INSTALL_DIR)/OpenPGP.mailbundle\"\ncp -Rp \"$${datavol}$(PLUGIN_DIR)/OpenPGP.mailbundle\" \"$${datavol}$(INSTALL_DIR)/\"\nrm \"$${datavol}$(INSTALL_SCRIPT)\"\nset +x\n" > $(INSTALL_SCRIPT)
+	@echo '** run $(INSTALL_SCRIPT) from recovery mode to install un-notarized plugin **'
 
 update:
 	git subtree merge --prefix=pinentry --squash pinentry/master
