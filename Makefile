@@ -12,6 +12,7 @@ all:
 
 install: all
 	-launchctl bootout gui/$$(id -u)/org.gpgtools.Libmacgpg.xpc
+	# copy built components to their target locations
 	rsync -rlcv --delete \
 		gpgmail/build/Release/OpenPGP.mailbundle "$(PLUGIN_DIR)/"
 	rsync -rlcv --delete --exclude=Versions/B/XPCServices \
@@ -21,6 +22,7 @@ install: all
 		libmacgpg/build/Release/org.gpgtools.Libmacgpg.xpc "$(XPC_DIR)/"
 	rsync -rlcv --delete \
 		pinentry/build/Release/pinentry-mac.app "$(COMPONENT_DIR)/"
+	# add compatibility UUIDs to OpenPGP plugin
 	uuid=$$(/usr/libexec/PlistBuddy -c 'Print PluginCompatibilityUUID' /System/Applications/Mail.app/Contents/Info.plist) ; \
 	if ! fgrep -q $$uuid "$(PLUGIN_DIR)/OpenPGP.mailbundle/Contents/Info.plist" ; then \
 		major=$$(sw_vers -productVersion | cut -d '.' -f 1) ; \
@@ -29,9 +31,11 @@ install: all
 			/usr/libexec/PlistBuddy -c "Add :Supported$${major}.$${minor}PluginCompatibilityUUIDs: string $$uuid" "$(PLUGIN_DIR)/OpenPGP.mailbundle/Contents/Info.plist" ; \
 		done ; \
 	fi
+	# codesign with custom user cert
 	codesign -s "$$(id -F)" --deep --force "$(PLUGIN_DIR)/OpenPGP.mailbundle"
 	codesign -s "$$(id -F)" --deep --force "$(COMPONENT_DIR)/Libmacgpg.framework"
 	codesign -s "$$(id -F)" --deep --force "$(COMPONENT_DIR)/pinentry-mac.app"
+	# setup launch agent and pinentry
 	sed 's|/Library/Application Support/GPGTools|$(XPC_DIR)|' < libmacgpg/build/org.gpgtools.Libmacgpg.xpc.plist > "$(LAUNCH_AGENT)"
 	launchctl bootstrap gui/$$(id -u) "$(LAUNCH_AGENT)"
 	echo 'pinentry-program $(COMPONENT_DIR)/pinentry-mac.app/Contents/MacOS/pinentry-mac' > ~/.gnupg/gpg-agent.conf
