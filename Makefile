@@ -46,6 +46,7 @@ install: all
 	sysvol=/Volumes/$$(diskutil info / | sed -n '/Volume Name/{s/[^:]*: *//;p;}') ; \
 	datavol=/Volumes/$$(diskutil info /System/Volumes/Data | sed -n '/Volume Name/{s/[^:]*: *//;p;}') ; \
 	printf "#!/bin/sh\nset -x\n\"$${sysvol}/usr/bin/sqlite3\" \"$${datavol}/private/var/db/SystemPolicyConfiguration/ExecPolicy\" \"INSERT INTO old_platform_cache VALUES ('7667712-$${cdhash}', $$(date +%s));\"\nrm -rf \"$${datavol}$(INSTALL_DIR)/OpenPGP.mailbundle\"\ncp -Rp \"$${datavol}$(PLUGIN_DIR)/OpenPGP.mailbundle\" \"$${datavol}$(INSTALL_DIR)/\"\nrm \"$${datavol}$(INSTALL_SCRIPT)\"\nset +x\n" > $(INSTALL_SCRIPT)
+	chmod a+x $(INSTALL_SCRIPT)
 	@echo '** run $(INSTALL_SCRIPT) from recovery mode to install un-notarized plugin **'
 
 update:
