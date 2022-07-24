@@ -163,8 +163,9 @@
 - (void)_configureLastDraftInformationFromHeaders:(id)arg1 overwrite:(BOOL)arg2;
 - (BOOL)_isValidSaveDestination:(id)arg1;
 - (void)updateSMIMEStatus:(dispatch_block_t)arg1;
-@property(readonly, copy, nonatomic) SMIMEEncryptionState *encryptionState;
-@property(readonly, copy, nonatomic) NSArray *recipientsThatHaveNoKeyForEncryption;
+// This method is now an integer on Monterey.
+//@property(readonly, copy, nonatomic) SMIMEEncryptionState *SMIMEEncryptionState;
+//@property(readonly, copy, nonatomic) NSArray *recipientsThatHaveNoKeyForEncryption;
 @property(readonly, copy, nonatomic) NSArray *allRecipients;
 - (BOOL)isEditingMessage:(id)arg1;
 - (void)removeLastDraft;
@@ -241,6 +242,11 @@
 @property(readonly, copy, nonatomic) NSString *displayName;
 @property(readonly) unsigned long long hash;
 @property(readonly) Class superclass;
+
+// This method is now an integer on Monterey.
+@property(assign, nonatomic) NSUInteger encryptionState;
+// This property is not writable as well on Monterey.
+@property(copy, nonatomic) NSArray *recipientsThatHaveNoKeyForEncryption; // @synthesize recipientsThatHaveNoKeyForEncryption=_recipientsThatHaveNoKeyForEncryption;
 
 @end
 

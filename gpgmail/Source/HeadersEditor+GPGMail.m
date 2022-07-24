@@ -43,7 +43,6 @@
 #import "ComposeBackEnd+GPGMail.h"
 #import "GPGMailBundle.h"
 #import "NSString+GPGMail.h"
-#import "GMSecurityControl.h"
 #import "NSObject+LPDynamicIvars.h"
 //#import <NSString-EmailAddressString.h>
 #import "GMComposeKeyEventHandler.h"
@@ -57,6 +56,8 @@
 #import "GMComposeMessagePreferredSecurityProperties.h"
 
 #import "GMSystemIcon.h"
+
+//#import <MailKit/MailKit.h>
 
 #define mailself ((HeadersEditor *)self)
 #define tomailself(obj) ((HeadersEditor *)obj)
@@ -200,6 +201,20 @@ const NSString *kHeadersEditorFromControlParentItemKey = @"HeadersEditorFromCont
         [self _setVisibilityForFromView:YES];
 	}
 }
+
+// TODO: Implement address tokens.
+//- (void)MAAddressTokenGenerationCompletedWithTokens:(NSDictionary *)tokens {
+//    NSMutableDictionary *nTokens = [NSMutableDictionary new];
+//
+//    MEEmailAddress *email = [[MEEmailAddress alloc] initWithRawString:@"lukele@gpgtools.org"];
+//    // For unknown reasons, each address is assigned an annotation array. While the extension
+//    // maps the email directly to the annotation, MailKit converts it to an email -> NSArray <MEAddressAnotation>
+//    // before passing it to the HeadersEditor.
+//    // The tokens can be reloaded using `-[ComposeBackEnd reloadEmailAddressTokenIcons]` which might come handy
+//    // to download them in the background.
+//    nTokens[email] = [NSArray arrayWithObjects:[MEAddressAnnotation warningWithLocalizedDescription:@"No encryption key available"], nil];
+//    [self MAAddressTokenGenerationCompletedWithTokens:nTokens];
+//}
 
 - (void)MAUpdateSecurityControls {
     if(![[GPGMailBundle sharedInstance] hasActiveContractOrActiveTrial]) {
@@ -405,170 +420,7 @@ const NSString *kHeadersEditorFromControlParentItemKey = @"HeadersEditorFromCont
         [self updateToolTipForSecurityControl:[mailself encryptButton]];
         [composeViewController updateAttachmentStatus];
         
-//        r14 = arg0;
-//        if ((*(int8_t *)(r14 + 0x38) != 0x0) && ([*(r14 + 0x20) count] != 0x0)) {
-//            rax = [*(r14 + 0x28) missingCertificatesMessageForRecipients:*(r14 + 0x20) uponDelivery:0x0];
-//            rax = [rax retain];
-//            if (rax != 0x0) {
-//                var_58 = rax;
-//                var_68 = [NSAlert new];
-//                r15 = _objc_msgSend;
-//                r12 = [[MailFramework bundle] retain];
-//                
-//                r13 = [[r12 localizedStringForKey:*_MFStringKeyErrorTitle value:@"" table:@"MailFramework"] retain];
-//                rax = [var_68 setMessageText:r13];
-//                r15 = _objc_release;
-//                rax = [r13 release];
-//                rax = [r12 release];
-//                r15 = r14 + 0x28;
-//                rax = [var_68 setInformativeText:var_58];
-//                r13 = _objc_msgSend;
-//                r12 = [[*(r14 + 0x28) view] retain];
-//                r13 = [[r12 window] retain];
-//                var_48 = 0xc2000000;
-//                var_44 = 0x0;
-//                var_40 = sub_1001938ef;
-//                var_38 = 0x1003e4cc0;
-//                var_30 = [*(r14 + 0x30) retain];
-//                rax = [var_68 beginSheetModalForWindow:r13 completionHandler:__NSConcreteStackBlock];
-//                rbx = _objc_release;
-//                rax = [r13 release];
-//                rax = [r12 release];
-//                rax = [var_30 release];
-//                rax = [var_68 release];
-//                rax = [var_58 release];
-//            }
-//            else {
-//                r15 = r14 + 0x28;
-//                r12 = _objc_msgSend;
-//                rbx = [[*(r14 + 0x28) backEnd] retain];
-//                rax = [rbx setEncryptIfPossible:sign_extend_64(*(int8_t *)(r14 + 0x38))];
-//                r13 = _objc_release;
-//                rax = [rbx release];
-//                rbx = [[MailApp sharedApplication] retain];
-//                rax = [rbx setEncryptOutgoingMessages:sign_extend_64(*(int8_t *)(r14 + 0x38))];
-//                rax = [rbx release];
-//                rax = [*(r14 + 0x30) setMessageIsToBeEncrypted:sign_extend_64(*(int8_t *)(r14 + 0x38))];
-//            }
-//        }
-//        else {
-//            r15 = r14 + 0x28;
-//            r12 = _objc_msgSend;
-//            rbx = [[*(r14 + 0x28) backEnd] retain];
-//            rax = [rbx setEncryptIfPossible:sign_extend_64(*(int8_t *)(r14 + 0x38))];
-//            r13 = _objc_release;
-//            rax = [rbx release];
-//            rbx = [[MailApp sharedApplication] retain];
-//            rax = [rbx setEncryptOutgoingMessages:sign_extend_64(*(int8_t *)(r14 + 0x38))];
-//            rax = [rbx release];
-//            rax = [*(r14 + 0x30) setMessageIsToBeEncrypted:sign_extend_64(*(int8_t *)(r14 + 0x38))];
-//        }
-//        rax = [*r15 updateAttachmentStatus];
-//        rbx = stack[2042];
-//        r12 = stack[2043];
-//        r13 = stack[2044];
-//        r14 = stack[2045];
-//        r15 = stack[2046];
-//        rsp = rsp + 0x78;
-//        rbp = stack[2047];
-//        return;
     }];
-    
-//    r12 = self;
-//    r13 = _objc_msgSend;
-//    r14 = [[self composeViewController] retain];
-//    rbx = 0x0;
-//    r15 = COND_BYTE_SET(E);
-//    if ([r12 messageIsToBeEncrypted] == 0x0) {
-//        r13 = _objc_msgSend;
-//        var_70 = r15;
-//        r15 = [[r14 backEnd] retain];
-//        rbx = [[r15 recipientsThatHaveNoKeyForEncryption] retain];
-//        rdi = r15;
-//        r15 = var_70;
-//        [rdi release];
-//    }
-//    r13 = [(r13)(@class(NSOperationQueue), @selector(mainQueue)) retain];
-//    var_48 = rbx;
-//    var_70 = [rbx retain];
-//    var_40 = r14;
-//    r14 = [r14 retain];
-//    var_38 = [r12 retain];
-//    [r13 addOperationWithBlock:^{
-//        r14 = arg0;
-//        if ((*(int8_t *)(r14 + 0x38) != 0x0) && ([*(r14 + 0x20) count] != 0x0)) {
-//            rax = [*(r14 + 0x28) missingCertificatesMessageForRecipients:*(r14 + 0x20) uponDelivery:0x0];
-//            rax = [rax retain];
-//            if (rax != 0x0) {
-//                var_58 = rax;
-//                var_68 = [NSAlert new];
-//                r15 = _objc_msgSend;
-//                r12 = [[MailFramework bundle] retain];
-//                r13 = [[r12 localizedStringForKey:*_MFStringKeyErrorTitle value:@"" table:@"MailFramework"] retain];
-//                rax = [var_68 setMessageText:r13];
-//                r15 = _objc_release;
-//                rax = [r13 release];
-//                rax = [r12 release];
-//                r15 = r14 + 0x28;
-//                rax = [var_68 setInformativeText:var_58];
-//                r13 = _objc_msgSend;
-//                r12 = [[*(r14 + 0x28) view] retain];
-//                r13 = [[r12 window] retain];
-//                var_48 = 0xc2000000;
-//                var_44 = 0x0;
-//                var_40 = sub_1001938ef;
-//                var_38 = 0x1003e4cc0;
-//                var_30 = [*(r14 + 0x30) retain];
-//                rax = [var_68 beginSheetModalForWindow:r13 completionHandler:__NSConcreteStackBlock];
-//                rbx = _objc_release;
-//                rax = [r13 release];
-//                rax = [r12 release];
-//                rax = [var_30 release];
-//                rax = [var_68 release];
-//                rax = [var_58 release];
-//            }
-//            else {
-//                r15 = r14 + 0x28;
-//                r12 = _objc_msgSend;
-//                rbx = [[*(r14 + 0x28) backEnd] retain];
-//                rax = [rbx setEncryptIfPossible:sign_extend_64(*(int8_t *)(r14 + 0x38))];
-//                r13 = _objc_release;
-//                rax = [rbx release];
-//                rbx = [[MailApp sharedApplication] retain];
-//                rax = [rbx setEncryptOutgoingMessages:sign_extend_64(*(int8_t *)(r14 + 0x38))];
-//                rax = [rbx release];
-//                rax = [*(r14 + 0x30) setMessageIsToBeEncrypted:sign_extend_64(*(int8_t *)(r14 + 0x38))];
-//            }
-//        }
-//        else {
-//            r15 = r14 + 0x28;
-//            r12 = _objc_msgSend;
-//            rbx = [[*(r14 + 0x28) backEnd] retain];
-//            rax = [rbx setEncryptIfPossible:sign_extend_64(*(int8_t *)(r14 + 0x38))];
-//            r13 = _objc_release;
-//            rax = [rbx release];
-//            rbx = [[MailApp sharedApplication] retain];
-//            rax = [rbx setEncryptOutgoingMessages:sign_extend_64(*(int8_t *)(r14 + 0x38))];
-//            rax = [rbx release];
-//            rax = [*(r14 + 0x30) setMessageIsToBeEncrypted:sign_extend_64(*(int8_t *)(r14 + 0x38))];
-//        }
-//        rax = [*r15 updateAttachmentStatus];
-//        rbx = stack[2042];
-//        r12 = stack[2043];
-//        r13 = stack[2044];
-//        r14 = stack[2045];
-//        r15 = stack[2046];
-//        rsp = rsp + 0x78;
-//        rbp = stack[2047];
-//        return;
-//    }];
-//    [r13 release];
-//    [var_38 release];
-//    [var_40 release];
-//    [var_48 release];
-//    [r14 release];
-//    [var_70 release];
-//    return;
 }
 
 - (void)updateFromAndAddSecretKeysIfNecessary:(NSNumber *)necessary {
@@ -607,8 +459,8 @@ const NSString *kHeadersEditorFromControlParentItemKey = @"HeadersEditorFromCont
     GPGKey *defaultKey = [bundle preferredGPGKeyForSigning];
     // If this is a draft being continued, the GPG key to use is
     // recorded in the draft's headers.
-    if([securityProperties signingKey]) {
-        defaultKey = [securityProperties signingKey];
+    if([securityProperties signingKeyFromDraftHeadersIfAvailable]) {
+        defaultKey = [securityProperties signingKeyFromDraftHeadersIfAvailable];
     }
 	BOOL useTitleFromAccount = [[GPGOptions sharedOptions] boolForKey:@"ShowAccountNameForKeysOfSameAddress"];
 	
@@ -635,9 +487,22 @@ const NSString *kHeadersEditorFromControlParentItemKey = @"HeadersEditorFromCont
 			if (useTitleFromAccount == NO)
                 email = ![GPGMailBundle isYosemite] ? [itemTitle gpgNormalizedEmail] : [item.representedObject gpgNormalizedEmail];
 			
+            // Bug #1104: Mail crash when opening a continuing a draft in GPG Mail 6
+            //
+            // macOS Mail on macOS Monterey 12.1 introduces the new Hide My Email feature
+            // In case HME is not yet configured a special menu item is added to remember
+            // the user that they can configure HME if interested.
+            //
+            // Since this menu item does not reflect an email account, representedObject
+            // maybe nil which later causes `-[GPGMailBundle signingKeyListForAddress:]`
+            // to crash.
             NSString *address = [item.representedObject gpgNormalizedEmail];
-            NSSet *keys = [bundle signingKeyListForAddress:address];
-			switch ([keys count]) {
+            NSSet *keys = [NSSet new];
+            if([address length] > 0) {
+                keys = [bundle signingKeyListForAddress:address];
+            }
+
+            switch ([keys count]) {
 				case 0:
 					// We have no key for this account.
 					[item removeIvar:kHeadersEditorFromControlGPGKeyKey];
@@ -869,32 +734,6 @@ const NSString *kHeadersEditorFromControlParentItemKey = @"HeadersEditorFromCont
 	[[mailself composeViewController] updateSendButtonStateInToolbar];
 	[mailself _updateSecurityControls];
 }
-
-// TODO: Re-Implement for Sierra.
-//- (void)MA_updateSignButtonTooltip {
-//    // This was replaced by a ValueTransformer in Yosemite.
-//    // The NSSegmentedControl encryptButton and signButton have a binding for toolTip
-//    // which can be queried like this.
-//    // [[[self signButton] control] infoForBinding:@"toolTip"];
-//    // Basically replacing it with our own value might suffice.
-//    // Or we could simply unbind it and call our own methods which will set the
-//    // tooltips directly.
-//    // Seems to be the easier way.
-//    // So basically.
-//    // [[[self signButton] control] unbind:@"toolTip"];
-//    // [[[self signButton] control] setToolTip:@"Whatever we want to be written here."];
-//    // The binding listens to messageIsToBeEncrypted and messageIsToBeSigned, so maybe we should as well.
-//    
-//    ComposeBackEnd_GPGMail *backEnd = [GPGMailBundle backEndFromObject:self];
-//    if(backEnd.securityMethod == GPGMAIL_SECURITY_METHOD_OPENPGP) {
-//        NSString *signToolTip = [self signButtonToolTip];
-//        GMSecurityControl *signControl = [self valueForKey:@"_signButton"];
-//        [((NSSegmentedControl *)signControl) setToolTip:signToolTip];
-//    }
-//    else {
-//        [self MA_updateSignButtonTooltip];
-//    }
-//}
 
 - (NSString *)encryptButtonToolTip {
     ComposeBackEnd_GPGMail *backEnd = (ComposeBackEnd_GPGMail *)[[mailself composeViewController] backEnd];

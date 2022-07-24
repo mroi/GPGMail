@@ -52,6 +52,7 @@
     NSError *error = [[(Message_GPGMail *)message securityFeatures] PGPMainError];
     if(error) {
         [error setIvar:@"ParseErrorIsPGPError" value:@(YES)];
+        // TODO: Fix for setSmimeError: Is any of this still necessary?
         [webDocument setSmimeError:error];
     }
     if([(Message_GPGMail *)message securityFeatures]) {

@@ -32,8 +32,11 @@
 
 #import "GMSecurityMethodAccessoryViewCell.h"
 
+#define to255(x) x/255.0f
+
 @interface NSPopUpButtonCell (Private)
 - (NSRect)_indicatorFrameForCellFrame:(NSRect)rect inView:(id)view;
+- (NSImage *)_indicatorImage;
 @end
 
 typedef enum {
@@ -66,6 +69,20 @@ typedef enum {
 	// and the indiciator.
 	indicatorFrame.origin.x -= 4;
 	return indicatorFrame;
+}
+
+- (NSImage *)_indicatorImage {
+    NSImage *image = [[super _indicatorImage] copy];
+    
+    [image lockFocus];
+    [[NSColor whiteColor] set];
+    
+    NSRect rect = NSMakeRect(0, 0, image.size.width, image.size.height);
+    NSRectFillUsingOperation(rect, NSCompositingOperationSourceIn);
+    [image unlockFocus];
+    [image setTemplate:NO];
+    
+    return image;
 }
 
 - (NSRect)titleRectForBounds:(NSRect)bounds {
@@ -118,10 +135,11 @@ typedef enum {
 	else {
 		switch (type) {
 			case GMSecurityMethodAccessoryViewCellBackgroundTypeOpenPGP:
-				color = [NSColor colorWithRed:0.0 green:0.57 blue:0.0 alpha:0.2];
+				//color = [NSColor colorWithRed:0.0 green:0.57 blue:0.0 alpha:0.2];
+				color = [NSColor colorWithRed:to255(14.0f) green:to255(170.0f) blue:to255(47.0f) alpha:0.8];
 				break;
 			case GMSecurityMethodAccessoryViewCellBackgroundTypeSMIME:
-				color = [NSColor colorWithRed:0.44 green:0.73 blue:0.93 alpha:0.5];
+				color = [NSColor colorWithRed:0 green:0.48 blue:0.99 alpha:1.0];
 				break;
 			case GMSecurityMethodAccessoryViewCellBackgroundTypeInactive:
 			default:
@@ -153,6 +171,10 @@ typedef enum {
 	[self drawBorderAndBackgroundWithFrame:frame];
 
 	[super drawBorderAndBackgroundWithFrame:frame inView:controlView];
+}
+
+- (NSRect)drawTitle:(NSAttributedString *)title withFrame:(NSRect)frame inView:(NSView *)controlView {
+	return [super drawTitle:title withFrame:frame inView:controlView];
 }
 
 @end

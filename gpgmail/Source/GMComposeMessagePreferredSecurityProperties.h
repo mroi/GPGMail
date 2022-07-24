@@ -45,6 +45,7 @@ typedef enum {
 - (void)updateSigningKey:(GPGKey *)signingKey forSender:(NSString *)sender;
 
 - (GPGKey *)encryptionKeyForDraft;
+- (GPGKey *)signingKeyFromDraftHeadersIfAvailable;
 - (GPGKey *)signingKey;
 
 - (NSArray *)recipientsThatHaveNoEncryptionKey;
@@ -53,6 +54,8 @@ typedef enum {
 - (NSArray *)secureDraftHeadersKeys;
 
 - (void)resetKeyStatus;
+
+- (NSArray <GPGKey *> *)encryptionKeysForRecipients:(NSArray *)recipients;
 
 @property (nonatomic, readonly, assign) BOOL canSign;
 @property (nonatomic, readonly, assign) BOOL canEncrypt;

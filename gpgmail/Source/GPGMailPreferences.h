@@ -27,7 +27,7 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#import <NSPreferences.h>
+#import "NSPreferences.h"
 #import <AppKit/AppKit.h>
 #import "NSPreferencesModule.h"
 

@@ -62,7 +62,17 @@ NSString * const kComposeViewControllerPreventAutoSave = @"ComposeViewController
 }
 
 - (GMSecurityMethodAccessoryView *)securityMethodAccessoryView {
-	return (GMSecurityMethodAccessoryView *)[(NSObject *)[MAIL_SELF(self) delegate] getIvar:@"SecurityMethodAccessoryView"];
+    // The security method accessory view can be accessed
+    // via the toolbar item.
+    NSArray *items = [[[[self delegate] window] toolbar] items];
+    GMSecurityMethodAccessoryView *accessoryView = nil;
+    for(NSToolbarItem *item in items) {
+        if([item isKindOfClass:[GMSecurityMethodToolbarItem class]]) {
+            accessoryView = item.view;
+        }
+    }
+    
+    return accessoryView;
 }
 
 - (void)updateSecurityMethodHighlight {
@@ -269,10 +279,17 @@ NSString * const kComposeViewControllerPreventAutoSave = @"ComposeViewController
 
 
 - (void)MASendMessageAfterChecking:(NSMutableArray *)checklist {
-	// If this is an unencrypted reply to an encrypted message, display a warning
+    // It is necesary to remove the check app extension validation, since
+    // otherwise two version of the outgoing message are created, which in case
+    // of a signed attachment may take a very long time.
+    // TODO: File with Apple.
+    if([checklist containsObject:@"CheckAppExtensionValidationErrors"]) {
+        [checklist removeObject:@"CheckAppExtensionValidationErrors"];
+    }
+
+    // If this is an unencrypted reply to an encrypted message, display a warning
     // to the user and simply return. The message won't be sent until the checklist is cleared.
 	// Otherwise call sendMessageAfterChecking so that Mail.app can perform its internal checks.
-    // TODO: Fix for Sierra.
     if([self isUnencryptedReplyToEncryptedMessageWithChecklist:checklist]) {
 		[self displayWarningForUnencryptedReplyToEncryptedMessageUpdatingChecklist:checklist];
         return;
@@ -311,7 +328,7 @@ NSString * const kComposeViewControllerPreventAutoSave = @"ComposeViewController
         return;
     }
 	if([self backEnd:backEnd handleDeliveryError:error])
-		[self MABackEnd:backEnd didCancelMessageDeliveryForEncryptionError:error];
+		[self MABackEnd:backEnd didCancelMessageDeliveryForError:error];
     else {
         [MAIL_SELF(self) show];
     }
@@ -333,7 +350,9 @@ NSString * const kComposeViewControllerPreventAutoSave = @"ComposeViewController
     // can savely be torn down.
     // `-[ComposeViewController forceClose]` needs to be called on the main thread.
     // This is already guaranteed, since this method is always called on the main thread.
-    [MAIL_SELF(self) forceClose];
+    if([[MAIL_SELF(self) delegate] respondsToSelector:@selector(composeViewControllerShouldClose:)]) {
+        [[MAIL_SELF(self) delegate] composeViewControllerShouldClose:self];
+    }
 }
 
 // Bug #998: Canceling a pinentry request might result in losing a message

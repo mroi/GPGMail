@@ -176,5 +176,6 @@ typedef struct {
 - (BOOL)sentActionInvokedFromiCalWithContents:(WebComposeMessageContents *)contents;
 
 @property (readwrite, retain) GMComposeMessagePreferredSecurityProperties *preferredSecurityProperties;
+@property (readwrite, retain) NSOperationQueue *securityUpdatesQueue;
 
 @end
