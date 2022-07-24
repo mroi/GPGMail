@@ -12,6 +12,15 @@
 		1B02D70813F1E9D80032CFD1 /* GPGFlaggedString.m in Sources */ = {isa = PBXBuildFile; fileRef = 1B02D70713F1E9D80032CFD1 /* GPGFlaggedString.m */; };
 		1B02D70A13F1E9F00032CFD1 /* NSArray+Functional.m in Sources */ = {isa = PBXBuildFile; fileRef = 1B02D70913F1E9F00032CFD1 /* NSArray+Functional.m */; };
 		1B03125F18116CB4006D451A /* ConversationMember+GPGMail.m in Sources */ = {isa = PBXBuildFile; fileRef = 1B03125E18116CB4006D451A /* ConversationMember+GPGMail.m */; };
+		1B1A5057272EA73700512323 /* MailApp+GPGMail.m in Sources */ = {isa = PBXBuildFile; fileRef = 1B1A5056272EA73700512323 /* MailApp+GPGMail.m */; };
+		1B1A505E272EA79800512323 /* ComposeManager+GPGMail.m in Sources */ = {isa = PBXBuildFile; fileRef = 1B1A505D272EA79800512323 /* ComposeManager+GPGMail.m */; };
+		1B1A5061272EA80300512323 /* PluginsViewController+GPGMail.m in Sources */ = {isa = PBXBuildFile; fileRef = 1B1A5060272EA80300512323 /* PluginsViewController+GPGMail.m */; };
+		1B1A5064272EA86500512323 /* CertificateBannerViewController+GPGMail.m in Sources */ = {isa = PBXBuildFile; fileRef = 1B1A5063272EA86500512323 /* CertificateBannerViewController+GPGMail.m */; };
+		1B1A5067272EA8BE00512323 /* MUIWKWebViewController+GPGMail.m in Sources */ = {isa = PBXBuildFile; fileRef = 1B1A5066272EA8BE00512323 /* MUIWKWebViewController+GPGMail.m */; };
+		1B1A506A272EA91D00512323 /* MUIWKWebViewConfigurationManager+GPGMail.m in Sources */ = {isa = PBXBuildFile; fileRef = 1B1A5069272EA91C00512323 /* MUIWKWebViewConfigurationManager+GPGMail.m */; };
+		1B1A506D272EA96700512323 /* MessageViewer+GPGMail.m in Sources */ = {isa = PBXBuildFile; fileRef = 1B1A506C272EA96700512323 /* MessageViewer+GPGMail.m */; };
+		1B1A5070272EA99C00512323 /* MCMessageHeaders+GPGMail.m in Sources */ = {isa = PBXBuildFile; fileRef = 1B1A506F272EA99C00512323 /* MCMessageHeaders+GPGMail.m */; };
+		1B1A5073272EA9FE00512323 /* GMMessageEncoder.m in Sources */ = {isa = PBXBuildFile; fileRef = 1B1A5072272EA9FE00512323 /* GMMessageEncoder.m */; };
 		1B1D2EA71DE469610096EA21 /* GMComposeMessagePreferredSecurityProperties.m in Sources */ = {isa = PBXBuildFile; fileRef = 1B1D2EA61DE469610096EA21 /* GMComposeMessagePreferredSecurityProperties.m */; };
 		1B207B5F1E2DA9F5001707C6 /* MCMutableMessageHeaders+GPGMail.m in Sources */ = {isa = PBXBuildFile; fileRef = 1B207B5E1E2DA9F5001707C6 /* MCMutableMessageHeaders+GPGMail.m */; };
 		1B2276301E7F16C100E09464 /* RedundantContentIdentificationManager+GPGMail.m in Sources */ = {isa = PBXBuildFile; fileRef = 1B22762F1E7F16C100E09464 /* RedundantContentIdentificationManager+GPGMail.m */; };
@@ -148,6 +157,7 @@
 		4555EA4B150922DF00723E1F /* GPGException+GPGMail.m in Sources */ = {isa = PBXBuildFile; fileRef = 4555EA4A150922DF00723E1F /* GPGException+GPGMail.m */; };
 		559A81330838EEFD0052F47C /* Security.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 559A812E0838EEFD0052F47C /* Security.framework */; };
 		8D5B49B4048680CD000E48DA /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 1058C7ADFEA557BF11CA2CBB /* Cocoa.framework */; };
+		D86255F627262EEC00BC2DDC /* LoadBlockedMessageContentBannerViewController+GPGMail.m in Sources */ = {isa = PBXBuildFile; fileRef = D86255F527262EEC00BC2DDC /* LoadBlockedMessageContentBannerViewController+GPGMail.m */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -219,6 +229,24 @@
 		1B194B5A11CC55A80092B810 /* en */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.strings; name = en; path = en.lproj/GPGMail.strings; sourceTree = "<group>"; };
 		1B19E83F13A2AEA4002E59ED /* AppKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AppKit.framework; path = System/Library/Frameworks/AppKit.framework; sourceTree = SDKROOT; };
 		1B19E84113A2AEA4002E59ED /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = System/Library/Frameworks/Foundation.framework; sourceTree = SDKROOT; };
+		1B1A5055272EA73700512323 /* MailApp+GPGMail.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "MailApp+GPGMail.h"; sourceTree = "<group>"; };
+		1B1A5056272EA73700512323 /* MailApp+GPGMail.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = "MailApp+GPGMail.m"; sourceTree = "<group>"; };
+		1B1A505C272EA79800512323 /* ComposeManager+GPGMail.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "ComposeManager+GPGMail.h"; sourceTree = "<group>"; };
+		1B1A505D272EA79800512323 /* ComposeManager+GPGMail.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = "ComposeManager+GPGMail.m"; sourceTree = "<group>"; };
+		1B1A505F272EA80300512323 /* PluginsViewController+GPGMail.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "PluginsViewController+GPGMail.h"; sourceTree = "<group>"; };
+		1B1A5060272EA80300512323 /* PluginsViewController+GPGMail.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = "PluginsViewController+GPGMail.m"; sourceTree = "<group>"; };
+		1B1A5062272EA86500512323 /* CertificateBannerViewController+GPGMail.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "CertificateBannerViewController+GPGMail.h"; sourceTree = "<group>"; };
+		1B1A5063272EA86500512323 /* CertificateBannerViewController+GPGMail.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = "CertificateBannerViewController+GPGMail.m"; sourceTree = "<group>"; };
+		1B1A5065272EA8BE00512323 /* MUIWKWebViewController+GPGMail.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "MUIWKWebViewController+GPGMail.h"; sourceTree = "<group>"; };
+		1B1A5066272EA8BE00512323 /* MUIWKWebViewController+GPGMail.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = "MUIWKWebViewController+GPGMail.m"; sourceTree = "<group>"; };
+		1B1A5068272EA91C00512323 /* MUIWKWebViewConfigurationManager+GPGMail.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "MUIWKWebViewConfigurationManager+GPGMail.h"; sourceTree = "<group>"; };
+		1B1A5069272EA91C00512323 /* MUIWKWebViewConfigurationManager+GPGMail.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = "MUIWKWebViewConfigurationManager+GPGMail.m"; sourceTree = "<group>"; };
+		1B1A506B272EA96700512323 /* MessageViewer+GPGMail.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "MessageViewer+GPGMail.h"; sourceTree = "<group>"; };
+		1B1A506C272EA96700512323 /* MessageViewer+GPGMail.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = "MessageViewer+GPGMail.m"; sourceTree = "<group>"; };
+		1B1A506E272EA99C00512323 /* MCMessageHeaders+GPGMail.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "MCMessageHeaders+GPGMail.h"; sourceTree = "<group>"; };
+		1B1A506F272EA99C00512323 /* MCMessageHeaders+GPGMail.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = "MCMessageHeaders+GPGMail.m"; sourceTree = "<group>"; };
+		1B1A5071272EA9FE00512323 /* GMMessageEncoder.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = GMMessageEncoder.h; sourceTree = "<group>"; };
+		1B1A5072272EA9FE00512323 /* GMMessageEncoder.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = GMMessageEncoder.m; sourceTree = "<group>"; };
 		1B1D2EA51DE469610096EA21 /* GMComposeMessagePreferredSecurityProperties.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = GMComposeMessagePreferredSecurityProperties.h; sourceTree = "<group>"; };
 		1B1D2EA61DE469610096EA21 /* GMComposeMessagePreferredSecurityProperties.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = GMComposeMessagePreferredSecurityProperties.m; sourceTree = "<group>"; };
 		1B207B5D1E2DA9F5001707C6 /* MCMutableMessageHeaders+GPGMail.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "MCMutableMessageHeaders+GPGMail.h"; sourceTree = "<group>"; };
@@ -592,6 +620,8 @@
 		559A812E0838EEFD0052F47C /* Security.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Security.framework; path = /System/Library/Frameworks/Security.framework; sourceTree = "<absolute>"; };
 		559A81860838F3C30052F47C /* Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		8D5B49B6048680CD000E48DA /* GPGMail.mailbundle */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = GPGMail.mailbundle; sourceTree = BUILT_PRODUCTS_DIR; };
+		D86255F427262EEC00BC2DDC /* LoadBlockedMessageContentBannerViewController+GPGMail.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "LoadBlockedMessageContentBannerViewController+GPGMail.h"; sourceTree = "<group>"; };
+		D86255F527262EEC00BC2DDC /* LoadBlockedMessageContentBannerViewController+GPGMail.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "LoadBlockedMessageContentBannerViewController+GPGMail.m"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -808,6 +838,8 @@
 				1BEA7AC41760AB5B0084B2AD /* BannerController+GPGMail.m */,
 				1BD06B9A18102CF300EC9902 /* WebDocumentGenerator+GPGMail.m */,
 				1B3F2F9D13E59639006A8333 /* ComposeBackEnd+GPGMail.m */,
+				1B1A5071272EA9FE00512323 /* GMMessageEncoder.h */,
+				1B1A5072272EA9FE00512323 /* GMMessageEncoder.m */,
 				1B3F2F8F13E58B70006A8333 /* ComposeHeaderView+GPGMail.m */,
 				1B432CE41E44D9F3002C8C46 /* FullScreenWindowController+GPGMail.m */,
 				300F29BA175F460E00C435D2 /* GMComposeKeyEventHandler.m */,
@@ -839,10 +871,18 @@
 		1BAEF64113E9F46D00A59CED /* Logic */ = {
 			isa = PBXGroup;
 			children = (
+				D86255F427262EEC00BC2DDC /* LoadBlockedMessageContentBannerViewController+GPGMail.h */,
+				D86255F527262EEC00BC2DDC /* LoadBlockedMessageContentBannerViewController+GPGMail.m */,
 				1B1D2EA51DE469610096EA21 /* GMComposeMessagePreferredSecurityProperties.h */,
 				1B1D2EA61DE469610096EA21 /* GMComposeMessagePreferredSecurityProperties.m */,
 				1B03125E18116CB4006D451A /* ConversationMember+GPGMail.m */,
 				559A806E0838E9B10052F47C /* GPGMailBundle.m */,
+				1B1A506E272EA99C00512323 /* MCMessageHeaders+GPGMail.h */,
+				1B1A506F272EA99C00512323 /* MCMessageHeaders+GPGMail.m */,
+				1B1A506B272EA96700512323 /* MessageViewer+GPGMail.h */,
+				1B1A506C272EA96700512323 /* MessageViewer+GPGMail.m */,
+				1B1A5068272EA91C00512323 /* MUIWKWebViewConfigurationManager+GPGMail.h */,
+				1B1A5069272EA91C00512323 /* MUIWKWebViewConfigurationManager+GPGMail.m */,
 				1BD7DC412367525900EA968D /* GMLoaderUpdater.h */,
 				1BD7DC422367525900EA968D /* GMLoaderUpdater.m */,
 				1B6678781F741C1B002A5857 /* MCMemoryDataSource+GPGMail.h */,
@@ -871,6 +911,16 @@
 				1B6678701F74156B002A5857 /* MFLibraryStore+GPGMail.m */,
 				1BA3F95F20C4857D0001FDE5 /* GMContentPartsIsolator.h */,
 				1BA3F96020C4857D0001FDE5 /* GMContentPartsIsolator.m */,
+				1B1A5055272EA73700512323 /* MailApp+GPGMail.h */,
+				1B1A5056272EA73700512323 /* MailApp+GPGMail.m */,
+				1B1A505C272EA79800512323 /* ComposeManager+GPGMail.h */,
+				1B1A505D272EA79800512323 /* ComposeManager+GPGMail.m */,
+				1B1A505F272EA80300512323 /* PluginsViewController+GPGMail.h */,
+				1B1A5060272EA80300512323 /* PluginsViewController+GPGMail.m */,
+				1B1A5062272EA86500512323 /* CertificateBannerViewController+GPGMail.h */,
+				1B1A5063272EA86500512323 /* CertificateBannerViewController+GPGMail.m */,
+				1B1A5065272EA8BE00512323 /* MUIWKWebViewController+GPGMail.h */,
+				1B1A5066272EA8BE00512323 /* MUIWKWebViewController+GPGMail.m */,
 			);
 			name = Logic;
 			sourceTree = "<group>";
@@ -1378,13 +1428,17 @@
 				1BED89701DA0195700178513 /* GMMessageSecurityFeatures.m in Sources */,
 				1B34341B107AC4A400F590EF /* MimePart+GPGMail.m in Sources */,
 				1B2276301E7F16C100E09464 /* RedundantContentIdentificationManager+GPGMail.m in Sources */,
+				1B1A5061272EA80300512323 /* PluginsViewController+GPGMail.m in Sources */,
 				30744AB512B9733800CC3EC5 /* MessageContentController+GPGMail.m in Sources */,
 				1B938AC717693F48007A0854 /* Library+GPGMail.m in Sources */,
+				1B1A506A272EA91D00512323 /* MUIWKWebViewConfigurationManager+GPGMail.m in Sources */,
 				1BBEF49C13A9115E0037E53D /* NSSet+Functional.m in Sources */,
 				1B97AF552622450A004FA7C9 /* GMSecurityMethodAccessoryViewCell.m in Sources */,
+				1B1A5067272EA8BE00512323 /* MUIWKWebViewController+GPGMail.m in Sources */,
 				1BC35B7A20C4D01B00D8511D /* GMMessageProtectionStatus.m in Sources */,
 				1B32AFF713AF827B0072079B /* CCLog.m in Sources */,
 				1B8C01D513E4F12D00DB9FA4 /* GPGSignatureView.m in Sources */,
+				1B1A506D272EA96700512323 /* MessageViewer+GPGMail.m in Sources */,
 				1B3F2F9013E58B70006A8333 /* ComposeHeaderView+GPGMail.m in Sources */,
 				1B3F2F9213E58D3D006A8333 /* NSObject+LPDynamicIvars.m in Sources */,
 				1BD5D34C2153700400EA4492 /* DSClickableURLTextField.m in Sources */,
@@ -1396,10 +1450,12 @@
 				1B02D70813F1E9D80032CFD1 /* GPGFlaggedString.m in Sources */,
 				1B02D70A13F1E9F00032CFD1 /* NSArray+Functional.m in Sources */,
 				1BD5D34721536F6800EA4492 /* GMSupportPlanAssistantWindowController.m in Sources */,
+				1B1A5070272EA99C00512323 /* MCMessageHeaders+GPGMail.m in Sources */,
 				1B432CE51E44D9F3002C8C46 /* FullScreenWindowController+GPGMail.m in Sources */,
 				1B8289FB13FD62880007E6A2 /* Message+GPGMail.m in Sources */,
 				1B8437661404AB9C00968293 /* NSData+GPGMail.m in Sources */,
 				1B8ACAEF255F59A800EB0045 /* GMSystemIcon.m in Sources */,
+				1B1A5064272EA86500512323 /* CertificateBannerViewController+GPGMail.m in Sources */,
 				1B01FB911E7F5A9000B7B014 /* MFLibraryMessage+GPGMail.m in Sources */,
 				1B66787A1F741C1B002A5857 /* MCMemoryDataSource+GPGMail.m in Sources */,
 				1BF69D7F1405C04E008B07F5 /* HeadersEditor+GPGMail.m in Sources */,
@@ -1407,8 +1463,11 @@
 				1B3B0F672371D63400DAFDA9 /* GMSupportPlan.m in Sources */,
 				1B207B5F1E2DA9F5001707C6 /* MCMutableMessageHeaders+GPGMail.m in Sources */,
 				1B51231E1409345C004D0818 /* MailDocumentEditor+GPGMail.m in Sources */,
+				1B1A5073272EA9FE00512323 /* GMMessageEncoder.m in Sources */,
+				1B1A5057272EA73700512323 /* MailApp+GPGMail.m in Sources */,
 				1BF40C8A180CA59A00B4C1CE /* EAEmailAddressParser+GPGMail.m in Sources */,
 				1B51232514093795004D0818 /* NSBezierPath_KBAdditions.m in Sources */,
+				D86255F627262EEC00BC2DDC /* LoadBlockedMessageContentBannerViewController+GPGMail.m in Sources */,
 				1B51232614093795004D0818 /* NSBezierPath+StrokeExtensions.m in Sources */,
 				1BC4778D1468AA4F0061120C /* GPGAttachmentController.m in Sources */,
 				1B7E4DB714EEEAD90069E69C /* JRLPSwizzle.m in Sources */,
@@ -1431,6 +1490,7 @@
 				1BEA7AC51760AB5B0084B2AD /* BannerController+GPGMail.m in Sources */,
 				1B73B8DA1BB2079C007D601B /* ComposeWindowController+GPGMail.m in Sources */,
 				1BD7D27F1765E59C00F5A266 /* MessageCriterion+GPGMail.m in Sources */,
+				1B1A505E272EA79800512323 /* ComposeManager+GPGMail.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1760,10 +1820,9 @@
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = YES;
 				ARCHS = "$(ARCHS_STANDARD)";
-				BUNDLE_LOADER = /Applications/Mail.app/Contents/MacOS/Mail;
 				CLANG_ENABLE_OBJC_ARC = YES;
 				CODE_SIGN_ENTITLEMENTS = "";
-				CODE_SIGN_IDENTITY = "";
+				CODE_SIGN_IDENTITY = "-";
 				COMBINE_HIDPI_IMAGES = YES;
 				COPY_PHASE_STRIP = NO;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
@@ -1789,7 +1848,7 @@
 				GCC_WARN_UNUSED_VARIABLE = YES;
 				GENERATE_PKGINFO_FILE = YES;
 				HEADER_SEARCH_PATHS = (
-					"MailHeaders/**",
+					"MailHeaders/Catalina/**",
 					"$(SRCROOT)/Dependencies/Libmacgpg/build/$(CONFIGURATION)/Libmacgpg.framework/Headers",
 					"$(SRCROOT)/Dependencies/Libmacgpg/Source/**",
 				);
@@ -1814,10 +1873,9 @@
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = YES;
 				ARCHS = "$(ARCHS_STANDARD)";
-				BUNDLE_LOADER = /Applications/Mail.app/Contents/MacOS/Mail;
 				CLANG_ENABLE_OBJC_ARC = YES;
 				CODE_SIGN_ENTITLEMENTS = "";
-				CODE_SIGN_IDENTITY = "";
+				CODE_SIGN_IDENTITY = "-";
 				COMBINE_HIDPI_IMAGES = YES;
 				COPY_PHASE_STRIP = YES;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
@@ -1832,7 +1890,7 @@
 				GCC_WARN_UNDECLARED_SELECTOR = YES;
 				GENERATE_PKGINFO_FILE = YES;
 				HEADER_SEARCH_PATHS = (
-					"MailHeaders/**",
+					"MailHeaders/Catalina/**",
 					"$(SRCROOT)/Dependencies/Libmacgpg/build/$(CONFIGURATION)/Libmacgpg.framework/Headers",
 				);
 				INFOPLIST_FILE = Resources/Info.plist;
@@ -1902,7 +1960,7 @@
 				GCC_WARN_UNUSED_PARAMETER = YES;
 				GCC_WARN_UNUSED_VALUE = YES;
 				LD_RUNPATH_SEARCH_PATHS = "$(HOME)/Library/Containers/com.apple.mail/Data/Library/Frameworks $(HOME)/Library/Frameworks /Library/Frameworks";
-				MACOSX_DEPLOYMENT_TARGET = 10.7;
+				MACOSX_DEPLOYMENT_TARGET = 10.14;
 				ONLY_ACTIVE_ARCH = YES;
 				OTHER_LDFLAGS = (
 					"-undefined",
@@ -1966,7 +2024,7 @@
 				GCC_WARN_UNUSED_VALUE = YES;
 				LD_RUNPATH_SEARCH_PATHS = "/Library/Frameworks $(HOME)/Library/Frameworks $(HOME)/Library/Containers/com.apple.mail/Data/Library/Frameworks";
 				LLVM_LTO = YES;
-				MACOSX_DEPLOYMENT_TARGET = 10.7;
+				MACOSX_DEPLOYMENT_TARGET = 10.14;
 				OTHER_LDFLAGS = (
 					"-undefined",
 					dynamic_lookup,

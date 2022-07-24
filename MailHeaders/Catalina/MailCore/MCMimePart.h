@@ -157,7 +157,7 @@
 - (void)addSubpart:(id)arg1;
 @property(copy, nonatomic) NSArray *subparts;
 - (id)_subpartAtIndex:(long long)arg1;
-//- (void)enumerateSubPartsWithOptions:(unsigned long long)arg1 usingBlock:(CDUnknownBlockType)arg2;
+- (void)enumerateSubPartsWithOptions:(unsigned long long)arg1 usingBlock:(void(^)(MCMimePart *))block;
 @property(readonly, nonatomic) MCMimePart *nextSiblingPart;
 @property(readonly, nonatomic) MCMimePart *firstChildPart;
 @property(copy, nonatomic) NSArray *languages;

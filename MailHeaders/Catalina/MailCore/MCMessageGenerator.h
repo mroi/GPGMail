@@ -59,5 +59,8 @@
 - (void)dealloc;
 - (id)init;
 
+// Added in Monterey:
+- (void)setEncoder:(id)encoder;
+
 @end
 

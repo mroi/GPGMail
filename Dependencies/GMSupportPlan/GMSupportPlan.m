@@ -117,7 +117,7 @@ NSString * const GMSupportPlanVersionPrefix = @"org.gpgtools.gpgmail";
 }
 
 - (BOOL)isValidForAppName:(NSString *)appName {
-    return [self isValidExcludingAppName] && [self.appName isEqualToString:appName];
+    return [self isValidExcludingAppName] && [self isEligibleForAppWithName:appName];
 }
 
 - (void)validateSignature {
@@ -186,7 +186,7 @@ NSString * const GMSupportPlanVersionPrefix = @"org.gpgtools.gpgmail";
 }
 
 - (BOOL)isAppNameValid {
-    return [_applicationID isEqualToString:self.appName];
+    return [self isEligibleForAppWithName:_applicationID];
 }
 
 - (BOOL)isEligibleForAppWithName:(NSString *)appName {
@@ -310,6 +310,10 @@ NSString * const GMSupportPlanVersionPrefix = @"org.gpgtools.gpgmail";
         }
         [eligibleVersions addObject:version];
     }
+
+    eligibleVersions = [eligibleVersions sortedArrayUsingComparator:^NSComparisonResult(NSString *a, NSString *b) {
+        return [b integerValue] - [a integerValue];
+    }];
 
     return [NSArray arrayWithArray:eligibleVersions];
 }

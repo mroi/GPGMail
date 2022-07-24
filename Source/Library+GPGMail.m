@@ -380,7 +380,10 @@ static NSMutableDictionary *messageDataAccessMap;
         // This is a bug in my re-implementation of the data source setup part. If the complete eml file for
         // a message is available (not only partial eml) and [attachment isRemotelyAccessed] returns NO
         // the setup for the data source of the attachment must be skipped.
-        if([attachment dataForAccessLevel:0] || (![attachment isRemotelyAccessed] && isCompleteMessageAvailable)) {
+        //
+        // Update 2021-10-26: On macOS Moneterey it appears, that in case the dataSource has locally available
+        // data, there's also no need to re-set it up.
+        if([attachment dataForAccessLevel:0] || (![attachment isRemotelyAccessed] && isCompleteMessageAvailable) || [[attachment dataSource] dataIsLocallyAvailable]) {
             continue;
         }
         id <MCRemoteAttachmentDataSource> remoteDataSource = nil;

@@ -110,5 +110,6 @@
 - (BOOL)hasPGPSignatureDataPackets;
 - (BOOL)hasPGPEncryptionDataPackets;
 
+- (NSData *)dataPreparedForVerification;
 
 @end

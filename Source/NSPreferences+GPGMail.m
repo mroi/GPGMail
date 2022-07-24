@@ -30,8 +30,8 @@
 #import "CCLog.h"
 #import "NSObject+LPDynamicIvars.h"
 #import "NSArray+Functional.h"
-#import <NSPreferences.h>
-#import <NSPreferencesModule.h>
+#import "NSPreferences.h"
+#import "NSPreferencesModule.h"
 #import "NSPreferences+GPGMail.h"
 #import "GPGMailPreferences.h"
 #import "GPGMailBundle.h"

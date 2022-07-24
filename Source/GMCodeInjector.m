@@ -697,6 +697,31 @@
              };
 }
 
++ (NSDictionary *)hookChangesForMonterey {
+    return @{
+        @"ComposeManager": @{
+            @"selectors": @[
+                @"toolbarDefaultItemIdentifiers:",
+                @"toolbar:itemForItemIdentifier:willBeInsertedIntoToolbar:"
+            ]
+        },
+        @"ComposeBackEnd": @{
+            @"selectors": @{
+                @"added": @[
+                    @"_updateMessageSecurityStatusWithCompletion:"
+                ]
+            }
+        },
+        @"HeadersEditor": @{
+            @"selectors": @{
+                @"added": @[
+                    @"addressTokenGenerationCompletedWithTokens:"
+                ]
+            }
+        }
+    };
+}
+
 + (NSDictionary *)hooks {
 	static dispatch_once_t onceToken;
 	static NSDictionary *_hooks;
@@ -728,6 +753,9 @@
         if([GPGMailBundle isCatalina]) {
             [self applyHookChangesForVersion:@"10.15" toHooks:hooks];
         }
+        if([GPGMailBundle isMonterey]) {
+            [self applyHookChangesForVersion:@"12" toHooks:hooks];
+        }
         
 		_hooks = [NSDictionary dictionaryWithDictionary:hooks];
 	});
@@ -752,6 +780,9 @@
     }
     else if([osxVersion isEqualToString:@"10.15"]) {
         hookChanges = [self hookChangesForCatalina];
+    }
+    else if([osxVersion isEqualToString:@"12"]) {
+        hookChanges = [self hookChangesForMonterey];
     }
     
 	for(NSString *class in hookChanges) {

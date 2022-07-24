@@ -113,6 +113,9 @@
         item.keyEquivalentModifierMask = NSEventModifierFlagCommand | NSEventModifierFlagOption;
         NSString *accessibilityLabel = [NSString stringWithFormat:[GPGMailBundle localizedStringForKey:@"ACCESSIBILITY_SECURITY_METHOD_POPUP_LABEL"], method];
         item.accessibilityLabel = accessibilityLabel;
+		NSMutableAttributedString *title = [[NSMutableAttributedString alloc] initWithString:item.title];
+		[title addAttributes:@{NSForegroundColorAttributeName: [NSColor whiteColor]} range:NSMakeRange(0, [item.title length])];
+		item.attributedTitle = title;
     }
 }
 

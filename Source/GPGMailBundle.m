@@ -46,310 +46,11 @@
 #import "GMSecurityControl.h"
 #import "ComposeViewController.h"
 
+#import "NSObject+LPDynamicIvars.h"
+
 #import "GMSupportPlanManager.h"
 #import "GMSupportPlan.h"
 #import "GMLoaderUpdater.h"
-
-#import "PlugInsViewController.h"
-#import "MailBundle.h"
-
-#import "NSArray+Functional.h"
-
-@interface PlugInsViewController_GPGMail : NSObject
-
-@end
-
-@implementation PlugInsViewController_GPGMail
-
-- (void)MAViewWillAppear {
-    [self MAViewWillAppear];
-
-    // To facilitate a GPG Mail Loader update without asking the user
-    // to re-activate it, two GPG Mail Loaders will be installed in parallel.
-    // The user however should never see two loaders, since that would be confusing.
-    // In order to make sure that only one is ever visible, all other GPG Mail Loaders
-    // are hidden and only the active ones is shown.
-    NSArray *bundlesToRemainVisible = [[self valueForKey:@"_bundles"] filteredArrayUsingPredicate:[NSPredicate predicateWithBlock:^BOOL(MailBundle *mailBundle, __unused NSDictionary<NSString *,id> * _Nullable bindings) {
-        return ![GMLoaderUpdater isLoaderBundle:mailBundle] || [mailBundle state] == 2;
-    }]];
-
-    [self setValue:bundlesToRemainVisible forKey:@"_bundles"];
-    [[self valueForKey:@"_tableView"] reloadData];
-    [(PlugInsViewController *)self _updateApplyButton];
-}
-
-@end
-
-#import "NSObject+LPDynamicIvars.h"
-@interface CertificateBannerViewController_GPGMail : NSObject
-
-@end
-
-#import "MUIWebDocument.h"
-#import "WebDocumentGenerator.h"
-
-@interface CertificateBannerViewController_GPGMail (NotImplemented)
-
-- (id)webDocument;
-- (NSError *)parseError;
-- (void)setWantsDisplay:(BOOL)wantsDisplay;
-
-@end
-
-@implementation CertificateBannerViewController_GPGMail
-
-- (void)MAUpdateWantsDisplay {
-    // By default Mail.app only displays the error if it's a verification error.
-    // GPGMail however wants to display any error found during verification or decryption.
-    // In order to do that, if an error is found on the security properties of the
-    // message, it will force the error to be shown, regardless of error code (which is used by Mail's updateWantsDisplay to determine whether or not to show the banner)
-    // TODO: Figure out how to fix this for sierra!
-    NSError *error = [[self webDocument] smimeError];
-    if([error ivarExists:@"ParseErrorIsPGPError"]) {
-        [(NSButton *)[self valueForKey:@"_helpButton"] setHidden:YES];
-        [self setWantsDisplay:YES];
-    }
-    else {
-        [self MAUpdateWantsDisplay];
-    }
-}
-
-- (void)MAUpdateBannerContents {
-    // The help button of the certificate banner points
-    // to entries in Apple's help doc about S/MIME.
-    // Doesn't make sense for GPGMail to show it.
-    [self MAUpdateBannerContents];
-    NSError *error = [[self webDocument] smimeError];
-    if([error ivarExists:@"ParseErrorIsPGPError"]) {
-        [(NSButton *)[self valueForKey:@"_helpButton"] setHidden:YES];
-    }
-}
-
-@end
-
-@interface MUIWKWebViewController_GPGMail : NSObject
-
-- (id)representedObject;
-- (id)baseURL;
-
-@end
-
-@implementation MUIWKWebViewController_GPGMail
-- (void)MAWebView:(WKWebView *)webView
-decidePolicyForNavigationAction:(WKNavigationAction *)navigationAction
-decisionHandler:(void (^)(WKNavigationActionPolicy))decisionHandler {
-    // Bug #981: Efail
-    //
-    // By default macOS Mail allows HTML-Emails to contain HTML forms
-    // which can be submitted directly from the email.
-    // An attack has been shown, which uses mime part concatenation
-    // to wrap a form around legitimate encrypted content and uses
-    // CSS to make the entire email clickable and thus submitting the
-    // form.
-    //
-    // In order to mitigate against this attack in OpenPGP and S/MIME
-    // messages, form submission of any kind is disallowed within
-    // messages containing encrypted data.
-    //
-    // In order for S/MIME to be less broken, introduce a dialog
-    // asking the user if they really want to click on that link.
-    BOOL isEncrypted = [[self representedObject] isEncrypted];
-    BOOL isSMIMEEncrypted = isEncrypted && ![[self representedObject] getIvar:@"GMMessageSecurityFeatures"];
-
-    if(!isEncrypted) {
-        [self MAWebView:webView decidePolicyForNavigationAction:navigationAction decisionHandler:decisionHandler];
-        return;
-    }
-
-    // Ignore any form events.
-    if(navigationAction.navigationType == WKNavigationTypeFormSubmitted ||
-       navigationAction.navigationType == WKNavigationTypeFormResubmitted) {
-        decisionHandler(WKNavigationActionPolicyCancel);
-        return;
-    }
-
-    // Ignore any other events besides link clicks.
-    if(navigationAction.navigationType != WKNavigationTypeLinkActivated) {
-        [self MAWebView:webView decidePolicyForNavigationAction:navigationAction decisionHandler:decisionHandler];
-        return;
-    }
-
-    if(isSMIMEEncrypted) {
-        NSAlert *alert = [GPGMailBundle customAlert];
-        [alert setMessageText:[GPGMailBundle localizedStringForKey:@"NAVIGATION_ACTION_FROM_ENCRYPTED_MESSAGE_TITLE"]];
-        [alert setInformativeText:[NSString stringWithFormat:[GPGMailBundle localizedStringForKey:@"NAVIGATION_ACTION_FROM_ENCRYPTED_MESSAGE_MESSAGE"], navigationAction.request.URL]];
-        [alert addButtonWithTitle:[GPGMailBundle localizedStringForKey:@"NAVIGATION_ACTION_FROM_ENCRYPTED_MESSAGE_BUTTON_YES"]];
-        [alert addButtonWithTitle:[GPGMailBundle localizedStringForKey:@"NAVIGATION_ACTION_FROM_ENCRYPTED_MESSAGE_BUTTON_CANCEL"]];
-        [alert setAlertStyle:NSWarningAlertStyle];
-
-        [alert beginSheetModalForWindow:[(id)[(id)self view] window] completionHandler:^(NSModalResponse returnCode) {
-            if (returnCode == NSAlertSecondButtonReturn) {
-                decisionHandler(WKNavigationActionPolicyCancel);
-                return;
-            }
-            [self MAWebView:webView decidePolicyForNavigationAction:navigationAction decisionHandler:decisionHandler];
-        }];
-        return;
-    }
-
-    // Invoke original handler, otherwise no navigation action will work.
-    [self MAWebView:webView decidePolicyForNavigationAction:navigationAction decisionHandler:decisionHandler];
-}
-
-
-@end
-
-
-
-#import "MUIWKWebViewConfigurationManager.h"
-
-@interface _WKUserStyleSheet
-
-- (instancetype)initWithSource:(NSString *)source forMainFrameOnly:(BOOL)forMainFrameOnly;
-
-@end
-
-@interface WKUserContentController (Private)
-
-- (void)_addUserStyleSheet:(_WKUserStyleSheet *)userStyleSheet;
-
-@end
-
-@interface MUIWKWebViewConfigurationManager_GPGMail: NSObject
-@end
-
-@implementation MUIWKWebViewConfigurationManager_GPGMail
-
-- (id)MAInit {
-    id ret = [self MAInit];
-
-    WKUserScript *resizeScript = [[WKUserScript alloc] initWithSource:[NSString stringWithContentsOfURL:[[GPGMailBundle bundle] URLForResource:@"iframeResizer" withExtension:@"js"] encoding:NSUTF8StringEncoding error:nil] injectionTime:WKUserScriptInjectionTimeAtDocumentEnd forMainFrameOnly:YES];
-    WKUserScript *configureResizerScript = [[WKUserScript alloc] initWithSource:[NSString stringWithContentsOfURL:[[GPGMailBundle bundle] URLForResource:@"content-isolator" withExtension:@"js"] encoding:NSUTF8StringEncoding error:nil] injectionTime:WKUserScriptInjectionTimeAtDocumentEnd forMainFrameOnly:YES];
-    WKUserScript *iframeHeightScriptBegin = [[WKUserScript alloc] initWithSource:[NSString stringWithContentsOfURL:[[GPGMailBundle bundle] URLForResource:@"iframeResizer.contentWindow" withExtension:@"js"] encoding:NSUTF8StringEncoding error:nil] injectionTime:WKUserScriptInjectionTimeAtDocumentEnd forMainFrameOnly:NO];
-
-    [[[(MUIWKWebViewConfigurationManager *)ret configuration] userContentController] addUserScript:resizeScript];
-    [[[(MUIWKWebViewConfigurationManager *)ret configuration] userContentController] addUserScript:configureResizerScript];
-    [[[(MUIWKWebViewConfigurationManager *)ret configuration] userContentController] addUserScript:iframeHeightScriptBegin];
-
-    id styleSheet = [[NSClassFromString(@"_WKUserStyleSheet") alloc] initWithSource:[(MUIWKWebViewConfigurationManager *)self effectiveUserStyle] forMainFrameOnly:NO];
-    id styleSheet2 = [[NSClassFromString(@"_WKUserStyleSheet") alloc] initWithSource:[NSString stringWithContentsOfURL:[[GPGMailBundle bundle] URLForResource:@"content-isolator" withExtension:@"css"] encoding:NSUTF8StringEncoding error:nil] forMainFrameOnly:NO];
-
-    [[[(MUIWKWebViewConfigurationManager *)ret configuration] userContentController] _addUserStyleSheet:styleSheet];
-    [[[(MUIWKWebViewConfigurationManager *)ret configuration] userContentController] _addUserStyleSheet:styleSheet2];
-    return ret;
-}
-
-@end
-
-@interface MessageViewer_GPGMail : NSObject
-
-@end
-
-@implementation MessageViewer_GPGMail
-
-+ (void)MA_mailApplicationDidFinishLaunching:(id)object {
-    [self MA_mailApplicationDidFinishLaunching:object];
-
-    [GMLoaderUpdater updateLoaderIfNecessary];
-    [[GPGMailBundle sharedInstance] checkSupportContractAndStartWizardIfNecessary];
-}
-
-@end
-
-@interface MCMessageHeaders_GPGMail : NSObject
-
-@end
-
-@implementation MCMessageHeaders_GPGMail
-
-- (NSArray *)MAHeadersForKey:(NSString *)key {
-    NSArray *headers = [self MAHeadersForKey:key];
-    if([key isEqualToString:@"subject"]) {
-        // Bug #1001: Message might appear as signed even though it isn't by abusing the subject
-        //
-        // By using UTF-8 characters and new lines in a subject, it is possible for an attacker
-        // to trick an unsuspecting user into believing that a message is signed, even though
-        // it is not.
-        //
-        // Now macOS Mail is even particularly stupid and allows more than one Subject header
-        // and concatenates them splitted by new lines...
-        //
-        // To fix this, GPGMail only allows a single line subject.
-        NSString *subject = [headers count] ? headers[0] : nil;
-        if(![subject length]) {
-            return headers;
-        }
-        NSRange range = NSMakeRange(0, [subject length]);
-        __block NSString *firstSubjectLine = nil;
-        [subject enumerateSubstringsInRange:range
-                                   options:NSStringEnumerationByParagraphs
-                                usingBlock:^(NSString * _Nullable paragraph, NSRange paragraphRange, NSRange enclosingRange, BOOL * _Nonnull stop) {
-                                    firstSubjectLine = paragraph;
-                                    *stop = YES;
-                                }];
-        if(![firstSubjectLine length]) {
-            return headers;
-        }
-        return @[firstSubjectLine];
-    }
-    return headers;
-}
-
-@end
-
-@interface MailApp_GPGMail : NSObject
-
-- (void)MATabView:(id)tabView didSelectTabViewItem:(nullable NSTabViewItem *)tabViewItem;
-
-@end
-
-@implementation MailApp_GPGMail
-
-- (void)MATabView:(id)tabView didSelectTabViewItem:(nullable NSTabViewItem *)tabViewItem {
-    [self MATabView:tabView didSelectTabViewItem:tabViewItem];
-    if([[[tabViewItem viewController] representedObject] isKindOfClass:[GPGMailPreferences class]]) {
-        [[[tabViewItem viewController] representedObject] willBeDisplayed];
-    }
-}
-
-- (BOOL)MAHandleMailToURL:(NSString *)url {
-    NSRange activationDataRange = [url rangeOfString:@"mailto:gmsp-activate+"];
-    if(activationDataRange.location == NSNotFound) {
-        return [self MAHandleMailToURL:url];
-    }
-
-    NSString *activationData = [url substringFromIndex:activationDataRange.location + activationDataRange.length];
-    activationDataRange = [activationData rangeOfString:@"@support-plan.gpgtools.org"];
-
-    if(activationDataRange.location == NSNotFound) {
-        return YES;
-    }
-
-    activationData = [activationData substringWithRange:NSMakeRange(0, activationDataRange.location)];
-    // Re-convert to proper base64, since normal base64 couldn contain =+/ which are not allowed
-    // in email addresses.
-    activationData = [activationData stringByReplacingOccurrencesOfString:@"_-_" withString:@"/"];
-    activationData = [activationData stringByReplacingOccurrencesOfString:@"_" withString:@"="];
-    activationData = [activationData stringByReplacingOccurrencesOfString:@"-" withString:@"+"];
-
-    activationData = [activationData GMSP_base64Decode];
-
-    if(![activationData length]) {
-        return YES;
-    }
-
-    NSArray *activationComponents = [activationData componentsSeparatedByString:@":"];
-
-    if([activationComponents count] != 2) {
-        return YES;
-    }
-
-    [[GPGMailBundle sharedInstance] startSupportContractWizardWithActivationCode:activationComponents[0] email:activationComponents[1]];
-
-    return YES;
-}
-
-@end
 
 #import "GMSupportPlanAssistantWindowController.h"
 
@@ -674,6 +375,10 @@ static BOOL gpgMailWorks = NO;
 - (NSMutableSet *)signingKeyListForAddress:(NSString *)sender {
     if (!gpgMailWorks) return nil;
     
+    if([sender length] <= 0) {
+        return [NSMutableSet new];
+    }
+
     return [_keyManager signingKeyListForAddress:[sender gpgNormalizedEmail]];
 }
 
@@ -858,6 +563,12 @@ static BOOL gpgMailWorks = NO;
         return NO;
     
     NSOperatingSystemVersion requiredVersion = {10,15,0};
+    return [info isOperatingSystemAtLeastVersion:requiredVersion];
+}
+
++ (BOOL)isMonterey {
+    NSProcessInfo *info = [NSProcessInfo processInfo];
+    NSOperatingSystemVersion requiredVersion = {12,0,0};
     return [info isOperatingSystemAtLeastVersion:requiredVersion];
 }
 
@@ -1076,6 +787,21 @@ static BOOL gpgMailWorks = NO;
     }
 
     return alert;
+}
+
++ (NSString *)latestSupportedMacOSVersion {
+    NSDictionary *latestMacOSMap = @{
+        @"org.gpgtools.gpgmail": @"Mojave",
+        @"org.gpgtools.gpgmail4": @"Catalina",
+        @"org.gpgtools.gpgmail5": @"Big Sur",
+        @"org.gpgtools.gpgmail6": @"Monterey"
+    };
+
+    NSString *latestMacOSVersion = latestMacOSMap[[[GPGMailBundle bundle] bundleIdentifier]];
+
+    NSAssert(latestMacOSVersion != nil, @"Adjust for latest macOS version!");
+
+    return latestMacOSVersion;
 }
 
 @end

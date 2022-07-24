@@ -15,6 +15,7 @@
 #import <Libmacgpg/Libmacgpg.h>
 #import <Libmacgpg/GPGTaskHelperXPC.h>
 
+NSString * const kGMSupportPlanAPIVersion = @"1.2";
 #ifdef DEBUG
 NSString * const kGMSupportPlanManagerPublicCertificate = @"MIIEWjCCAsKgAwIBAgIUBpfAcF0mUJQIT4tAmfPWMYIUrP4wDQYJKoZIhvcNAQELBQAwXjELMAkGA1UEBhMCQVQxEDAOBgNVBAgMB0F1c3RyaWExDzANBgNVBAcMBlZpZW5uYTEWMBQGA1UECgwNR1BHVG9vbHMgR21iSDEUMBIGA1UEAwwLR1BHVG9vbHMgQ0EwHhcNMTkxMTEwMDEyMDQyWhcNMjQxMTA4MDEyMDQyWjBeMQswCQYDVQQGEwJBVDEQMA4GA1UECAwHQXVzdHJpYTEPMA0GA1UEBwwGVmllbm5hMRYwFAYDVQQKDA1HUEdUb29scyBHbWJIMRQwEgYDVQQDDAtHUEdUb29scyBDQTCCAaIwDQYJKoZIhvcNAQEBBQADggGPADCCAYoCggGBAMA9jImqn9peLMKDJESzKvEpsDnjsiUXQdQucd7jFA7k5coSfrnpSvNVWh4n4vQy4GnEgzjnVR5nzxCOs4bMWGT6oSBHyqYhVMRV0x8WpA9fcMH0O/IYBtFGXX2BCnIXeqeIYbgaQ+3rlopjAiv78EJ3lWrTmjQNBFHqipem1qdbfPur+3ELssl6hHojz/JzW7FkS2P3/++6SHsBBMD+gHQp4R3IyGmPM6YAkFSeuxtA/Z3bK7bogtuPV8DXIT7sqK66f8P0dD8cKmEWKeaub41YxDeNR9wa0KBuTIdjzkeXFloBK7uzu54AvWM3sSJdGJ8UBdXJIf+pMV+qeY/CrPwcFiRdOwDRyia//UsPUYkthtCI9dARlMlvdmZ+OJZePI5nbfxnrqBQKWAhknCwcKG9/UYf3PeJpHM0cVvvF+LK1KQ3rZlFzN+KplLB2fL5AZEgObKbv7IAc3uqPjKqEXdgwBnHsKFCwLHX8x16KiMP4sNm9rZ5+juS3l+DJYYW/QIDAQABoxAwDjAMBgNVHRMBAf8EAjAAMA0GCSqGSIb3DQEBCwUAA4IBgQAoebPba0MdlfAfDKbhxySSayBHY7uPG2RS7EA0JKthV77cZZQ5kl+JikubAEZ4inIj7rOkHcrk5vnGAoZpUpNKAGdUjPUKIFEibljivy7Wu4Zlq7xH7Qa8qJq5AF4sqpiLq59kY4jfXMlpO79TqL3g3jxYkEgMn9CYclTsa+7XlyteVaU+xUf3mgku1xpUj3/EYiKDJqx2nZYPyqD/yhTSIVF97CURKyJ30ErrOSJQvcCkenUkglPzr/ksMaQm8lcTVnat4NIwrkplsgN32x/5M9MonVMd5aSJEnaudEqUt4oDKhujYZsQVUF7rp/RMdhldErpodwaVcFHTiH9cpw0F15w3jLuGkyqbZmwRnwEJUZVx0HYza8qW+I4sMSw1JOkfgVKD776aBTZ96EqKx8e+zwcwcWLT0KWXv5JgEmqVyTJlfdYcns3tFzTmqqzgk7qJ/zOs4EJD0zrsPVTP+3jQjLSOlzIXdpMEDIe63qmq1KHVfyyHZdnbidN7PE/pAM=";
 #else
@@ -38,9 +39,9 @@ NSString * const kGMSupportPlanManagerFallbackTrial = GMSPStringFromPreprocessor
 #endif
 
 #if defined(DEBUG) && defined(DEBUG_ACTIVATION_SERVER)
-NSString * const kGMSupportPlanManagerAPIEndpointURL = @"http://localhost:8000/api/v1.1/support-plans";
+NSString * const kGMSupportPlanManagerAPIEndpointURL = @"http://localhost:8000/api/v%@/support-plans";
 #else
-NSString * const kGMSupportPlanManagerAPIEndpointURL = @"https://support-plan.gpgtools.org/api/v1.1/support-plans";
+NSString * const kGMSupportPlanManagerAPIEndpointURL = @"https://support-plan.gpgtools.org/api/v%@/support-plans";
 #endif
 NSString * const kGMSupportPlanManagerActivationDirectory = @"org.gpgtools.gmsp";
 NSString * const kGMSupportPlanManagerActivationFile = @".%@.gmsp";
@@ -116,7 +117,7 @@ extern NSString * const GMSupportPlanRefreshTypeOffline;
 
 - (instancetype)initWithApplicationID:(NSString *)applicationID applicationInfo:(NSDictionary *)applicationInfo {
     if((self = [super init])) {
-        _endpointURL = [[NSURL alloc] initWithString:kGMSupportPlanManagerAPIEndpointURL];
+        _endpointURL = [[self class] endpointURL];
         _applicationID = [applicationID copy];
         _applicationInfo = [applicationInfo copy];
         _currentDevice = [GMDevice currentDeviceWithApplicationInfo:applicationInfo];
@@ -155,6 +156,15 @@ extern NSString * const GMSupportPlanRefreshTypeOffline;
     return self;
 }
 
++ (NSURL *)endpointURL {
+    NSString *overrideEndpointURL = [[GPGOptions sharedOptions] valueForKey:@"SimulateSupportPlanEndpointURL"];
+    if(overrideEndpointURL) {
+        return [[NSURL alloc] initWithString:overrideEndpointURL];
+    }
+    NSString *endpointURL = [NSString stringWithFormat:kGMSupportPlanManagerAPIEndpointURL, kGMSupportPlanAPIVersion];
+
+    return [[NSURL alloc] initWithString:endpointURL];
+}
 
 - (GMSupportPlan *)supportPlanFromData:(NSData *)data {
     if([data length]) {
@@ -169,10 +179,34 @@ extern NSString * const GMSupportPlanRefreshTypeOffline;
     return [self supportPlanFromData:activationData];
 }
 
+- (NSArray *)applicationIDsForVersionsBeforeApplicationID:(NSString *)applicationID {
+	if([applicationID length] < [kGMSupportPlanManagerBundleIDPrefix length]) {
+		return @[];
+    }
+	NSMutableArray *applicationIDs = [NSMutableArray new];
+	NSString *applicationIDVersion = [applicationID substringFromIndex:[kGMSupportPlanManagerBundleIDPrefix length]];
+	if([applicationIDVersion integerValue] < 3) {
+    	return @[];
+	}
+	for(NSInteger i = 3; i < [applicationIDVersion integerValue]; i++) {
+		if(i == 3) {
+            [applicationIDs addObject:kGMSupportPlanManagerBundleIDPrefix];
+		}
+        else {
+            [applicationIDs addObject:[NSString stringWithFormat:@"%@%ld", kGMSupportPlanManagerBundleIDPrefix, i]];
+        }
+	}
+
+	return applicationIDs;
+}
+
 - (void)loadSupportPlans {
     NSMutableArray <GMSupportPlan *> *supportPlans = [NSMutableArray new];
-    NSSet *appNames = [NSSet setWithArray:@[@"org.gpgtools.gpgmail", @"org.gpgtools.gpgmail4", _applicationID]];
-    for(NSString *appName in [appNames allObjects]) {
+    NSMutableArray *knownApplicationIDs = [NSMutableArray new];
+    [knownApplicationIDs addObjectsFromArray:[self applicationIDsForVersionsBeforeApplicationID:_applicationID]];
+    [knownApplicationIDs addObject:_applicationID];
+
+    for(NSString *appName in knownApplicationIDs) {
         GMSupportPlan *supportPlan = [self supportPlanWithActivationFilePath:[[self activationFileURLForApplicationID:appName] path]];
         // Support plans with an invalid signature can easily be ignored.
         if(![supportPlan isSignatureValid] || ![supportPlan isDeviceValid]) {
@@ -681,6 +715,7 @@ extern NSString * const GMSupportPlanRefreshTypeOffline;
     return [self upgradeState] != GMSupportPlanManagerUpgradeStateVersionSupported;
 }
 
+// Adjust for new versions.
 - (GMSupportPlanManagerUpgradeState)upgradeState {
     // If this is version three, there's never a need to display the upgrade dialog,
     // since that only gets loaded if the user chose to keep GPG Mail 3.
@@ -706,7 +741,7 @@ extern NSString * const GMSupportPlanRefreshTypeOffline;
     // display a keep or upgrade dialog in order to let users continue using the GPG Mail
     // version, their GPG Mail Plan supports.
     // Mojave+ is compatible with all 3 versions.
-    NSMutableArray *supportedVersions = [NSMutableArray arrayWithObjects:@"3", @"4", @"5", nil];
+    NSMutableArray *supportedVersions = [NSMutableArray arrayWithObjects:@"3", @"4", @"5", @"6", nil];
     // Catalina+ is compatible with 4 or 5.
     if([[NSProcessInfo processInfo] isOperatingSystemAtLeastVersion:(NSOperatingSystemVersion){10,15,0}]) {
         [supportedVersions removeObject:@"3"];
@@ -715,6 +750,10 @@ extern NSString * const GMSupportPlanRefreshTypeOffline;
     if([[NSProcessInfo processInfo] isOperatingSystemAtLeastVersion:(NSOperatingSystemVersion){10,16,0}] ||
        [[NSProcessInfo processInfo] isOperatingSystemAtLeastVersion:(NSOperatingSystemVersion){11,0,0}]) {
         [supportedVersions removeObject:@"4"];
+    }
+	// Monterey is compatible with 6 only.
+    if([[NSProcessInfo processInfo] isOperatingSystemAtLeastVersion:(NSOperatingSystemVersion){12,0,0}]) {
+        [supportedVersions removeObject:@"5"];
     }
 #ifdef DEBUG
     if([[[GPGOptions sharedOptions] valueForKey:@"SimulateSupportedVersions"] count]) {
